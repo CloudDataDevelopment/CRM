@@ -1,0 +1,397 @@
+/* ============================================ */
+/* LEAD DETAILS - Estilos específicos           */
+/* ============================================ */
+
+.lead-details {
+    background: #f8f9fc;
+    min-height: calc(100vh - 100px);
+    padding: 20px 0;
+}
+
+.lead-details-container {
+    max-width: 1400px;
+    margin: 0 auto;
+    padding: 0 15px;
+}
+
+/* ============================================ */
+/* HEADER                                       */
+/* ============================================ */
+
+.lead-details .leads-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    padding-bottom: 15px;
+    margin-bottom: 20px;
+    border-bottom: 2px solid #e9ecef;
+    flex-wrap: wrap;
+    gap: 10px;
+}
+
+.lead-details .leads-header .breadcrumb-custom {
+    font-size: 0.75rem;
+    color: #6c757d;
+    margin-bottom: 5px;
+}
+
+.lead-details .leads-header .breadcrumb-custom .separator {
+    margin: 0 6px;
+    color: #adb5bd;
+}
+
+.lead-details .leads-header .breadcrumb-custom .current {
+    color: #000000;
+    font-weight: 600;
+}
+
+.lead-details .leads-header .page-title {
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: #2c3e50;
+    margin: 0;
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 8px;
+}
+
+.lead-details .leads-header .page-title small {
+    font-size: 0.75rem;
+    font-weight: 400;
+    color: #6c757d;
+    margin-left: 5px;
+}
+
+.lead-details .leads-header .header-actions {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+    align-items: center;
+    flex-shrink: 0;
+}
+
+.lead-details .leads-header .header-actions .btn {
+    min-width: 80px;
+    text-align: center;
+    padding: 6px 16px;
+    border-radius: 6px;
+    font-size: 0.8rem;
+    transition: all 0.3s ease;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+}
+
+/* ============================================ */
+/* TARJETAS                                     */
+/* ============================================ */
+
+.details-card {
+    border: 2px solid #000000 !important;
+    border-radius: 10px;
+    overflow: hidden;
+    background: #ffffff;
+    box-shadow: 0 1px 8px rgba(0, 0, 0, 0.05);
+    margin-bottom: 0;
+}
+
+.details-card .card-header {
+    background: #f8f9fa;
+    border-bottom: 1px solid #e9ecef;
+    padding: 10px 15px;
+}
+
+.details-card .card-header h5 {
+    font-size: 14px;
+    font-weight: 600;
+}
+
+.details-card .card-body {
+    padding: 15px;
+}
+
+/* ============================================ */
+/* PERFIL                                       */
+/* ============================================ */
+
+.profile-avatar-large {
+    font-size: 72px;
+    color: #4e73df;
+    display: block;
+}
+
+.profile-avatar-large i {
+    display: block;
+}
+
+.profile-name-large {
+    font-size: 20px;
+    font-weight: 600;
+    color: #1a2332;
+}
+
+.profile-phone-large {
+    font-size: 14px;
+    color: #6c757d;
+}
+
+.profile-actions-large {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    justify-content: center;
+    margin-top: 10px;
+}
+
+.profile-actions-large .btn {
+    font-size: 12px;
+    padding: 4px 12px;
+}
+
+/* ============================================ */
+/* INFORMACIÓN                                  */
+/* ============================================ */
+
+.info-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 8px 15px;
+}
+
+.info-item {
+    display: flex;
+    flex-direction: column;
+    padding: 4px 0;
+    border-bottom: 1px solid #f5f6f8;
+}
+
+.info-item-full {
+    grid-column: 1 / -1;
+}
+
+.info-item .info-label {
+    font-size: 11px;
+    color: #8a94a6;
+    font-weight: 500;
+}
+
+.info-item .info-label i {
+    width: 16px;
+    margin-right: 4px;
+    font-size: 11px;
+}
+
+.info-item .info-value {
+    font-size: 13px;
+    color: #1a2332;
+    font-weight: 500;
+    margin-top: 2px;
+    word-break: break-word;
+}
+
+/* ============================================ */
+/* ESTADÍSTICAS                                 */
+/* ============================================ */
+
+.stats-grid-large {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 10px;
+}
+
+.stat-item-large {
+    text-align: center;
+    padding: 8px;
+    background: #f8f9fa;
+    border-radius: 8px;
+}
+
+.stat-item-large .stat-number {
+    font-size: 24px;
+    font-weight: 700;
+    color: #1a2332;
+}
+
+.stat-item-large .stat-label {
+    font-size: 10px;
+    color: #6c757d;
+    text-transform: uppercase;
+    letter-spacing: 0.3px;
+}
+
+/* ============================================ */
+/* TABLAS                                       */
+/* ============================================ */
+
+.details-table {
+    font-size: 13px;
+}
+
+.details-table thead th {
+    font-size: 10px;
+    text-transform: uppercase;
+    letter-spacing: 0.3px;
+    padding: 8px 12px;
+    background: #f8f9fa;
+    border-bottom: 2px solid #e9ecef;
+}
+
+.details-table tbody td {
+    padding: 8px 12px;
+    vertical-align: middle;
+}
+
+.details-table tbody tr:hover {
+    background: #f8f9fa;
+}
+
+.details-table .badge {
+    font-size: 10px;
+    padding: 3px 10px;
+}
+
+/* ============================================ */
+/* BOTONES DE ACCIÓN                            */
+/* ============================================ */
+
+.btn-action {
+    padding: 0.1rem 0.35rem !important;
+    font-size: 0.55rem !important;
+    border-radius: 4px;
+    transition: all 0.2s ease;
+    width: 28px;
+    height: 28px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    border: none;
+}
+
+.btn-action:hover {
+    transform: scale(1.05);
+}
+
+/* ============================================ */
+/* RESPONSIVE                                   */
+/* ============================================ */
+
+@media (max-width: 992px) {
+    .lead-details .leads-header {
+        flex-direction: column;
+        align-items: stretch;
+    }
+    
+    .lead-details .leads-header .header-actions {
+        justify-content: flex-start;
+        flex-wrap: wrap;
+    }
+    
+    .lead-details .leads-header .header-actions .btn {
+        min-width: 60px;
+        font-size: 0.7rem;
+        padding: 4px 10px;
+    }
+}
+
+@media (max-width: 768px) {
+    .lead-details {
+        padding: 10px 0;
+    }
+    
+    .lead-details-container {
+        padding: 0 10px;
+    }
+    
+    .lead-details .leads-header .page-title {
+        font-size: 1.2rem;
+    }
+    
+    .lead-details .leads-header .page-title .badge {
+        font-size: 11px;
+        padding: 2px 10px;
+    }
+    
+    .info-grid {
+        grid-template-columns: 1fr;
+    }
+    
+    .stats-grid-large {
+        grid-template-columns: repeat(3, 1fr);
+        gap: 6px;
+    }
+    
+    .stat-item-large .stat-number {
+        font-size: 18px;
+    }
+    
+    .profile-avatar-large {
+        font-size: 56px;
+    }
+    
+    .profile-name-large {
+        font-size: 17px;
+    }
+    
+    .details-table {
+        font-size: 12px;
+    }
+    
+    .details-table thead th {
+        font-size: 9px;
+        padding: 6px 8px;
+    }
+    
+    .details-table tbody td {
+        padding: 6px 8px;
+    }
+    
+    .details-card .card-header h5 {
+        font-size: 13px;
+    }
+}
+
+@media (max-width: 576px) {
+    .lead-details .leads-header .header-actions .btn {
+        min-width: 50px;
+        font-size: 0.65rem;
+        padding: 3px 8px;
+    }
+    
+    .lead-details .leads-header .header-actions .btn i {
+        font-size: 0.7rem;
+    }
+    
+    .profile-actions-large .btn {
+        font-size: 10px;
+        padding: 3px 8px;
+    }
+    
+    .stats-grid-large {
+        grid-template-columns: repeat(2, 1fr);
+    }
+    
+    .stat-item-large .stat-number {
+        font-size: 16px;
+    }
+    
+    .details-table {
+        font-size: 10px;
+    }
+    
+    .details-table thead th {
+        font-size: 8px;
+        padding: 4px 6px;
+    }
+    
+    .details-table tbody td {
+        padding: 4px 6px;
+    }
+    
+    .btn-action {
+        width: 22px;
+        height: 22px;
+        font-size: 0.45rem !important;
+    }
+}

@@ -1,0 +1,688 @@
+/* ============================================
+   CONTACTS - Estilos principales optimizados
+   Basado en el diseño de Leads
+   ============================================ */
+
+/* ============================================ */
+/* CONTENEDOR PRINCIPAL                        */
+/* ============================================ */
+
+.contacts-wrapper {
+    background: #ffffff;
+    border-radius: 12px;
+    padding: 20px 25px 25px 25px;
+    box-shadow: 0 2px 12px rgba(0, 0, 0, 0.08);
+    border: none;
+}
+
+/* ============================================ */
+/* HEADER                                       */
+/* ============================================ */
+
+.contacts-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    padding-bottom: 15px;
+    margin-bottom: 20px;
+    border-bottom: 2px solid #e9ecef;
+}
+
+.contacts-header .breadcrumb-custom {
+    font-size: 0.75rem;
+    color: #6c757d;
+    margin-bottom: 5px;
+}
+
+.contacts-header .breadcrumb-custom .separator {
+    margin: 0 6px;
+    color: #adb5bd;
+}
+
+.contacts-header .breadcrumb-custom .current {
+    color: #000000;
+    font-weight: 600;
+}
+
+.contacts-header .page-title {
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: #2c3e50;
+    margin: 0;
+}
+
+.contacts-header .page-title small {
+    font-size: 0.75rem;
+    font-weight: 400;
+    color: #6c757d;
+    margin-left: 10px;
+}
+
+.contacts-header .header-actions {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+    align-items: center;
+}
+
+/* ============================================ */
+/* BOTONES EN HEADER - MISMO TAMAÑO            */
+/* ============================================ */
+
+.btn-header-action {
+    min-width: 120px;
+    text-align: center;
+    padding: 6px 16px;
+    border-radius: 6px;
+    font-size: 0.8rem;
+    transition: all 0.3s ease;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+}
+
+.btn-header-action i { font-size: 0.85rem; }
+
+.btn-outline-info.btn-header-action {
+    background: transparent !important;
+    border: 1px solid #17a2b8 !important;
+    color: #17a2b8 !important;
+}
+
+.btn-outline-info.btn-header-action:hover {
+    background: #17a2b8 !important;
+    color: #ffffff !important;
+}
+
+.btn-primary.btn-header-action {
+    background: #0a48e2 !important;
+    border-color: #0a48e2 !important;
+    color: #ffffff !important;
+}
+
+.btn-primary.btn-header-action:hover {
+    background: #245eff !important;
+    border-color: #245eff !important;
+}
+
+/* ============================================ */
+/* TARJETAS DE ESTADÍSTICAS (MÉTRICAS)        */
+/* ============================================ */
+
+.dashboard-card {
+    border: 2px solid #000 !important;
+    border-radius: 10px;
+    box-shadow: 0 1px 8px rgba(0,0,0,0.05);
+    transition: all 0.3s ease;
+    overflow: hidden;
+    background: #fff;
+}
+
+.dashboard-card:hover {
+    box-shadow: 0 3px 15px rgba(0,0,0,0.08);
+}
+
+.stat-card {
+    border: 2px solid #000 !important;
+    border-radius: 10px;
+    transition: all 0.3s ease;
+    cursor: default;
+    overflow: hidden;
+    position: relative;
+    background: #fff !important;
+    border-left: 3px solid transparent;
+    min-height: 60px;
+    max-height: 60px;
+}
+
+.stat-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 15px rgba(0,0,0,0.08) !important;
+}
+
+.stat-card .card-body {
+    padding: 0.2rem 0.5rem !important;
+}
+
+.stat-card .stat-icon {
+    width: 24px;
+    height: 24px;
+    border-radius: 6px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.7rem;
+    flex-shrink: 0;
+    transition: all 0.3s ease;
+}
+
+.stat-card:hover .stat-icon {
+    transform: scale(1.05);
+}
+
+.stat-card .stat-number {
+    font-size: 1rem;
+    font-weight: 700;
+    line-height: 1.1;
+    margin-bottom: 0px;
+}
+
+.stat-card .stat-label {
+    font-size: 0.5rem;
+    text-transform: uppercase;
+    letter-spacing: 0.3px;
+    font-weight: 600;
+    margin-bottom: 0px;
+}
+
+/* Colores de tarjetas */
+.stat-card-primary { background: #fff !important; border-left-color: #4e73df; }
+.stat-card-primary .stat-icon { background: rgba(78,115,223,0.12); color: #4e73df; }
+.stat-card-primary .stat-number { color: #4e73df; }
+
+.stat-card-success { background: #fff !important; border-left-color: #1cc88a; }
+.stat-card-success .stat-icon { background: rgba(28,200,138,0.12); color: #1cc88a; }
+.stat-card-success .stat-number { color: #1cc88a; }
+
+.stat-card-warning { background: #fff !important; border-left-color: #f6c23e; }
+.stat-card-warning .stat-icon { background: rgba(246,194,62,0.12); color: #f6c23e; }
+.stat-card-warning .stat-number { color: #f6c23e; }
+
+.stat-card-info { background: #fff !important; border-left-color: #36b9cc; }
+.stat-card-info .stat-icon { background: rgba(54,185,204,0.12); color: #36b9cc; }
+.stat-card-info .stat-number { color: #36b9cc; }
+
+.stat-card-purple { background: #fff !important; border-left-color: #8B5CF6; }
+.stat-card-purple .stat-icon { background: rgba(139,92,246,0.12); color: #8B5CF6; }
+.stat-card-purple .stat-number { color: #8B5CF6; }
+
+.stat-card-danger { background: #fff !important; border-left-color: #dc3545; }
+.stat-card-danger .stat-icon { background: rgba(220,53,69,0.12); color: #dc3545; }
+.stat-card-danger .stat-number { color: #dc3545; }
+
+.stat-card-secondary { background: #fff !important; border-left-color: #6c757d; }
+.stat-card-secondary .stat-icon { background: rgba(108,117,125,0.12); color: #6c757d; }
+.stat-card-secondary .stat-number { color: #6c757d; }
+
+/* ============================================ */
+/* FILTROS                                      */
+/* ============================================ */
+
+.filtros-card {
+    border: 2px solid #000 !important;
+    border-radius: 10px;
+    overflow: hidden;
+    background: #ffffff;
+}
+
+.filtros-card .card-body {
+    padding: 12px 15px;
+}
+
+.filtros-card .form-control,
+.filtros-card .form-select {
+    border-radius: 6px;
+    font-size: 0.85rem;
+    padding: 6px 12px;
+}
+
+.filtros-card .form-control:focus,
+.filtros-card .form-select:focus {
+    border-color: #0B3192;
+    box-shadow: 0 0 0 3px rgba(11,49,146,0.1);
+}
+
+/* ============================================ */
+/* TABLA                                        */
+/* ============================================ */
+
+.table-card {
+    border: 2px solid #000 !important;
+    border-radius: 10px;
+    overflow: hidden;
+    background: #ffffff;
+    box-shadow: 0 1px 8px rgba(0,0,0,0.05);
+}
+
+.table-card .card-header {
+    background: #f8f9fa;
+    padding: 0.6rem 0.9rem;
+    border-bottom: 2px solid #000;
+    font-weight: 600;
+    font-size: 0.75rem;
+    color: #2c3e50;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+}
+
+.table-card .card-header .header-left {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.table-card .card-header .header-left i {
+    font-size: 0.8rem;
+    flex-shrink: 0;
+}
+
+.table-card .card-header .badge {
+    font-size: 0.6rem !important;
+    padding: 0.15rem 0.5rem !important;
+}
+
+.table-card .card-footer {
+    background: #f8f9fa;
+    padding: 8px 15px;
+    border-top: 1px solid #e9ecef;
+}
+
+.table-card .table {
+    font-size: 0.85rem;
+    margin-bottom: 0;
+}
+
+.table-card .table thead th {
+    font-size: 0.75rem;
+    text-transform: uppercase;
+    letter-spacing: 0.3px;
+    padding: 10px 12px;
+    border-bottom: 2px solid #e9ecef;
+    background: #f8f9fa;
+}
+
+.table-card .table thead th a {
+    color: #495057;
+    text-decoration: none;
+}
+
+.table-card .table thead th a:hover {
+    color: #0a48e2;
+}
+
+.table-card .table tbody td {
+    padding: 8px 12px;
+    vertical-align: middle;
+}
+
+.table-card .table tbody tr:hover {
+    background: #f8f9fa;
+    cursor: pointer;
+}
+
+.table-card .badge {
+    font-size: 0.65rem;
+    padding: 4px 10px;
+    border-radius: 10px;
+}
+
+/* ============================================ */
+/* PAGINACIÓN                                  */
+/* ============================================ */
+
+.pagination {
+    margin-bottom: 0;
+}
+
+.pagination .page-link {
+    font-size: 0.75rem;
+    padding: 4px 10px;
+    color: #0a48e2;
+    border-color: #dee2e6;
+}
+
+.pagination .page-link:hover {
+    background: #e7f1ff;
+    color: #0a48e2;
+}
+
+.pagination .active .page-link {
+    background: #0a48e2;
+    border-color: #0a48e2;
+    color: #fff;
+}
+
+.pagination .disabled .page-link {
+    color: #adb5bd;
+}
+
+/* ============================================ */
+/* BOTONES DE ACCIÓN                           */
+/* ============================================ */
+
+.btn-action {
+    padding: 0.1rem 0.35rem !important;
+    font-size: 0.55rem !important;
+    border-radius: 4px;
+    transition: all 0.2s ease;
+    width: 28px;
+    height: 28px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    border: none;
+}
+
+.btn-action:hover {
+    transform: scale(1.05);
+}
+
+.btn-action.btn-view {
+    background: #ebf5ff;
+    color: #3b82f6;
+}
+
+.btn-action.btn-view:hover {
+    background: #3b82f6;
+    color: white;
+}
+
+.btn-action.btn-edit {
+    background: #fef3c7;
+    color: #d97706;
+}
+
+.btn-action.btn-edit:hover {
+    background: #d97706;
+    color: white;
+}
+
+.btn-action.btn-delete {
+    background: #fde8e8;
+    color: #dc2626;
+}
+
+.btn-action.btn-delete:hover {
+    background: #dc2626;
+    color: white;
+}
+
+/* ============================================ */
+/* PANEL LATERAL                               */
+/* ============================================ */
+
+.slide-panel-card {
+    border: 2px solid #000 !important;
+    border-radius: 10px;
+    overflow: hidden;
+    height: 100%;
+    min-height: 400px;
+    background: #ffffff;
+    box-shadow: 0 1px 8px rgba(0,0,0,0.05);
+}
+
+.slide-panel-card .card-body {
+    padding: 0;
+    height: 100%;
+}
+
+/* ============================================ */
+/* PANEL CONTAINER                             */
+/* ============================================ */
+
+.panel-container {
+    display: flex;
+    flex-wrap: nowrap;
+    gap: 0;
+    width: 100%;
+    position: relative;
+    transition: all 0.4s ease;
+}
+
+.table-wrapper {
+    flex: 0 0 100%;
+    max-width: 100%;
+    transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+    padding-right: 0;
+}
+
+.table-wrapper.with-panel {
+    flex: 0 0 66.66666667%;
+    max-width: 66.66666667%;
+    padding-right: 15px;
+}
+
+.panel-wrapper {
+    flex: 0 0 0%;
+    max-width: 0%;
+    display: none;
+    transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+    overflow: hidden;
+    padding-left: 0;
+}
+
+.panel-wrapper.visible {
+    display: block !important;
+    flex: 0 0 33.33333333%;
+    max-width: 33.33333333%;
+    padding-left: 15px;
+    animation: slideIn 0.4s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+}
+
+.panel-wrapper.closing {
+    animation: slideOut 0.3s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+}
+
+/* ============================================ */
+/* ANIMACIONES                                  */
+/* ============================================ */
+
+@keyframes slideIn {
+    from { opacity: 0; transform: translateX(30px); }
+    to { opacity: 1; transform: translateX(0); }
+}
+
+@keyframes slideOut {
+    from { opacity: 1; transform: translateX(0); }
+    to { opacity: 0; transform: translateX(30px); }
+}
+
+@keyframes fadeInUp {
+    from { opacity: 0; transform: translateY(10px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+.dashboard-card {
+    animation: fadeInUp 0.4s ease forwards;
+    opacity: 0;
+}
+
+.dashboard-card:nth-child(1) { animation-delay: 0.05s; }
+.dashboard-card:nth-child(2) { animation-delay: 0.10s; }
+.dashboard-card:nth-child(3) { animation-delay: 0.15s; }
+
+/* ============================================ */
+/* CONTACT ROW SELECTED                        */
+/* ============================================ */
+
+.contact-row {
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.contact-row:hover {
+    background: #e8f0fe !important;
+    transform: scale(1.01);
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+}
+
+.contact-row-selected {
+    background: #e3f2fd !important;
+    border-left: 3px solid #0B3192;
+    transform: scale(1.02);
+    box-shadow: 0 2px 12px rgba(11, 49, 146, 0.15);
+}
+
+/* ============================================ */
+/* ALERTAS                                      */
+/* ============================================ */
+
+.alert {
+    border-radius: 8px;
+    font-size: 0.85rem;
+}
+
+.alert i {
+    margin-right: 8px;
+}
+
+/* ============================================ */
+/* SCROLL PERSONALIZADO                        */
+/* ============================================ */
+
+.activities-list::-webkit-scrollbar,
+.table-responsive::-webkit-scrollbar,
+.slide-panel-body::-webkit-scrollbar,
+.edit-panel-body::-webkit-scrollbar {
+    width: 4px;
+    height: 5px;
+}
+
+.activities-list::-webkit-scrollbar-track,
+.table-responsive::-webkit-scrollbar-track,
+.slide-panel-body::-webkit-scrollbar-track,
+.edit-panel-body::-webkit-scrollbar-track {
+    background: #f1f1f1;
+}
+
+.activities-list::-webkit-scrollbar-thumb,
+.table-responsive::-webkit-scrollbar-thumb,
+.slide-panel-body::-webkit-scrollbar-thumb,
+.edit-panel-body::-webkit-scrollbar-thumb {
+    background: #c1c7cd;
+    border-radius: 4px;
+}
+
+.activities-list::-webkit-scrollbar-thumb:hover,
+.table-responsive::-webkit-scrollbar-thumb:hover,
+.slide-panel-body::-webkit-scrollbar-thumb:hover,
+.edit-panel-body::-webkit-scrollbar-thumb:hover {
+    background: #a8b0b8;
+}
+
+/* ============================================ */
+/* RESPONSIVE                                  */
+/* ============================================ */
+
+@media (max-width: 992px) {
+    .stat-card {
+        min-height: 55px;
+        max-height: 55px;
+    }
+    .stat-card .stat-icon {
+        width: 20px;
+        height: 20px;
+        font-size: 0.6rem;
+    }
+    .stat-card .stat-number {
+        font-size: 0.9rem;
+    }
+    .table-wrapper.with-panel {
+        flex: 0 0 100% !important;
+        max-width: 100% !important;
+        padding-right: 0 !important;
+    }
+    .panel-wrapper.visible {
+        flex: 0 0 100% !important;
+        max-width: 100% !important;
+        padding-left: 0 !important;
+        margin-top: 15px;
+    }
+    .panel-wrapper .slide-panel-card {
+        min-height: 300px;
+    }
+    @keyframes slideIn {
+        from { opacity: 0; transform: translateY(20px); }
+        to { opacity: 1; transform: translateY(0); }
+    }
+    @keyframes slideOut {
+        from { opacity: 1; transform: translateY(0); }
+        to { opacity: 0; transform: translateY(20px); }
+    }
+}
+
+@media (max-width: 768px) {
+    .contacts-wrapper {
+        padding: 15px;
+        border-radius: 10px;
+    }
+    .contacts-header {
+        flex-direction: column;
+        align-items: stretch;
+        gap: 10px;
+    }
+    .contacts-header .page-title {
+        font-size: 1.2rem;
+    }
+    .contacts-header .page-title small {
+        display: block;
+        margin-left: 0;
+        margin-top: 2px;
+        font-size: 0.7rem;
+    }
+    .stat-card {
+        min-height: 50px;
+        max-height: 50px;
+    }
+    .stat-card .stat-number {
+        font-size: 0.85rem !important;
+    }
+    .stat-card .stat-icon {
+        width: 18px !important;
+        height: 18px !important;
+        font-size: 0.55rem !important;
+    }
+    .stat-card .stat-label {
+        font-size: 0.45rem !important;
+    }
+    .btn-header-action {
+        min-width: 100px;
+        font-size: 0.7rem;
+        padding: 5px 12px;
+    }
+    .panel-wrapper .slide-panel-card {
+        min-height: 250px;
+    }
+}
+
+@media (max-width: 576px) {
+    .contacts-wrapper {
+        padding: 10px;
+        border-radius: 8px;
+    }
+    .contacts-header .page-title {
+        font-size: 1rem;
+    }
+    .contacts-header .breadcrumb-custom {
+        font-size: 0.65rem;
+    }
+    .stat-card {
+        min-height: 45px;
+        max-height: 45px;
+    }
+    .stat-card .stat-number {
+        font-size: 0.8rem !important;
+    }
+    .stat-card .stat-icon {
+        width: 16px !important;
+        height: 16px !important;
+        font-size: 0.5rem !important;
+    }
+    .stat-card .stat-label {
+        font-size: 0.4rem !important;
+    }
+    .btn-header-action {
+        min-width: 80px;
+        font-size: 0.65rem;
+        padding: 4px 10px;
+        gap: 4px;
+    }
+    .btn-header-action i {
+        font-size: 0.7rem;
+    }
+    .panel-wrapper .slide-panel-card {
+        min-height: 200px;
+    }
+}

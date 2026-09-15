@@ -1,0 +1,614 @@
+/* ============================================ */
+/* TASK - Estilos principales                   */
+/* ============================================ */
+
+/* ============================================ */
+/* CONTENEDOR PRINCIPAL                        */
+/* ============================================ */
+
+.task-wrapper {
+    background: #ffffff;
+    border-radius: 12px;
+    padding: 20px 25px 25px 25px;
+    box-shadow: 0 2px 12px rgba(0, 0, 0, 0.08);
+    border: none;
+}
+
+/* ============================================ */
+/* HEADER                                       */
+/* ============================================ */
+
+.task-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    padding-bottom: 15px;
+    margin-bottom: 20px;
+    border-bottom: 2px solid #e9ecef;
+}
+
+.task-header .breadcrumb-custom {
+    font-size: 0.75rem;
+    color: #6c757d;
+    margin-bottom: 5px;
+}
+
+.task-header .breadcrumb-custom .separator {
+    margin: 0 6px;
+    color: #adb5bd;
+}
+
+.task-header .breadcrumb-custom .current {
+    color: #000000;
+    font-weight: 600;
+}
+
+.task-header .page-title {
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: #2c3e50;
+    margin: 0;
+}
+
+.task-header .page-title small {
+    font-size: 0.75rem;
+    font-weight: 400;
+    color: #6c757d;
+    margin-left: 10px;
+}
+
+.task-header .header-actions {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+    align-items: center;
+}
+
+/* ============================================ */
+/* BOTONES EN HEADER                          */
+/* ============================================ */
+
+.btn-header-action {
+    min-width: 120px;
+    text-align: center;
+    padding: 6px 16px;
+    border-radius: 6px;
+    font-size: 0.8rem;
+    transition: all 0.3s ease;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+}
+
+.btn-header-action i {
+    font-size: 0.85rem;
+}
+
+.btn-outline-success.btn-header-action {
+    background: transparent !important;
+    border: 1px solid #28a745 !important;
+    color: #28a745 !important;
+}
+.btn-outline-success.btn-header-action:hover {
+    background: #28a745 !important;
+    color: #ffffff !important;
+}
+
+.btn-outline-warning.btn-header-action {
+    background: transparent !important;
+    border: 1px solid #ffc107 !important;
+    color: #ffc107 !important;
+}
+.btn-outline-warning.btn-header-action:hover {
+    background: #ffc107 !important;
+    color: #ffffff !important;
+}
+
+.btn-outline-danger.btn-header-action {
+    background: transparent !important;
+    border: 1px solid #dc3545 !important;
+    color: #dc3545 !important;
+}
+.btn-outline-danger.btn-header-action:hover {
+    background: #dc3545 !important;
+    color: #ffffff !important;
+}
+
+.btn-primary.btn-header-action {
+    background: #0a48e2 !important;
+    border-color: #0a48e2 !important;
+    color: #ffffff !important;
+}
+.btn-primary.btn-header-action:hover {
+    background: #245eff !important;
+    border-color: #245eff !important;
+}
+
+/* ============================================ */
+/* MÉTRICAS                                     */
+/* ============================================ */
+
+.stat-card {
+    border: 2px solid #000000 !important;
+    border-radius: 10px;
+    transition: all 0.3s ease;
+    background: #ffffff !important;
+    min-height: 70px;
+}
+
+.stat-card .card-body {
+    padding: 10px 12px;
+}
+
+.stat-card .stat-icon {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.1rem;
+    color: #fff;
+    flex-shrink: 0;
+}
+
+.stat-card-primary .stat-icon { background: #4e73df; }
+.stat-card-success .stat-icon { background: #1cc88a; }
+.stat-card-warning .stat-icon { background: #f6c23e; }
+.stat-card-danger .stat-icon { background: #e74a3b; }
+.stat-card-info .stat-icon { background: #36b9cc; }
+.stat-card-purple .stat-icon { background: #6f42c1; }
+.stat-card-secondary .stat-icon { background: #6c757d; }
+
+.stat-card .stat-number {
+    font-size: 1.3rem;
+    font-weight: 700;
+    color: #1a2332;
+    line-height: 1.2;
+}
+
+.stat-card .stat-label {
+    font-size: 0.6rem;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    color: #6c757d;
+    font-weight: 600;
+}
+
+/* ============================================ */
+/* FILTROS                                      */
+/* ============================================ */
+
+.filtros-card {
+    border: 2px solid #000000 !important;
+    border-radius: 10px;
+    overflow: hidden;
+    background: #ffffff;
+}
+
+.filtros-card .card-body {
+    padding: 12px 15px;
+}
+
+.filtros-card .form-control,
+.filtros-card .form-select {
+    border-radius: 6px;
+    font-size: 0.85rem;
+    padding: 6px 12px;
+}
+
+.filtros-card .form-control:focus,
+.filtros-card .form-select:focus {
+    border-color: #0B3192;
+    box-shadow: 0 0 0 3px rgba(11, 49, 146, 0.1);
+}
+
+/* ============================================ */
+/* CONTENEDOR PRINCIPAL                        */
+/* ============================================ */
+
+.panel-container {
+    display: flex;
+    flex-wrap: nowrap;
+    gap: 0;
+    width: 100%;
+    position: relative;
+    transition: all 0.4s ease;
+}
+
+.table-wrapper {
+    flex: 0 0 100%;
+    max-width: 100%;
+    transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+    padding-right: 0;
+}
+
+.table-wrapper.with-panel {
+    flex: 0 0 66.66666667%;
+    max-width: 66.66666667%;
+    padding-right: 15px;
+}
+
+/* ============================================ */
+/* TABLA                                        */
+/* ============================================ */
+
+.table-card {
+    border: 2px solid #000000 !important;
+    border-radius: 10px;
+    overflow: hidden;
+    background: #ffffff;
+    box-shadow: 0 1px 8px rgba(0, 0, 0, 0.05);
+}
+
+.table-card .table {
+    font-size: 0.85rem;
+    margin-bottom: 0;
+}
+
+.table-card .table thead th {
+    font-size: 0.7rem;
+    text-transform: uppercase;
+    letter-spacing: 0.3px;
+    padding: 10px 12px;
+    border-bottom: 2px solid #e9ecef;
+    background: #f8f9fa;
+}
+
+.table-card .table tbody td {
+    padding: 8px 12px;
+    vertical-align: middle;
+}
+
+.table-card .table tbody tr:hover {
+    background: #f8f9fa;
+    cursor: pointer;
+}
+
+.table-card .badge {
+    font-size: 0.65rem;
+    padding: 4px 10px;
+    border-radius: 10px;
+}
+
+/* ============================================ */
+/* BOTONES DE ACCIÓN                           */
+/* ============================================ */
+
+.btn-action {
+    padding: 0.1rem 0.35rem !important;
+    font-size: 0.55rem !important;
+    border-radius: 4px;
+    transition: all 0.2s ease;
+}
+
+.btn-action:hover {
+    transform: scale(1.05);
+}
+
+/* ============================================ */
+/* ACTIVIDADES + EMBUDO debajo de la tabla     */
+/* ============================================ */
+
+.bottom-cards {
+    margin-top: 10px !important;
+}
+
+.bottom-cards .activities-card,
+.bottom-cards .funnel-card {
+    height: 100%;
+    min-height: 200px;
+    border: 2px solid #000000 !important;
+    border-radius: 10px;
+    overflow: hidden;
+}
+
+.bottom-cards .activities-card .card-body {
+    height: calc(100% - 38px);
+    padding: 0;
+}
+
+.bottom-cards .activities-card .card-header,
+.bottom-cards .funnel-card .card-header {
+    background: #f8f9fa;
+    border-bottom: 1px solid #e9ecef;
+    padding: 8px 12px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-size: 0.75rem;
+    font-weight: 600;
+}
+
+.bottom-cards .activities-card .card-header .header-left {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.bottom-cards .activities-list {
+    max-height: 160px;
+    overflow-y: auto;
+    padding: 0 8px;
+}
+
+.bottom-cards .funnel-card .card-body {
+    min-height: 160px !important;
+    padding: 0.3rem !important;
+}
+
+/* ============================================ */
+/* ACTIVIDADES ITEMS                           */
+/* ============================================ */
+
+.activity-item {
+    display: flex;
+    gap: 10px;
+    padding: 8px 0;
+    border-bottom: 1px solid #f5f6f8;
+}
+
+.activity-item:last-child {
+    border-bottom: none;
+}
+
+.activity-icon {
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    background: #f0f2f4;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    font-size: 0.75rem;
+    color: #4e73df;
+}
+
+.activity-content {
+    flex: 1;
+    min-width: 0;
+}
+
+.activity-title {
+    font-size: 0.75rem;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    flex-wrap: wrap;
+}
+
+.activity-title .badge {
+    font-size: 0.55rem;
+    padding: 2px 8px;
+}
+
+.activity-meta {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-top: 2px;
+}
+
+.activity-date {
+    font-size: 0.6rem;
+    color: #8a94a6;
+}
+
+.activity-empty {
+    text-align: center;
+    padding: 20px 10px;
+    color: #6c757d;
+}
+
+/* ============================================ */
+/* PANEL LATERAL                               */
+/* ============================================ */
+
+.panel-wrapper {
+    flex: 0 0 0%;
+    max-width: 0%;
+    display: none;
+    transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+    overflow: hidden;
+    padding-left: 0;
+}
+
+.panel-wrapper.visible {
+    display: block !important;
+    flex: 0 0 33.33333333%;
+    max-width: 33.33333333%;
+    padding-left: 15px;
+    animation: slideIn 0.4s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+}
+
+.panel-wrapper.closing {
+    animation: slideOut 0.3s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+}
+
+@keyframes slideIn {
+    from { opacity: 0; transform: translateX(30px); }
+    to { opacity: 1; transform: translateX(0); }
+}
+
+@keyframes slideOut {
+    from { opacity: 1; transform: translateX(0); }
+    to { opacity: 0; transform: translateX(30px); }
+}
+
+.panel-wrapper .slide-panel-card {
+    border: 2px solid #000000 !important;
+    border-radius: 10px;
+    overflow: hidden;
+    background: #ffffff;
+    box-shadow: 0 1px 8px rgba(0, 0, 0, 0.05);
+    height: 100%;
+    min-height: 400px;
+}
+
+.panel-wrapper .slide-panel-card .card-body {
+    padding: 0;
+    height: 100%;
+    overflow-y: auto;
+}
+
+/* ============================================ */
+/* ANIMACIONES DE FILAS                        */
+/* ============================================ */
+
+.task-row {
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.task-row:hover {
+    background: #e8f0fe !important;
+    transform: scale(1.01);
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+}
+
+.task-row-selected {
+    background: #e3f2fd !important;
+    border-left: 3px solid #0B3192;
+    transform: scale(1.02);
+    box-shadow: 0 2px 12px rgba(11, 49, 146, 0.15);
+}
+
+/* ============================================ */
+/* RESPONSIVE                                  */
+/* ============================================ */
+
+@media (max-width: 992px) {
+    .table-wrapper.with-panel {
+        flex: 0 0 100% !important;
+        max-width: 100% !important;
+        padding-right: 0 !important;
+    }
+    
+    .panel-wrapper.visible {
+        flex: 0 0 100% !important;
+        max-width: 100% !important;
+        padding-left: 0 !important;
+        margin-top: 15px;
+    }
+    
+    .panel-wrapper .slide-panel-card {
+        min-height: 300px;
+    }
+    
+    .bottom-cards .activities-card,
+    .bottom-cards .funnel-card {
+        min-height: 180px;
+    }
+    
+    @keyframes slideIn {
+        from { opacity: 0; transform: translateY(20px); }
+        to { opacity: 1; transform: translateY(0); }
+    }
+    
+    @keyframes slideOut {
+        from { opacity: 1; transform: translateY(0); }
+        to { opacity: 0; transform: translateY(20px); }
+    }
+}
+
+@media (max-width: 768px) {
+    .task-header {
+        flex-direction: column;
+        align-items: stretch;
+        gap: 10px;
+    }
+    
+    .task-header .page-title {
+        font-size: 1.2rem;
+    }
+    
+    .task-header .page-title small {
+        display: block;
+        margin-left: 0;
+        margin-top: 2px;
+        font-size: 0.7rem;
+    }
+    
+    .btn-header-action {
+        min-width: 100px;
+        font-size: 0.7rem;
+        padding: 5px 12px;
+    }
+    
+    .panel-wrapper .slide-panel-card {
+        min-height: 250px;
+    }
+    
+    .bottom-cards .activities-card,
+    .bottom-cards .funnel-card {
+        min-height: 160px;
+    }
+    
+    .bottom-cards .activities-list {
+        max-height: 120px;
+    }
+}
+
+@media (max-width: 576px) {
+    .task-wrapper {
+        padding: 10px 12px;
+    }
+    
+    .btn-header-action {
+        min-width: 80px;
+        font-size: 0.65rem;
+        padding: 4px 10px;
+        gap: 4px;
+    }
+    
+    .btn-header-action i {
+        font-size: 0.7rem;
+    }
+    
+    .table-card .table {
+        font-size: 0.75rem;
+    }
+    
+    .table-card .table thead th {
+        font-size: 0.6rem;
+        padding: 6px 8px;
+    }
+    
+    .table-card .table tbody td {
+        padding: 6px 8px;
+    }
+    
+    .btn-action {
+        padding: 0.05rem 0.25rem !important;
+        font-size: 0.5rem !important;
+    }
+    
+    .panel-wrapper .slide-panel-card {
+        min-height: 200px;
+    }
+    
+    .bottom-cards .activities-card,
+    .bottom-cards .funnel-card {
+        min-height: 140px;
+    }
+}
+
+/* ============================================ */
+/* SCROLL EN TABLAS                            */
+/* ============================================ */
+
+.table-card .table-responsive::-webkit-scrollbar {
+    height: 5px;
+}
+.table-card .table-responsive::-webkit-scrollbar-track {
+    background: #f1f1f1;
+}
+.table-card .table-responsive::-webkit-scrollbar-thumb {
+    background: #c1c7cd;
+    border-radius: 4px;
+}
+.table-card .table-responsive::-webkit-scrollbar-thumb:hover {
+    background: #a8b0b8;
+}

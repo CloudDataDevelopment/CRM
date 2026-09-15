@@ -1,0 +1,348 @@
+/* ============================================
+   MARKETING - Estilos del módulo
+   ============================================ */
+
+/* ============================================
+   TARJETAS DE ESTADÍSTICAS
+   ============================================ */
+.stat-card {
+    border: none;
+    border-radius: 10px;
+    transition: all 0.3s ease;
+    cursor: default;
+    overflow: hidden;
+    position: relative;
+    background: #fff;
+    border-left: 3px solid transparent;
+}
+
+.stat-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.08) !important;
+}
+
+.stat-card .card-body {
+    padding: 0.5rem 0.7rem !important;
+}
+
+.stat-card .stat-icon {
+    width: 32px;
+    height: 32px;
+    border-radius: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.9rem;
+    flex-shrink: 0;
+    transition: all 0.3s ease;
+}
+
+.stat-card:hover .stat-icon {
+    transform: scale(1.05);
+}
+
+.stat-card .stat-number {
+    font-size: 1.2rem;
+    font-weight: 700;
+    line-height: 1.2;
+    margin-bottom: 0;
+}
+
+.stat-card .stat-label {
+    font-size: 0.6rem;
+    text-transform: uppercase;
+    letter-spacing: 0.3px;
+    font-weight: 600;
+    opacity: 0.7;
+}
+
+.stat-card .stat-sub {
+    font-size: 0.5rem;
+    margin-top: 1px;
+}
+
+/* Colores de las tarjetas */
+.stat-card-primary {
+    background: linear-gradient(135deg, #f8f9ff 0%, #eef2ff 100%);
+    border-left-color: #4e73df;
+}
+.stat-card-primary .stat-icon {
+    background: rgba(78, 115, 223, 0.12);
+    color: #4e73df;
+}
+.stat-card-primary .stat-number {
+    color: #4e73df;
+}
+
+.stat-card-success {
+    background: linear-gradient(135deg, #f0fff4 0%, #e6f9ef 100%);
+    border-left-color: #1cc88a;
+}
+.stat-card-success .stat-icon {
+    background: rgba(28, 200, 138, 0.12);
+    color: #1cc88a;
+}
+.stat-card-success .stat-number {
+    color: #1cc88a;
+}
+
+.stat-card-warning {
+    background: linear-gradient(135deg, #fffbeb 0%, #fff8e1 100%);
+    border-left-color: #f6c23e;
+}
+.stat-card-warning .stat-icon {
+    background: rgba(246, 194, 62, 0.12);
+    color: #f6c23e;
+}
+.stat-card-warning .stat-number {
+    color: #f6c23e;
+}
+
+.stat-card-info {
+    background: linear-gradient(135deg, #f0f9ff 0%, #e3f2fd 100%);
+    border-left-color: #36b9cc;
+}
+.stat-card-info .stat-icon {
+    background: rgba(54, 185, 204, 0.12);
+    color: #36b9cc;
+}
+.stat-card-info .stat-number {
+    color: #36b9cc;
+}
+
+/* ============================================
+   TABS
+   ============================================ */
+.marketing-tabs .nav-tabs {
+    background: #fff;
+    border-radius: 10px 10px 0 0;
+    padding: 0 15px;
+    border-bottom: 1px solid #dee2e6;
+}
+
+.marketing-tabs .nav-tabs .nav-link {
+    border: none;
+    color: #6c757d;
+    padding: 10px 20px;
+    font-weight: 500;
+    font-size: 0.85rem;
+    transition: all 0.3s ease;
+}
+
+.marketing-tabs .nav-tabs .nav-link:hover {
+    color: #4e73df;
+    background: transparent;
+}
+
+.marketing-tabs .nav-tabs .nav-link.active {
+    color: #4e73df;
+    background: transparent;
+    border-bottom: 3px solid #4e73df;
+}
+
+.marketing-tabs .nav-tabs .nav-link i {
+    margin-right: 6px;
+}
+
+.marketing-tabs .tab-content {
+    background: #fff;
+    border-radius: 0 0 10px 10px;
+    padding: 15px;
+    border: 1px solid #dee2e6;
+    border-top: none;
+}
+
+/* ============================================
+   TABLAS
+   ============================================ */
+.marketing-table .table {
+    margin-bottom: 0;
+}
+
+.marketing-table .table thead th {
+    background: #f8f9fa;
+    font-size: 0.7rem;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    padding: 8px 12px;
+    border-bottom: 2px solid #dee2e6;
+}
+
+.marketing-table .table tbody td {
+    padding: 8px 12px;
+    vertical-align: middle;
+    font-size: 0.8rem;
+}
+
+.marketing-table .filter-row td {
+    padding: 5px 10px !important;
+}
+
+.marketing-table .filter-row .form-control,
+.marketing-table .filter-row .form-select {
+    font-size: 0.75rem;
+    padding: 0.2rem 0.5rem;
+    height: 30px;
+}
+
+/* ============================================
+   BADGES DE ESTADO
+   ============================================ */
+.marketing-badge {
+    display: inline-block;
+    padding: 3px 12px;
+    border-radius: 20px;
+    font-size: 0.65rem;
+    font-weight: 600;
+    letter-spacing: 0.3px;
+}
+
+.marketing-badge-success {
+    background: #d4edda;
+    color: #155724;
+}
+
+.marketing-badge-danger {
+    background: #f8d7da;
+    color: #721c24;
+}
+
+.marketing-badge-warning {
+    background: #fff3cd;
+    color: #856404;
+}
+
+.marketing-badge-info {
+    background: #d1ecf1;
+    color: #0c5460;
+}
+
+.marketing-badge-secondary {
+    background: #e9ecef;
+    color: #6c757d;
+}
+
+/* ============================================
+   BOTONES DE ACCIÓN
+   ============================================ */
+.marketing-btn-action {
+    padding: 0.15rem 0.4rem !important;
+    font-size: 0.7rem !important;
+    border-radius: 4px;
+    margin: 0 2px;
+}
+
+.marketing-btn-action:hover {
+    transform: scale(1.05);
+}
+
+/* ============================================
+   FORMULARIOS
+   ============================================ */
+.marketing-form .card-header {
+    border-radius: 10px 10px 0 0;
+}
+
+.marketing-form .form-label {
+    font-weight: 600;
+    font-size: 0.8rem;
+}
+
+.marketing-form .form-control,
+.marketing-form .form-select {
+    font-size: 0.85rem;
+    border-radius: 6px;
+}
+
+.marketing-form .help-block {
+    font-size: 0.75rem;
+    color: #6c757d;
+}
+
+/* ============================================
+   DETALLE
+   ============================================ */
+.marketing-detail .detail-card {
+    border: 1px solid #e9ecef;
+    border-radius: 8px;
+}
+
+.marketing-detail .detail-label {
+    font-weight: 600;
+    color: #6c757d;
+    font-size: 0.75rem;
+    text-transform: uppercase;
+    letter-spacing: 0.3px;
+}
+
+.marketing-detail .detail-value {
+    font-weight: 500;
+    font-size: 0.85rem;
+    color: #1a2332;
+}
+
+/* ============================================
+   FILTRO DE EMPRESA
+   ============================================ */
+.marketing-company-filter {
+    background: #f8f9fa;
+    border: 1px solid #e9ecef;
+    border-radius: 8px;
+}
+
+.marketing-company-filter .form-label {
+    font-size: 0.75rem;
+    margin-bottom: 4px;
+}
+
+.marketing-company-filter .form-select {
+    font-size: 0.8rem;
+    padding: 0.25rem 0.5rem;
+    height: 32px;
+}
+
+/* ============================================
+   RESPONSIVE
+   ============================================ */
+@media (max-width: 768px) {
+    .stat-card .stat-number {
+        font-size: 1rem !important;
+    }
+    .stat-card .stat-icon {
+        width: 28px !important;
+        height: 28px !important;
+        font-size: 0.8rem !important;
+    }
+    .stat-card .stat-label {
+        font-size: 0.5rem !important;
+    }
+    .stat-card .stat-sub {
+        font-size: 0.45rem !important;
+    }
+    
+    .marketing-tabs .nav-tabs .nav-link {
+        padding: 8px 12px;
+        font-size: 0.75rem;
+    }
+    
+    .marketing-table .table thead th {
+        font-size: 0.6rem;
+        padding: 6px 8px;
+    }
+    
+    .marketing-table .table tbody td {
+        font-size: 0.7rem;
+        padding: 6px 8px;
+    }
+}
+
+@media (max-width: 576px) {
+    .marketing-tabs .nav-tabs .nav-link {
+        padding: 6px 10px;
+        font-size: 0.65rem;
+    }
+    
+    .marketing-tabs .nav-tabs .nav-link i {
+        margin-right: 3px;
+    }
+}

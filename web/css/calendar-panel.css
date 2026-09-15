@@ -1,0 +1,401 @@
+/* ============================================ */
+/* CALENDARIO - ESTILOS PRINCIPALES             */
+/* ============================================ */
+
+.calendar-index {
+    width: 100%;
+}
+
+/* ============================================ */
+/* HEADER                                       */
+/* ============================================ */
+
+.calendar-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    padding-bottom: 15px;
+    margin-bottom: 20px;
+    border-bottom: 2px solid #e9ecef;
+}
+
+.calendar-header .breadcrumb-custom {
+    font-size: 0.75rem;
+    color: #6c757d;
+    margin-bottom: 5px;
+}
+
+.calendar-header .breadcrumb-custom .separator {
+    margin: 0 6px;
+    color: #adb5bd;
+}
+
+.calendar-header .breadcrumb-custom .current {
+    color: #000000;
+    font-weight: 600;
+}
+
+.calendar-header .page-title {
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: #2c3e50;
+    margin: 0;
+}
+
+.calendar-header .page-title small {
+    font-size: 0.75rem;
+    font-weight: 400;
+    color: #6c757d;
+    margin-left: 10px;
+}
+
+.calendar-header .header-actions {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+    align-items: center;
+    flex-shrink: 0;
+}
+
+.calendar-header .header-actions .btn {
+    min-width: 100px;
+    text-align: center;
+    padding: 6px 16px;
+    border-radius: 6px;
+    font-size: 0.8rem;
+    transition: all 0.3s ease;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+}
+
+/* ============================================ */
+/* FILTROS                                      */
+/* ============================================ */
+
+.filtros-card {
+    border: 2px solid #000000 !important;
+    border-radius: 10px;
+    overflow: hidden;
+    background: #ffffff;
+}
+
+.filtros-card .card-body {
+    padding: 12px 15px;
+}
+
+.filtros-card .form-control,
+.filtros-card .form-select {
+    border-radius: 6px;
+    font-size: 0.85rem;
+    padding: 6px 12px;
+}
+
+.filtros-card .form-control:focus,
+.filtros-card .form-select:focus {
+    border-color: #0B3192;
+    box-shadow: 0 0 0 3px rgba(11, 49, 146, 0.1);
+}
+
+/* ============================================ */
+/* TABLA/CALENDARIO                             */
+/* ============================================ */
+
+.table-card {
+    border: 2px solid #000000 !important;
+    border-radius: 10px;
+    overflow: hidden;
+    background: #ffffff;
+    box-shadow: 0 1px 8px rgba(0, 0, 0, 0.05);
+}
+
+.table-card .card-header {
+    background: #f8f9fa;
+    border-bottom: 1px solid #e9ecef;
+    padding: 10px 15px;
+}
+
+/* ============================================ */
+/* DÍA DEL CALENDARIO                           */
+/* ============================================ */
+
+.day-cell {
+    background: white;
+    transition: all 0.2s ease;
+    vertical-align: top;
+}
+
+.day-cell-hover:hover {
+    background: #f0f7ff !important;
+    transform: scale(1.01);
+}
+
+.day-cell-selected {
+    background: #cce5ff !important;
+    border: 2px solid #0d6efd !important;
+    box-shadow: 0 0 15px rgba(13, 110, 253, 0.2);
+}
+
+.day-cell .fw-bold {
+    font-size: 14px;
+}
+
+.day-cell .badge {
+    font-size: 10px;
+    padding: 2px 6px;
+}
+
+/* ============================================ */
+/* EVENTOS EN EL CALENDARIO                     */
+/* ============================================ */
+
+.event-marker {
+    transition: all 0.2s ease;
+    cursor: pointer;
+}
+
+.event-marker:hover {
+    transform: scale(1.05);
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+    background: #e9ecef !important;
+}
+
+.event-marker i {
+    margin-right: 3px;
+    font-size: 7px;
+}
+
+/* ============================================ */
+/* TABLA DEL CALENDARIO                        */
+/* ============================================ */
+
+.calendar-table {
+    margin-bottom: 0;
+}
+
+.calendar-table th {
+    text-align: center;
+    font-weight: 600;
+    font-size: 13px;
+    padding: 8px 0;
+    background: #f8f9fa;
+}
+
+.calendar-table td {
+    vertical-align: top;
+    padding: 6px 8px;
+    height: 120px;
+    min-height: 120px;
+}
+
+/* ============================================ */
+/* SELECTOR DE MESES                           */
+/* ============================================ */
+
+#month-selector {
+    border-radius: 6px;
+    border: 2px solid #e8ecf1;
+    padding: 8px 12px;
+}
+
+#month-selector:focus {
+    border-color: #0091FF;
+    box-shadow: 0 0 0 3px rgba(0, 145, 255, 0.1);
+}
+
+/* ============================================ */
+/* ACTIVIDADES LIST                            */
+/* ============================================ */
+
+.activities-list {
+    max-height: 200px;
+    overflow-y: auto;
+}
+
+.activities-list::-webkit-scrollbar {
+    width: 5px;
+}
+
+.activities-list::-webkit-scrollbar-track {
+    background: #f1f1f1;
+    border-radius: 10px;
+}
+
+.activities-list::-webkit-scrollbar-thumb {
+    background: #c1c7cd;
+    border-radius: 10px;
+}
+
+.activity-item {
+    cursor: pointer;
+    transition: all 0.2s ease;
+    padding: 8px 12px;
+    border-bottom: 1px solid #f5f6f8;
+    display: flex;
+    gap: 10px;
+}
+
+.activity-item:hover {
+    background: #f8f9fa;
+    transform: translateX(4px);
+}
+
+.activity-item .activity-icon {
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    font-size: 12px;
+    background: #f0f2f4;
+}
+
+.activity-item .activity-content {
+    flex: 1;
+    min-width: 0;
+}
+
+.activity-item .activity-title {
+    font-size: 12px;
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    flex-wrap: wrap;
+}
+
+.activity-item .activity-title .badge {
+    font-size: 8px;
+    padding: 2px 6px;
+}
+
+.activity-item .activity-description {
+    font-size: 11px;
+    color: #6c757d;
+}
+
+.activity-item .activity-meta {
+    font-size: 10px;
+    color: #8a94a6;
+}
+
+/* ============================================ */
+/* BOTTOM CARDS                                */
+/* ============================================ */
+
+.bottom-cards .activities-card {
+    height: 100%;
+    min-height: 180px;
+    border: 2px solid #000000 !important;
+    border-radius: 10px;
+    overflow: hidden;
+}
+
+.bottom-cards .activities-card .card-header {
+    background: #f8f9fa;
+    border-bottom: 1px solid #e9ecef;
+    padding: 8px 12px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-size: 0.75rem;
+    font-weight: 600;
+}
+
+.bottom-cards .activities-card .card-header .header-left {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.bottom-cards .activities-card .card-body {
+    padding: 0;
+}
+
+/* ============================================ */
+/* RESPONSIVE                                   */
+/* ============================================ */
+
+@media (max-width: 768px) {
+    .calendar-table td {
+        height: 80px;
+        min-height: 80px;
+        padding: 4px;
+        font-size: 12px;
+    }
+
+    .day-cell .fw-bold {
+        font-size: 12px;
+    }
+
+    .event-marker {
+        font-size: 7px;
+        padding: 1px 3px;
+    }
+
+    .event-marker i {
+        font-size: 6px;
+    }
+
+    .calendar-table th {
+        font-size: 11px;
+        padding: 4px 0;
+    }
+
+    .calendar-header {
+        flex-direction: column;
+        gap: 10px;
+    }
+
+    .calendar-header .header-actions .btn {
+        min-width: 80px;
+        font-size: 0.7rem;
+    }
+}
+
+@media (max-width: 576px) {
+    .calendar-table td {
+        height: 60px;
+        min-height: 60px;
+        padding: 2px;
+        font-size: 10px;
+    }
+
+    .day-cell .fw-bold {
+        font-size: 10px;
+    }
+
+    .day-cell .badge {
+        font-size: 8px;
+        padding: 1px 4px;
+    }
+
+    .event-marker {
+        font-size: 6px;
+        padding: 1px 2px;
+    }
+
+    .event-marker i {
+        font-size: 5px;
+        margin-right: 1px;
+    }
+
+    .calendar-table th {
+        font-size: 9px;
+        padding: 2px 0;
+    }
+
+    .activity-item {
+        padding: 6px 8px;
+    }
+
+    .activity-item .activity-title {
+        font-size: 10px;
+    }
+
+    .activity-item .activity-description {
+        font-size: 9px;
+    }
+}

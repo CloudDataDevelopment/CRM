@@ -1,0 +1,344 @@
+/* ============================================
+   CREATE LEADS - Estilos para la vista de creación
+   ============================================ */
+
+/* ============================================
+   CONTENEDOR BLANCO (igual al index)
+   ============================================ */
+.create-content-wrapper {
+    background: #ffffff;
+    border-radius: 10px;
+    box-shadow: 0 1px 8px rgba(0, 0, 0, 0.05);
+    border: 1px solid #eef0f2;
+    padding: 20px;
+    transition: all 0.3s ease;
+}
+
+.create-content-wrapper:hover {
+    box-shadow: 0 3px 15px rgba(0, 0, 0, 0.08);
+}
+
+/* ============================================
+   HEADER CON BREADCRUMBS
+   ============================================ */
+.leads-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 20px;
+    padding-bottom: 15px;
+    border-bottom: 1px solid #e9ecef;
+}
+
+.leads-header .breadcrumb-custom {
+    font-size: 0.85rem;
+    color: #6c757d;
+}
+
+.leads-header .breadcrumb-custom span {
+    color: #6c757d;
+}
+
+.leads-header .breadcrumb-custom .separator {
+    margin: 0 6px;
+    color: #adb5bd;
+}
+
+.leads-header .breadcrumb-custom .current {
+    color: #000000;
+    font-weight: 600;
+}
+
+.leads-header .page-title {
+    font-size: 1.4rem;
+    font-weight: 700;
+    color: #1a2332;
+    margin: 5px 0 0 0;
+}
+
+.leads-header .page-title small {
+    font-size: 0.85rem;
+    font-weight: 400;
+    color: #6c757d;
+    margin-left: 10px;
+}
+
+.leads-header .header-actions {
+    display: flex;
+    gap: 8px;
+    align-items: center;
+}
+
+/* ============================================
+   CUADRO CON BORDE NEGRO
+   ============================================ */
+.lead-form-box {
+    border: 3px solid #000000;
+    border-radius: 8px;
+    overflow: hidden;
+    background: #ffffff;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+}
+
+.lead-form-title {
+    background: #ffffff;
+    padding: 14px 20px 0px 20px;
+    font-weight: 600;
+    font-size: 1rem;
+    color: #000000;
+    border-bottom: none;
+}
+
+.lead-form-title i {
+    color: #007bff;
+}
+
+.lead-form-body {
+    padding: 8px 20px 20px 20px;
+}
+
+/* ============================================
+   CAMPOS DEL FORMULARIO
+   ============================================ */
+.lead-form-body .form-group {
+    margin-bottom: 1rem !important;
+}
+
+.lead-form-body .control-label {
+    font-weight: 600;
+    font-size: 0.85rem;
+    color: #495057;
+    margin-bottom: 4px;
+}
+
+.lead-form-body .form-control,
+.lead-form-body .form-select {
+    font-size: 0.9rem;
+    padding: 8px 12px;
+    height: auto;
+    border-radius: 6px;
+    border: 1px solid #ced4da;
+    transition: border-color 0.15s ease-in-out, box-shadow 0.15s ease-in-out;
+}
+
+.lead-form-body .form-control:focus,
+.lead-form-body .form-select:focus {
+    border-color: #4e73df;
+    box-shadow: 0 0 0 0.2rem rgba(78, 115, 223, 0.25);
+}
+
+.lead-form-body .form-control::placeholder {
+    color: #adb5bd;
+    font-size: 0.85rem;
+}
+
+.lead-form-body .help-block {
+    font-size: 0.75rem;
+    color: #dc3545;
+    margin-top: 3px;
+}
+
+.lead-form-body .text-muted {
+    font-size: 0.75rem;
+    color: #8a94a6;
+    margin-top: 3px;
+}
+
+.lead-form-body textarea.form-control {
+    min-height: 80px;
+    resize: vertical;
+}
+
+.lead-form-body .text-danger {
+    font-weight: 600;
+}
+
+/* ============================================
+   ÚLTIMOS LEADS - SIDEBAR
+   ============================================ */
+.lead-sidebar-card {
+    border: 1px solid #eef0f2;
+    border-radius: 8px;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+}
+
+.lead-sidebar-card .card-header {
+    background: #f8f9fa;
+    border-bottom: 1px solid #eef0f2;
+    padding: 0.6rem 1rem;
+    font-weight: 600;
+    font-size: 0.8rem;
+}
+
+.lead-sidebar-card .card-body {
+    padding: 0;
+    max-height: 350px;
+    overflow-y: auto;
+}
+
+.lead-sidebar-card .card-footer {
+    background: #f8f9fa;
+    border-top: 1px solid #eef0f2;
+    padding: 0.5rem;
+}
+
+/* ============================================
+   TABLA DE ÚLTIMOS LEADS
+   ============================================ */
+.lead-sidebar-table {
+    font-size: 0.75rem;
+}
+
+.lead-sidebar-table thead th {
+    background: #f8f9fa;
+    font-size: 0.6rem;
+    text-transform: uppercase;
+    letter-spacing: 0.3px;
+    padding: 6px 8px;
+    border-bottom: 2px solid #dee2e6;
+}
+
+.lead-sidebar-table tbody td {
+    padding: 6px 8px;
+    vertical-align: middle;
+}
+
+.lead-sidebar-table .badge {
+    font-size: 0.55rem;
+    padding: 2px 8px;
+}
+
+/* ============================================
+   CONSEJOS RÁPIDOS
+   ============================================ */
+.tips-card {
+    border: 1px solid #eef0f2;
+    border-radius: 8px;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+}
+
+.tips-card .card-header {
+    background: #f8f9fa;
+    border-bottom: 1px solid #eef0f2;
+    padding: 0.6rem 1rem;
+    font-weight: 600;
+    font-size: 0.8rem;
+}
+
+.tips-card .card-body {
+    padding: 1rem;
+}
+
+.tips-card .tips-list {
+    font-size: 0.85rem;
+    margin-bottom: 0;
+}
+
+.tips-card .tips-list li {
+    padding: 4px 0;
+}
+
+/* ============================================
+   RESPONSIVE
+   ============================================ */
+
+/* --- Tablet --- */
+@media (max-width: 992px) {
+    .create-content-wrapper {
+        padding: 15px;
+    }
+    
+    .lead-form-title {
+        padding: 10px 16px 0px 16px;
+        font-size: 0.9rem;
+    }
+    
+    .lead-form-body {
+        padding: 6px 16px 12px 16px;
+    }
+    
+    .leads-header .page-title {
+        font-size: 1.3rem;
+    }
+}
+
+/* --- Móvil grande --- */
+@media (max-width: 768px) {
+    .create-content-wrapper {
+        padding: 12px;
+    }
+    
+    .leads-header {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 10px;
+    }
+    
+    .leads-header .header-actions {
+        width: 100%;
+        justify-content: flex-end;
+    }
+    
+    .leads-header .page-title {
+        font-size: 1.2rem;
+    }
+    
+    .leads-header .page-title small {
+        display: block;
+        margin-left: 0;
+        margin-top: 4px;
+        font-size: 0.75rem;
+    }
+    
+    .lead-form-body {
+        padding: 4px 14px 10px 14px;
+    }
+    
+    .lead-form-body .form-control,
+    .lead-form-body .form-select {
+        font-size: 0.85rem;
+        padding: 6px 10px;
+    }
+    
+    .lead-sidebar-card .card-body {
+        max-height: 250px;
+    }
+}
+
+/* --- Móvil pequeño --- */
+@media (max-width: 576px) {
+    .create-content-wrapper {
+        padding: 10px;
+    }
+    
+    .leads-header .breadcrumb-custom {
+        font-size: 0.75rem;
+    }
+    
+    .leads-header .page-title {
+        font-size: 1rem;
+    }
+    
+    .lead-form-title {
+        padding: 8px 14px 0px 14px;
+        font-size: 0.85rem;
+    }
+    
+    .lead-form-body {
+        padding: 4px 12px 8px 12px;
+    }
+    
+    .lead-form-body .form-control,
+    .lead-form-body .form-select {
+        font-size: 0.8rem;
+        padding: 5px 8px;
+    }
+    
+    .lead-sidebar-card .card-body {
+        max-height: 200px;
+    }
+    
+    .tips-card .tips-list {
+        font-size: 0.75rem;
+    }
+}

@@ -1,0 +1,501 @@
+/* ============================================ */
+/* LEAD ASSIGN - Estilos principales            */
+/* ============================================ */
+
+/* ============================================ */
+/* CONTENEDOR PRINCIPAL                        */
+/* ============================================ */
+
+.assign-wrapper {
+    background: #ffffff;
+    border-radius: 12px;
+    padding: 20px 25px 25px 25px;
+    box-shadow: 0 2px 12px rgba(0, 0, 0, 0.08);
+    border: none;
+}
+
+/* ============================================ */
+/* HEADER                                       */
+/* ============================================ */
+
+.assign-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    padding-bottom: 15px;
+    margin-bottom: 20px;
+    border-bottom: 2px solid #e9ecef;
+}
+
+.assign-header .breadcrumb-custom {
+    font-size: 0.75rem;
+    color: #6c757d;
+    margin-bottom: 5px;
+}
+
+.assign-header .breadcrumb-custom .separator {
+    margin: 0 6px;
+    color: #adb5bd;
+}
+
+.assign-header .breadcrumb-custom .current {
+    color: #000000;
+    font-weight: 600;
+}
+
+.assign-header .page-title {
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: #2c3e50;
+    margin: 0;
+}
+
+.assign-header .page-title small {
+    font-size: 0.75rem;
+    font-weight: 400;
+    color: #6c757d;
+    margin-left: 10px;
+}
+
+.assign-header .header-actions {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+    align-items: center;
+}
+
+/* ============================================ */
+/* TARJETAS DE ESTADÍSTICAS                    */
+/* ============================================ */
+
+.dashboard-card {
+    border: 2px solid #000000 !important;
+    border-radius: 10px;
+    box-shadow: 0 1px 8px rgba(0, 0, 0, 0.05);
+    transition: all 0.3s ease;
+    overflow: hidden;
+    background: #fff;
+}
+
+.dashboard-card:hover {
+    box-shadow: 0 3px 15px rgba(0, 0, 0, 0.08);
+}
+
+.stat-card {
+    border: 2px solid #000000 !important;
+    border-radius: 10px;
+    transition: all 0.3s ease;
+    cursor: default;
+    overflow: hidden;
+    position: relative;
+    background: #fff !important;
+    border-left: 3px solid transparent;
+    min-height: 60px;
+    max-height: 60px;
+}
+
+.stat-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.08) !important;
+}
+
+.stat-card .card-body {
+    padding: 0.2rem 0.5rem !important;
+}
+
+.stat-card .stat-icon {
+    width: 24px;
+    height: 24px;
+    border-radius: 6px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.7rem;
+    flex-shrink: 0;
+    transition: all 0.3s ease;
+}
+
+.stat-card:hover .stat-icon {
+    transform: scale(1.05);
+}
+
+.stat-card .stat-number {
+    font-size: 1rem;
+    font-weight: 700;
+    line-height: 1.1;
+    margin-bottom: 0px;
+}
+
+.stat-card .stat-label {
+    font-size: 0.5rem;
+    text-transform: uppercase;
+    letter-spacing: 0.3px;
+    font-weight: 600;
+    margin-bottom: 0px;
+}
+
+/* Colores de tarjetas */
+.stat-card-primary {
+    background: #ffffff !important;
+    border-left-color: #4e73df;
+}
+.stat-card-primary .stat-icon {
+    background: rgba(78, 115, 223, 0.12);
+    color: #4e73df;
+}
+.stat-card-primary .stat-number {
+    color: #4e73df;
+}
+
+.stat-card-success {
+    background: #ffffff !important;
+    border-left-color: #1cc88a;
+}
+.stat-card-success .stat-icon {
+    background: rgba(28, 200, 138, 0.12);
+    color: #1cc88a;
+}
+.stat-card-success .stat-number {
+    color: #1cc88a;
+}
+
+.stat-card-warning {
+    background: #ffffff !important;
+    border-left-color: #f6c23e;
+}
+.stat-card-warning .stat-icon {
+    background: rgba(246, 194, 62, 0.12);
+    color: #f6c23e;
+}
+.stat-card-warning .stat-number {
+    color: #f6c23e;
+}
+
+.stat-card-info {
+    background: #ffffff !important;
+    border-left-color: #36b9cc;
+}
+.stat-card-info .stat-icon {
+    background: rgba(54, 185, 204, 0.12);
+    color: #36b9cc;
+}
+.stat-card-info .stat-number {
+    color: #36b9cc;
+}
+
+/* ============================================ */
+/* CARDS DE LEADS                              */
+/* ============================================ */
+
+.assign-card {
+    border: 2px solid #000000 !important;
+    border-radius: 10px;
+    overflow: hidden;
+    background: #ffffff;
+    box-shadow: 0 1px 8px rgba(0, 0, 0, 0.05);
+    height: 100%;
+}
+
+.assign-card .card-header {
+    background: #f8f9fa;
+    padding: 0.4rem 0.7rem !important;
+    border-bottom: 2px solid #000000 !important;
+    font-weight: 600;
+    font-size: 0.65rem !important;
+    color: #2c3e50;
+    letter-spacing: 0.3px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+}
+
+.assign-card .card-header .header-left {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.assign-card .card-header .header-left i {
+    font-size: 0.7rem;
+    flex-shrink: 0;
+}
+
+.assign-card .card-header .badge {
+    font-size: 0.55rem !important;
+    padding: 0.1rem 0.5rem !important;
+    font-weight: 600;
+    flex-shrink: 0;
+}
+
+.assign-card .card-body {
+    padding: 0;
+    min-height: 300px;
+}
+
+.assign-card .card-footer {
+    background: #f8f9fa;
+    padding: 8px 12px;
+    border-top: 2px solid #000000;
+}
+
+/* ============================================ */
+/* TABLAS                                       */
+/* ============================================ */
+
+.assign-table {
+    font-size: 0.85rem;
+    margin-bottom: 0;
+}
+
+.assign-table thead th {
+    font-size: 0.7rem;
+    text-transform: uppercase;
+    letter-spacing: 0.3px;
+    padding: 8px 10px;
+    border-bottom: 2px solid #e9ecef;
+    background: #f8f9fa;
+    position: sticky;
+    top: 0;
+    z-index: 10;
+}
+
+.assign-table tbody td {
+    padding: 8px 10px;
+    vertical-align: middle;
+}
+
+.assign-table tbody tr:hover {
+    background: #f8f9fa;
+}
+
+/* ============================================ */
+/* BOTONES DE ACCIÓN                           */
+/* ============================================ */
+
+.btn-action {
+    padding: 0.1rem 0.35rem !important;
+    font-size: 0.55rem !important;
+    border-radius: 4px;
+    transition: all 0.2s ease;
+}
+
+.btn-action:hover {
+    transform: scale(1.05);
+}
+
+/* ============================================ */
+/* ESTADO VACÍO                                */
+/* ============================================ */
+
+.empty-state {
+    text-align: center;
+    padding: 40px 20px;
+    color: #6c757d;
+}
+
+.empty-state i {
+    font-size: 3rem;
+    display: block;
+    margin-bottom: 12px;
+    color: #c1c7cd;
+}
+
+.empty-state p {
+    font-size: 0.95rem;
+    font-weight: 500;
+    margin-bottom: 4px;
+    color: #495057;
+}
+
+.empty-state .text-muted {
+    font-size: 0.8rem;
+}
+
+/* ============================================ */
+/* BADGES                                       */
+/* ============================================ */
+
+.badge {
+    font-size: 0.65rem;
+    padding: 4px 10px;
+    border-radius: 10px;
+}
+
+/* ============================================ */
+/* RESPONSIVE                                  */
+/* ============================================ */
+
+@media (max-width: 992px) {
+    .assign-card {
+        min-height: auto;
+    }
+    
+    .assign-card .card-body {
+        min-height: 250px;
+    }
+}
+
+@media (max-width: 768px) {
+    .assign-wrapper {
+        padding: 15px;
+        border-radius: 10px;
+    }
+    
+    .assign-header {
+        flex-direction: column;
+        align-items: stretch;
+        gap: 10px;
+    }
+    
+    .assign-header .page-title {
+        font-size: 1.2rem;
+    }
+    
+    .assign-header .page-title small {
+        display: block;
+        margin-left: 0;
+        margin-top: 2px;
+        font-size: 0.7rem;
+    }
+    
+    .stat-card {
+        min-height: 50px;
+        max-height: 50px;
+    }
+    
+    .stat-card .stat-number {
+        font-size: 0.85rem !important;
+    }
+    .stat-card .stat-icon {
+        width: 18px !important;
+        height: 18px !important;
+        font-size: 0.55rem !important;
+    }
+    .stat-card .stat-label {
+        font-size: 0.45rem !important;
+    }
+    
+    .assign-card .card-header {
+        font-size: 0.6rem !important;
+        padding: 0.3rem 0.5rem !important;
+    }
+    
+    .assign-table {
+        font-size: 0.75rem;
+    }
+    .assign-table thead th {
+        font-size: 0.6rem;
+        padding: 6px 8px;
+    }
+    .assign-table tbody td {
+        padding: 6px 8px;
+    }
+}
+
+@media (max-width: 576px) {
+    .assign-wrapper {
+        padding: 10px;
+        border-radius: 8px;
+    }
+    
+    .assign-header .page-title {
+        font-size: 1rem;
+    }
+    
+    .assign-header .breadcrumb-custom {
+        font-size: 0.65rem;
+    }
+    
+    .stat-card {
+        min-height: 45px;
+        max-height: 45px;
+    }
+    
+    .stat-card .stat-number {
+        font-size: 0.8rem !important;
+    }
+    .stat-card .stat-icon {
+        width: 16px !important;
+        height: 16px !important;
+        font-size: 0.5rem !important;
+    }
+    .stat-card .stat-label {
+        font-size: 0.4rem !important;
+    }
+    
+    .assign-card .card-header {
+        font-size: 0.55rem !important;
+        padding: 0.2rem 0.4rem !important;
+    }
+    
+    .btn-action {
+        padding: 0.05rem 0.25rem !important;
+        font-size: 0.5rem !important;
+    }
+}
+
+/* ============================================ */
+/* SCROLL EN TABLAS                            */
+/* ============================================ */
+
+.assign-card .table-responsive {
+    max-height: 420px;
+    overflow-y: auto;
+}
+
+.assign-card .table-responsive::-webkit-scrollbar {
+    width: 4px;
+    height: 4px;
+}
+
+.assign-card .table-responsive::-webkit-scrollbar-track {
+    background: #f1f1f1;
+    border-radius: 4px;
+}
+
+.assign-card .table-responsive::-webkit-scrollbar-thumb {
+    background: #c1c7cd;
+    border-radius: 4px;
+}
+
+.assign-card .table-responsive::-webkit-scrollbar-thumb:hover {
+    background: #a8b0b8;
+}
+
+/* ============================================ */
+/* ANIMACIONES                                 */
+/* ============================================ */
+
+@keyframes fadeInUp {
+    from {
+        opacity: 0;
+        transform: translateY(10px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.dashboard-card {
+    animation: fadeInUp 0.4s ease forwards;
+    opacity: 0;
+}
+
+.dashboard-card:nth-child(1) { animation-delay: 0.05s; }
+.dashboard-card:nth-child(2) { animation-delay: 0.10s; }
+.dashboard-card:nth-child(3) { animation-delay: 0.15s; }
+.dashboard-card:nth-child(4) { animation-delay: 0.20s; }
+
+/* ============================================ */
+/* ALERTAS                                      */
+/* ============================================ */
+
+.alert {
+    border-radius: 8px;
+    font-size: 0.85rem;
+}
+
+.alert i {
+    margin-right: 8px;
+}

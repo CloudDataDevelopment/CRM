@@ -1,0 +1,558 @@
+/* ============================================ */
+/* CALENDARIO - ESTILOS COMPLETOS               */
+/* ============================================ */
+
+.calendar-index {
+    width: 100%;
+}
+
+/* ============================================ */
+/* HEADER                                       */
+/* ============================================ */
+
+.calendar-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    padding-bottom: 15px;
+    margin-bottom: 20px;
+    border-bottom: 2px solid #e9ecef;
+}
+
+.calendar-header .breadcrumb-custom {
+    font-size: 0.75rem;
+    color: #6c757d;
+    margin-bottom: 5px;
+}
+
+.calendar-header .breadcrumb-custom .separator {
+    margin: 0 6px;
+    color: #adb5bd;
+}
+
+.calendar-header .breadcrumb-custom .current {
+    color: #000000;
+    font-weight: 600;
+}
+
+.calendar-header .page-title {
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: #2c3e50;
+    margin: 0;
+}
+
+.calendar-header .page-title small {
+    font-size: 0.75rem;
+    font-weight: 400;
+    color: #6c757d;
+    margin-left: 10px;
+}
+
+.calendar-header .header-actions {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+    align-items: center;
+    flex-shrink: 0;
+}
+
+.calendar-header .header-actions .btn {
+    min-width: 80px;
+    text-align: center;
+    padding: 6px 16px;
+    border-radius: 6px;
+    font-size: 0.8rem;
+    transition: all 0.3s ease;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+}
+
+/* ============================================ */
+/* FILTROS                                      */
+/* ============================================ */
+
+.filtros-card {
+    border: 2px solid #000000 !important;
+    border-radius: 10px;
+    overflow: hidden;
+    background: #ffffff;
+}
+
+.filtros-card .card-body {
+    padding: 12px 15px;
+}
+
+.filtros-card .form-control,
+.filtros-card .form-select {
+    border-radius: 6px;
+    font-size: 0.85rem;
+    padding: 6px 12px;
+}
+
+.filtros-card .form-control:focus,
+.filtros-card .form-select:focus {
+    border-color: #0B3192;
+    box-shadow: 0 0 0 3px rgba(11, 49, 146, 0.1);
+}
+
+/* ============================================ */
+/* CALENDARIO                                   */
+/* ============================================ */
+
+.calendar-card {
+    border: 2px solid #000000 !important;
+    border-radius: 10px;
+    overflow: hidden;
+    background: #ffffff;
+    box-shadow: 0 1px 8px rgba(0, 0, 0, 0.05);
+}
+
+.calendar-card .card-header {
+    background: #f8f9fa;
+    border-bottom: 1px solid #e9ecef;
+    padding: 10px 15px;
+}
+
+.calendar-card .card-header .badge {
+    font-size: 12px;
+    padding: 6px 12px;
+}
+
+/* ============================================ */
+/* DÍA DEL CALENDARIO                           */
+/* ============================================ */
+
+.day-cell {
+    background: white;
+    transition: all 0.2s ease;
+    vertical-align: top;
+}
+
+.day-cell-hover:hover {
+    background: #f0f7ff !important;
+    transform: scale(1.01);
+}
+
+.day-cell-selected {
+    background: #cce5ff !important;
+    border: 2px solid #0d6efd !important;
+    box-shadow: 0 0 15px rgba(13, 110, 253, 0.2);
+}
+
+.day-cell .day-number {
+    font-size: 14px;
+    font-weight: 700;
+}
+
+.day-cell .day-number.today {
+    color: #dc3545;
+    background: rgba(220, 53, 69, 0.1);
+    padding: 0 8px;
+    border-radius: 4px;
+}
+
+.day-cell .day-badge {
+    font-size: 10px;
+    padding: 2px 6px;
+}
+
+/* ============================================ */
+/* EVENTOS EN EL CALENDARIO                     */
+/* ============================================ */
+
+.event-marker {
+    transition: all 0.2s ease;
+    cursor: pointer;
+}
+
+.event-marker:hover {
+    transform: scale(1.05);
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+    background: #e9ecef !important;
+}
+
+.event-marker i {
+    margin-right: 3px;
+    font-size: 7px;
+}
+
+/* ============================================ */
+/* TABLA DEL CALENDARIO                        */
+/* ============================================ */
+
+.calendar-table {
+    margin-bottom: 0;
+}
+
+.calendar-table th {
+    text-align: center;
+    font-weight: 600;
+    font-size: 13px;
+    padding: 8px 0;
+    background: #f8f9fa;
+}
+
+.calendar-table td {
+    vertical-align: top;
+    padding: 6px 8px;
+    height: 120px;
+    min-height: 120px;
+}
+
+/* ============================================ */
+/* SELECTOR DE MESES                           */
+/* ============================================ */
+
+#month-selector {
+    border-radius: 6px;
+    border: 2px solid #e8ecf1;
+    padding: 8px 12px;
+}
+
+#month-selector:focus {
+    border-color: #0091FF;
+    box-shadow: 0 0 0 3px rgba(0, 145, 255, 0.1);
+}
+
+/* ============================================ */
+/* MODAL FLOTANTE - DETALLE DEL DÍA            */
+/* ============================================ */
+
+#dayModal .modal-content {
+    border-radius: 12px;
+    border: none;
+    box-shadow: 0 10px 50px rgba(0, 0, 0, 0.2);
+    overflow: hidden;
+}
+
+#dayModal .modal-header {
+    background: linear-gradient(135deg, #0d6efd, #0a58ca);
+    color: white;
+    padding: 16px 24px;
+    border-bottom: none;
+}
+
+#dayModal .modal-header .modal-title {
+    font-size: 18px;
+    font-weight: 600;
+}
+
+#dayModal .modal-header .modal-title i {
+    margin-right: 10px;
+}
+
+#dayModal .modal-header .btn-close {
+    filter: brightness(0) invert(1);
+    opacity: 0.7;
+}
+
+#dayModal .modal-header .btn-close:hover {
+    opacity: 1;
+}
+
+#dayModal .modal-body {
+    padding: 20px 24px;
+    max-height: 550px;
+    overflow-y: auto;
+    background: #ffffff;
+}
+
+#dayModal .modal-body::-webkit-scrollbar {
+    width: 5px;
+}
+
+#dayModal .modal-body::-webkit-scrollbar-track {
+    background: #f1f1f1;
+    border-radius: 10px;
+}
+
+#dayModal .modal-body::-webkit-scrollbar-thumb {
+    background: #c1c7cd;
+    border-radius: 10px;
+}
+
+/* ============================================ */
+/* ESTADÍSTICAS DEL MODAL                      */
+/* ============================================ */
+
+.modal-stats {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 10px;
+    margin-bottom: 20px;
+}
+
+.modal-stat {
+    text-align: center;
+    padding: 12px 8px;
+    background: #f8f9fa;
+    border-radius: 8px;
+    border: 1px solid #e9ecef;
+}
+
+.modal-stat .stat-number {
+    font-size: 22px;
+    font-weight: 700;
+    color: #1a2332;
+}
+
+.modal-stat .stat-label {
+    font-size: 10px;
+    color: #6c757d;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.modal-stat .stat-number.text-success {
+    color: #1cc88a;
+}
+
+.modal-stat .stat-number.text-warning {
+    color: #f6c23e;
+}
+
+.modal-stat .stat-number.text-danger {
+    color: #e74a3b;
+}
+
+/* ============================================ */
+/* LISTA DE ACTIVIDADES EN MODAL               */
+/* ============================================ */
+
+.modal-activity-list {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.modal-activity-item {
+    display: flex;
+    gap: 12px;
+    padding: 12px 14px;
+    background: #ffffff;
+    border: 1px solid #e9ecef;
+    border-radius: 8px;
+    transition: all 0.2s ease;
+    cursor: pointer;
+}
+
+.modal-activity-item:hover {
+    background: #f8f9fa;
+    border-color: #dee2e6;
+    transform: translateX(4px);
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+}
+
+.modal-activity-item .activity-icon {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    font-size: 16px;
+    color: white;
+}
+
+.modal-activity-item .activity-icon.bg-info { background: #0dcaf0; }
+.modal-activity-item .activity-icon.bg-success { background: #1cc88a; }
+.modal-activity-item .activity-icon.bg-warning { background: #f6c23e; }
+.modal-activity-item .activity-icon.bg-danger { background: #e74a3b; }
+.modal-activity-item .activity-icon.bg-primary { background: #0d6efd; }
+.modal-activity-item .activity-icon.bg-secondary { background: #6c757d; }
+
+.modal-activity-item .activity-content {
+    flex: 1;
+    min-width: 0;
+}
+
+.modal-activity-item .activity-title {
+    font-size: 14px;
+    font-weight: 500;
+    color: #1a2332;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex-wrap: wrap;
+}
+
+.modal-activity-item .activity-title .badge {
+    font-size: 9px;
+    padding: 2px 8px;
+}
+
+.modal-activity-item .activity-time {
+    font-size: 11px;
+    color: #6c757d;
+}
+
+.modal-activity-item .activity-desc {
+    font-size: 12px;
+    color: #495057;
+    margin-top: 2px;
+}
+
+.modal-activity-item .activity-meta {
+    font-size: 11px;
+    color: #8a94a6;
+    margin-top: 2px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex-wrap: wrap;
+}
+
+.modal-activity-item .activity-meta .badge {
+    font-size: 9px;
+    padding: 2px 6px;
+}
+
+/* ============================================ */
+/* VACÍO EN MODAL                              */
+/* ============================================ */
+
+.modal-empty {
+    text-align: center;
+    padding: 40px 20px;
+    color: #6c757d;
+}
+
+.modal-empty i {
+    font-size: 48px;
+    color: #dee2e6;
+    margin-bottom: 15px;
+    display: block;
+}
+
+.modal-empty h5 {
+    font-weight: 600;
+    color: #495057;
+}
+
+.modal-empty p {
+    font-size: 14px;
+}
+
+/* ============================================ */
+/* RESPONSIVE                                   */
+/* ============================================ */
+
+@media (max-width: 768px) {
+    .calendar-table td {
+        height: 80px;
+        min-height: 80px;
+        padding: 4px;
+        font-size: 12px;
+    }
+
+    .day-cell .day-number {
+        font-size: 12px;
+    }
+
+    .event-marker {
+        font-size: 7px;
+        padding: 1px 3px;
+    }
+
+    .event-marker i {
+        font-size: 6px;
+    }
+
+    .calendar-table th {
+        font-size: 11px;
+        padding: 4px 0;
+    }
+
+    .calendar-header {
+        flex-direction: column;
+        gap: 10px;
+    }
+
+    .calendar-header .header-actions .btn {
+        min-width: 60px;
+        font-size: 0.7rem;
+        padding: 4px 10px;
+    }
+
+    #dayModal .modal-body {
+        padding: 16px;
+        max-height: 400px;
+    }
+
+    .modal-stats {
+        grid-template-columns: repeat(3, 1fr);
+        gap: 6px;
+    }
+
+    .modal-stat .stat-number {
+        font-size: 18px;
+    }
+
+    .modal-activity-item .activity-title {
+        font-size: 12px;
+    }
+}
+
+@media (max-width: 576px) {
+    .calendar-table td {
+        height: 60px;
+        min-height: 60px;
+        padding: 2px;
+        font-size: 10px;
+    }
+
+    .day-cell .day-number {
+        font-size: 10px;
+    }
+
+    .day-cell .day-badge {
+        font-size: 8px;
+        padding: 1px 4px;
+    }
+
+    .event-marker {
+        font-size: 6px;
+        padding: 1px 2px;
+    }
+
+    .event-marker i {
+        font-size: 5px;
+        margin-right: 1px;
+    }
+
+    .calendar-table th {
+        font-size: 9px;
+        padding: 2px 0;
+    }
+
+    #dayModal .modal-body {
+        padding: 12px;
+        max-height: 350px;
+    }
+
+    .modal-stats {
+        grid-template-columns: repeat(2, 1fr);
+    }
+
+    .modal-activity-item {
+        padding: 8px 10px;
+    }
+
+    .modal-activity-item .activity-icon {
+        width: 32px;
+        height: 32px;
+        font-size: 13px;
+    }
+
+    .modal-activity-item .activity-title {
+        font-size: 11px;
+    }
+
+    .modal-activity-item .activity-desc {
+        font-size: 10px;
+    }
+}

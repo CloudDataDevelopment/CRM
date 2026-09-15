@@ -1,0 +1,315 @@
+/* ============================================ */
+/* ESTILOS PARA EMPRESAS                        */
+/* ============================================ */
+
+/* ============================================ */
+/* VISTA INDEX DE EMPRESAS                      */
+/* ============================================ */
+
+.empresa-index {
+    padding: 20px;
+}
+
+/* Título principal */
+.empresa-index .display-4 {
+    font-weight: 700;
+    color: #2c3e50;
+}
+
+.empresa-index .lead {
+    color: #6c757d;
+    font-size: 1.2rem;
+}
+
+.empresa-index hr {
+    width: 100px;
+    margin: 1.5rem auto;
+    border: 2px solid #0091FF;
+    opacity: 0.5;
+    border-radius: 2px;
+}
+
+/* Tarjetas de empresas */
+.empresa-index .card {
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+    border-radius: 12px;
+    border: 1px solid #e0e0e0;
+    background: #fff;
+    overflow: hidden;
+}
+
+.empresa-index .card:hover {
+    transform: translateY(-8px);
+    box-shadow: 0 15px 30px rgba(0, 0, 0, 0.1);
+    border-color: #0091FF;
+}
+
+.empresa-index .card-body {
+    padding: 1.5rem;
+}
+
+/* Icono de empresa */
+.empresa-index .fa-building {
+    font-size: 3.5rem;
+    color: #0091FF;
+    transition: transform 0.3s ease;
+}
+
+.empresa-index .card:hover .fa-building {
+    transform: scale(1.1);
+}
+
+/* Título de la tarjeta */
+.empresa-index .card-title {
+    font-size: 1.25rem;
+    font-weight: 600;
+    margin-bottom: 0.75rem;
+    color: #2c3e50;
+}
+
+/* Descripción */
+.empresa-index .card-text {
+    color: #6c757d;
+    font-size: 0.95rem;
+    margin-bottom: 0.5rem;
+}
+
+/* Texto del dominio */
+.empresa-index .card-text .text-muted {
+    font-size: 0.85rem;
+}
+
+.empresa-index .card-text .text-muted i {
+    margin-right: 5px;
+    color: #0091FF;
+}
+
+/* Botones */
+.empresa-index .btn-block {
+    width: 100%;
+    padding: 8px 15px;
+    border-radius: 25px;
+    font-weight: 500;
+}
+
+/* Botón Entrar */
+.empresa-index .btn-primary {
+    background: linear-gradient(135deg, #0091FF 0%, #0066CC 100%);
+    border: none;
+    padding: 10px 20px;
+    border-radius: 25px;
+    transition: all 0.3s ease;
+}
+
+.empresa-index .btn-primary:hover {
+    transform: scale(1.02);
+    box-shadow: 0 5px 15px rgba(0, 145, 255, 0.4);
+}
+
+/* Botón Nueva Empresa */
+.empresa-index .btn-success {
+    background: linear-gradient(135deg, #28a745 0%, #20c997 100%);
+    border: none;
+    padding: 8px 20px;
+    border-radius: 25px;
+    transition: all 0.3s ease;
+}
+
+.empresa-index .btn-success:hover {
+    transform: scale(1.02);
+    box-shadow: 0 5px 15px rgba(40, 167, 69, 0.4);
+}
+
+/* Botones de acción (editar, eliminar) */
+.empresa-index .btn-warning {
+    background: linear-gradient(135deg, #ffc107 0%, #fd7e14 100%);
+    border: none;
+    color: #fff;
+    border-radius: 20px;
+    padding: 5px 12px;
+    transition: all 0.3s ease;
+}
+
+.empresa-index .btn-warning:hover {
+    transform: scale(1.05);
+    box-shadow: 0 3px 10px rgba(255, 193, 7, 0.4);
+}
+
+.empresa-index .btn-danger {
+    background: linear-gradient(135deg, #dc3545 0%, #e74c3c 100%);
+    border: none;
+    border-radius: 20px;
+    padding: 5px 12px;
+    transition: all 0.3s ease;
+}
+
+.empresa-index .btn-danger:hover {
+    transform: scale(1.05);
+    box-shadow: 0 3px 10px rgba(220, 53, 69, 0.4);
+}
+
+/* Contenedor de botones */
+.empresa-index .d-flex {
+    gap: 8px;
+}
+
+.empresa-index .d-flex .btn {
+    flex: 1;
+}
+
+.empresa-index .d-flex .btn:first-child {
+    flex: 2;
+}
+
+/* Alertas */
+.empresa-index .alert-info {
+    background-color: #e7f3ff;
+    border-color: #b8daff;
+    color: #004085;
+    border-radius: 10px;
+    padding: 1.5rem;
+}
+
+.empresa-index .alert-info .btn-link {
+    color: #0091FF;
+    font-weight: 600;
+    text-decoration: none;
+}
+
+.empresa-index .alert-info .btn-link:hover {
+    text-decoration: underline;
+}
+
+/* ============================================ */
+/* VISTA CREATE DE EMPRESAS                     */
+/* ============================================ */
+
+.empresa-create .card {
+    border-radius: 12px;
+    box-shadow: 0 5px 20px rgba(0, 0, 0, 0.08);
+    border: 1px solid #e0e0e0;
+    overflow: hidden;
+}
+
+.empresa-create .card-header {
+    border-bottom: none;
+    padding: 1.2rem 1.5rem;
+}
+
+.empresa-create .card-header.bg-primary {
+    background: linear-gradient(135deg, #0091FF 0%, #0066CC 100%);
+}
+
+.empresa-create .card-header i {
+    margin-right: 10px;
+}
+
+.empresa-create .card-body {
+    padding: 2rem;
+}
+
+.empresa-create .form-control {
+    border-radius: 8px;
+    padding: 10px 15px;
+    border: 2px solid #e8ecf1;
+    transition: all 0.3s ease;
+}
+
+.empresa-create .form-control:focus {
+    border-color: #0091FF;
+    box-shadow: 0 0 0 4px rgba(0, 145, 255, 0.1);
+}
+
+.empresa-create .form-label {
+    font-weight: 600;
+    color: #2c3e50;
+}
+
+.empresa-create .btn-success {
+    background: linear-gradient(135deg, #0091FF 0%, #0066CC 100%);
+    border: none;
+    padding: 10px 30px;
+    border-radius: 25px;
+    transition: all 0.3s ease;
+}
+
+.empresa-create .btn-success:hover {
+    transform: scale(1.02);
+    box-shadow: 0 5px 15px rgba(0, 145, 255, 0.4);
+}
+
+.empresa-create .btn-secondary {
+    background: #6c757d;
+    border: none;
+    padding: 10px 30px;
+    border-radius: 25px;
+    transition: all 0.3s ease;
+}
+
+.empresa-create .btn-secondary:hover {
+    background: #5a6268;
+    transform: scale(1.02);
+}
+
+/* ============================================ */
+/* RESPONSIVE                                   */
+/* ============================================ */
+
+@media (max-width: 768px) {
+    .empresa-index {
+        padding: 10px;
+    }
+    
+    .empresa-index .display-4 {
+        font-size: 2rem;
+    }
+    
+    .empresa-index .card {
+        margin-bottom: 15px;
+    }
+    
+    .empresa-index .card-body {
+        padding: 1rem;
+    }
+    
+    .empresa-index .fa-building {
+        font-size: 2.5rem;
+    }
+    
+    .empresa-index .d-flex {
+        flex-wrap: wrap;
+    }
+    
+    .empresa-index .d-flex .btn {
+        flex: 1 1 100%;
+        margin-bottom: 5px;
+    }
+    
+    .empresa-index .d-flex .btn:first-child {
+        flex: 1 1 100%;
+    }
+    
+    .empresa-create .card-body {
+        padding: 1.5rem;
+    }
+    
+    .empresa-create .btn-success,
+    .empresa-create .btn-secondary {
+        width: 100%;
+        margin-bottom: 10px;
+    }
+}
+
+@media (max-width: 576px) {
+    .empresa-index .display-4 {
+        font-size: 1.5rem;
+    }
+    
+    .empresa-index .lead {
+        font-size: 1rem;
+    }
+    
+    .empresa-index .card-title {
+        font-size: 1rem;
+    }
+}

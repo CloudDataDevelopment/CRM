@@ -1,0 +1,33 @@
+/* ============================================ */
+/* ESTILOS PARA LAYOUT SIMPLE                  */
+/* ============================================ */
+
+/* El main-content sin sidebar */
+.main-content-simple {
+    margin-left: 0 !important;
+}
+
+/* Ajuste para la barra superior en layout simple */
+.main-content-simple .top-search-bar {
+    position: sticky;
+    top: 0;
+    z-index: 100;
+}
+
+/* Eliminar el margen izquierdo del contenido */
+.main-content-simple .page-content {
+    padding: 10px 25px 30px 25px;
+}
+
+/* Responsive para layout simple */
+@media (max-width: 768px) {
+    .main-content-simple .page-content {
+        padding: 8px 15px 20px 15px;
+    }
+}
+
+@media (max-width: 576px) {
+    .main-content-simple .page-content {
+        padding: 5px 10px 15px 10px;
+    }
+}

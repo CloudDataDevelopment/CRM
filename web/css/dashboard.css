@@ -1,0 +1,1590 @@
+/* ============================================
+   DASHBOARD - Estilos compactos
+   ============================================ */
+
+/* --- Estilos unificados para todos los cards --- */
+.dashboard-card {
+    border: 2px solid #000000 !important;
+    border-radius: 10px;
+    box-shadow: 0 1px 8px rgba(0, 0, 0, 0.05);
+    transition: all 0.3s ease;
+    overflow: hidden;
+    background: #fff;
+}
+
+.dashboard-card:hover {
+    box-shadow: 0 3px 15px rgba(0, 0, 0, 0.08);
+}
+
+/* --- Headers unificados para todos los cards --- */
+.dashboard-card .card-header {
+    background: transparent;
+    border-bottom: 2px solid #000000 !important;
+    padding: 0.4rem 0.7rem !important;
+    font-weight: 600;
+    font-size: 0.65rem !important;
+    color: #2c3e50;
+    letter-spacing: 0.3px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+}
+
+.dashboard-card .card-header .header-left {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.dashboard-card .card-header .header-left i {
+    font-size: 0.7rem;
+    flex-shrink: 0;
+}
+
+.dashboard-card .card-header .badge {
+    font-size: 0.55rem !important;
+    padding: 0.1rem 0.5rem !important;
+    font-weight: 600;
+    flex-shrink: 0;
+}
+
+/* ============================================
+   TARJETAS DE ESTADÍSTICAS (MÉTRICAS) - PEQUEÑAS
+   ============================================ */
+.stat-card {
+    border: 2px solid #4a4a4a !important;
+    border-radius: 10px;
+    transition: all 0.3s ease;
+    cursor: default;
+    overflow: hidden;
+    position: relative;
+    background: #fff !important;
+    border-left: 3px solid transparent;
+    min-height: 60px;
+    max-height: 60px;
+}
+
+.stat-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.08) !important;
+}
+
+.stat-card .card-body {
+    padding: 0.2rem 0.5rem !important;
+}
+
+.stat-card .stat-icon {
+    width: 24px;
+    height: 24px;
+    border-radius: 6px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.7rem;
+    flex-shrink: 0;
+    transition: all 0.3s ease;
+}
+
+.stat-card:hover .stat-icon {
+    transform: scale(1.05);
+}
+
+.stat-card .stat-number {
+    font-size: 1rem;
+    font-weight: 700;
+    line-height: 1.1;
+    margin-bottom: 0px;
+}
+
+.stat-card .stat-label {
+    font-size: 0.5rem;
+    text-transform: uppercase;
+    letter-spacing: 0.3px;
+    font-weight: 600;
+    margin-bottom: 0px;
+}
+
+.stat-card .stat-sub {
+    font-size: 0.4rem;
+    margin-top: 0px;
+    line-height: 1.2;
+}
+
+/* Colores sólidos de las tarjetas - Fondo blanco */
+.stat-card-primary {
+    background: #ffffff !important;
+    border-left-color: #4e73df;
+}
+.stat-card-primary .stat-icon {
+    background: rgba(78, 115, 223, 0.12);
+    color: #4e73df;
+}
+.stat-card-primary .stat-number {
+    color: #4e73df;
+}
+
+.stat-card-success {
+    background: #ffffff !important;
+    border-left-color: #1cc88a;
+}
+.stat-card-success .stat-icon {
+    background: rgba(28, 200, 138, 0.12);
+    color: #1cc88a;
+}
+.stat-card-success .stat-number {
+    color: #1cc88a;
+}
+
+.stat-card-warning {
+    background: #ffffff !important;
+    border-left-color: #f6c23e;
+}
+.stat-card-warning .stat-icon {
+    background: rgba(246, 194, 62, 0.12);
+    color: #f6c23e;
+}
+.stat-card-warning .stat-number {
+    color: #f6c23e;
+}
+
+.stat-card-info {
+    background: #ffffff !important;
+    border-left-color: #36b9cc;
+}
+.stat-card-info .stat-icon {
+    background: rgba(54, 185, 204, 0.12);
+    color: #36b9cc;
+}
+.stat-card-info .stat-number {
+    color: #36b9cc;
+}
+
+.stat-card-purple {
+    background: #ffffff !important;
+    border-left-color: #8B5CF6;
+}
+.stat-card-purple .stat-icon {
+    background: rgba(139, 92, 246, 0.12);
+    color: #8B5CF6;
+}
+.stat-card-purple .stat-number {
+    color: #8B5CF6;
+}
+
+.stat-card-danger {
+    background: #ffffff !important;
+    border-left-color: #dc3545;
+}
+.stat-card-danger .stat-icon {
+    background: rgba(220, 53, 69, 0.12);
+    color: #dc3545;
+}
+.stat-card-danger .stat-number {
+    color: #dc3545;
+}
+
+/* --- Cards con altura completa --- */
+.dashboard-card.h-100 {
+    height: 100%;
+    min-height: 200px;
+}
+
+.dashboard-card.h-100 .card-body {
+    min-height: 200px;
+    padding: 0.5rem !important;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+/* --- Tarjetas de gráficos --- */
+.chart-card .card-body {
+    padding: 0.3rem 0.2rem 0.2rem !important;
+}
+
+.chart-container {
+    position: relative;
+    width: 100%;
+    max-width: 280px;
+    margin: 0 auto;
+}
+
+.chart-container canvas {
+    width: 100% !important;
+    height: auto !important;
+    max-height: 220px;
+    display: block;
+    image-rendering: auto;
+    image-rendering: crisp-edges;
+}
+
+.chart-container-sm {
+    position: relative;
+    width: 100%;
+    max-width: 220px;
+    margin: 0 auto;
+}
+
+.chart-container-sm canvas {
+    width: 100% !important;
+    height: auto !important;
+    max-height: 140px;
+    display: block;
+    image-rendering: auto;
+    image-rendering: crisp-edges;
+}
+
+/* ============================================
+   ESTILOS PARA GRÁFICA DE LEADS CON LEYENDA AL LADO
+   ============================================ */
+.chart-with-legend {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    width: 100%;
+    min-height: 160px;
+    padding: 0.3rem 0.3rem 0 0.3rem;
+}
+
+.chart-container-leads {
+    flex: 0 0 55%;
+    max-width: 55%;
+    position: relative;
+}
+
+.chart-container-leads canvas {
+    width: 100% !important;
+    height: auto !important;
+    max-height: 180px;
+    display: block;
+}
+
+.legend-container {
+    flex: 0 0 45%;
+    max-width: 45%;
+    display: flex;
+    flex-direction: column;
+    gap: 3px;
+    padding: 3px 0;
+}
+
+.legend-item {
+    display: flex;
+    align-items: center;
+    gap: 3px;
+    padding: 2px 4px;
+    border-radius: 4px;
+    transition: background 0.2s ease;
+    font-size: 0.65rem;
+}
+
+.legend-item:hover {
+    background: #f8f9fa;
+}
+
+.legend-color {
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    flex-shrink: 0;
+    border: 1px solid rgba(0,0,0,0.05);
+}
+
+.legend-label {
+    font-weight: 500;
+    color: #2c3e50;
+    font-size: 0.65rem;
+    flex-shrink: 0;
+}
+
+.legend-value {
+    font-weight: 700;
+    color: #2c3e50;
+    font-size: 0.65rem;
+    flex-shrink: 0;
+    margin-left: 1px;
+}
+
+.legend-separator {
+    color: #d1d5db;
+    font-size: 0.5rem;
+    flex-shrink: 0;
+    margin: 0 1px;
+}
+
+.legend-percentage {
+    font-size: 0.6rem;
+    color: #6c757d;
+    font-weight: 500;
+    flex-shrink: 0;
+    margin-left: 1px;
+}
+
+/* ============================================ */
+/* 🔥 TARJETA DE LEADS - GRÁFICA PROTAGONISTA */
+/* ============================================ */
+
+.leads-card-body {
+    display: flex !important;
+    flex-direction: column !important;
+    align-items: stretch !important;
+    justify-content: flex-start !important;
+    gap: 8px;
+    min-height: 220px;
+    height: auto !important;
+    overflow: visible !important;
+    padding: 0.6rem 0.6rem 0.5rem !important;
+}
+
+/* Gráfica + leyenda ocupan el espacio principal */
+.leads-card-body .chart-with-legend {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    width: 100%;
+    flex: 1 1 auto;
+    min-height: 180px;
+    padding: 0;
+}
+
+/* ============================================ */
+/* 🔥 CONTADOR DE LEADS NUEVOS POR MES (compacto) */
+/* ============================================ */
+
+.leads-monthly-counter {
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+    margin-top: 0;
+    padding: 6px 8px;
+    border-top: 1px solid #e9ecef;
+    background: #f8f9fa;
+    border-radius: 8px;
+    flex: 0 0 auto;
+    width: 100%;
+}
+
+.leads-monthly-header {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 0.62rem;
+    font-weight: 600;
+    color: #2c3e50;
+    padding: 0;
+    margin-bottom: 0;
+}
+
+.leads-monthly-header i {
+    font-size: 0.65rem;
+    color: #4e73df;
+}
+
+.leads-monthly-header .badge {
+    margin-left: auto;
+    font-size: 0.5rem !important;
+    padding: 0.1rem 0.45rem !important;
+    font-weight: 700;
+}
+
+.leads-monthly-grid {
+    display: grid;
+    grid-template-columns: repeat(12, 1fr);
+    gap: 2px;
+    padding: 0;
+    width: 100%;
+}
+
+.leads-monthly-item {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 3px 1px;
+    border-radius: 5px;
+    background: #ffffff;
+    border: 1px solid #e9ecef;
+    transition: all 0.2s ease;
+    min-height: 34px;
+    cursor: default;
+}
+
+.leads-monthly-item.has-data {
+    background: linear-gradient(135deg, #eef4ff 0%, #e3ecff 100%);
+    border-color: #b6ccff;
+}
+
+.leads-monthly-item:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 2px 6px rgba(78, 115, 223, 0.2);
+    border-color: #4e73df;
+    z-index: 2;
+}
+
+.leads-monthly-mes {
+    font-size: 0.5rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    color: #6c757d;
+    letter-spacing: 0.2px;
+    margin-bottom: 1px;
+    line-height: 1;
+}
+
+.leads-monthly-item.has-data .leads-monthly-mes {
+    color: #4e73df;
+}
+
+.leads-monthly-count {
+    font-size: 0.72rem;
+    font-weight: 800;
+    color: #2c3e50;
+    line-height: 1;
+}
+
+.leads-monthly-item.has-data .leads-monthly-count {
+    color: #4e73df;
+}
+
+/* ============================================
+   RESERVACIONES STACK LIST (Formato Pila)
+   ============================================ */
+
+.reservations-stack-list {
+    max-height: 320px;
+    overflow-y: auto;
+    padding: 4px 6px;
+}
+
+.reservations-stack-list::-webkit-scrollbar {
+    width: 4px;
+}
+
+.reservations-stack-list::-webkit-scrollbar-track {
+    background: #f1f1f1;
+    border-radius: 4px;
+}
+
+.reservations-stack-list::-webkit-scrollbar-thumb {
+    background: #c1c7cd;
+    border-radius: 4px;
+}
+
+.reservations-stack-list::-webkit-scrollbar-thumb:hover {
+    background: #a8b0b8;
+}
+
+/* Item de reservación en pila */
+.reservation-stack-item {
+    display: flex;
+    align-items: flex-start;
+    gap: 12px;
+    padding: 10px 12px;
+    margin-bottom: 6px;
+    background: #ffffff;
+    border-radius: 8px;
+    border: 1px solid #eef2f7;
+    transition: all 0.3s ease;
+    animation: fadeInUp 0.4s ease forwards;
+    opacity: 0;
+    position: relative;
+}
+
+.reservation-stack-item:hover {
+    background: #f8f9fc;
+    border-color: #d1d9e6;
+    transform: translateX(4px);
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+}
+
+.reservation-stack-item.reservation-stack-upcoming {
+    border-left: 3px solid #1cc88a;
+}
+
+.reservation-stack-item.reservation-stack-upcoming:hover {
+    border-left-color: #17a673;
+}
+
+/* Icono */
+.reservation-stack-icon {
+    width: 36px;
+    height: 36px;
+    min-width: 36px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: #f7fafc;
+    font-size: 0.85rem;
+    flex-shrink: 0;
+}
+
+.reservation-stack-icon i {
+    font-size: 0.85rem;
+}
+
+/* Contenido */
+.reservation-stack-content {
+    flex: 1;
+    min-width: 0;
+}
+
+.reservation-stack-title {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex-wrap: wrap;
+    font-size: 0.82rem;
+    margin-bottom: 2px;
+}
+
+.reservation-stack-title strong {
+    color: #2c3e50;
+    font-weight: 600;
+}
+
+.reservation-stack-status {
+    font-size: 0.55rem;
+    padding: 1px 10px;
+    border-radius: 20px;
+    font-weight: 600;
+    letter-spacing: 0.3px;
+}
+
+.status-past {
+    background: #fde8e8;
+    color: #991b1b;
+}
+
+.status-today {
+    background: #fef3c7;
+    color: #92400e;
+}
+
+.status-upcoming {
+    background: #d1fae5;
+    color: #065f46;
+}
+
+.reservation-stack-lead {
+    font-size: 0.7rem;
+    color: #6c757d;
+    margin-bottom: 2px;
+}
+
+.reservation-stack-lead i {
+    font-size: 0.6rem;
+    color: #4e73df;
+    margin-right: 4px;
+}
+
+.reservation-stack-meta {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    flex-wrap: wrap;
+    font-size: 0.6rem;
+    color: #95a5a6;
+}
+
+.reservation-stack-meta i {
+    margin-right: 3px;
+    font-size: 0.55rem;
+}
+
+.reservation-stack-date {
+    display: inline-flex;
+    align-items: center;
+}
+
+.reservation-stack-time {
+    display: inline-flex;
+    align-items: center;
+}
+
+/* Acciones */
+.reservation-stack-actions {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    flex-shrink: 0;
+}
+
+.btn-stack-view {
+    width: 28px;
+    height: 28px;
+    padding: 0;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 6px;
+    border: none;
+    background: #ebf5ff;
+    color: #3b82f6;
+    font-size: 0.7rem;
+    transition: all 0.2s ease;
+    text-decoration: none;
+}
+
+.btn-stack-view:hover {
+    background: #3b82f6;
+    color: white;
+    transform: scale(1.05);
+}
+
+/* Estado vacío */
+.reservation-stack-empty {
+    text-align: center;
+    padding: 30px 15px;
+    color: #6c757d;
+}
+
+.reservation-stack-empty i {
+    font-size: 2rem;
+    display: block;
+    margin-bottom: 10px;
+}
+
+.reservation-stack-empty p {
+    font-size: 0.85rem;
+    margin-bottom: 4px;
+    font-weight: 500;
+    color: #2c3e50;
+}
+
+/* ============================================
+   TARJETA DE TAREAS - CONTENIDO ALINEADO ARRIBA
+   ============================================ */
+.task-preview-card .card-body {
+    padding: 0 !important;
+    display: block !important;
+    align-items: flex-start !important;
+    justify-content: flex-start !important;
+    min-height: 200px;
+}
+
+.task-list {
+    max-height: 220px;
+    overflow-y: auto;
+    padding: 0.2rem 0.3rem;
+}
+
+.task-item {
+    display: flex;
+    align-items: center;
+    padding: 0.3rem 0.4rem;
+    border-bottom: 1px solid #f5f5f5;
+    transition: all 0.2s ease;
+    gap: 0.5rem;
+}
+
+.task-item:hover {
+    background: #f8f9fa;
+    border-radius: 6px;
+}
+
+.task-item:last-child {
+    border-bottom: none;
+}
+
+.task-check {
+    flex-shrink: 0;
+}
+
+.task-checkbox {
+    width: 14px;
+    height: 14px;
+    cursor: pointer;
+    accent-color: #1cc88a;
+}
+
+.task-content {
+    flex-grow: 1;
+    min-width: 0;
+}
+
+.task-title {
+    font-size: 0.7rem;
+    font-weight: 500;
+    color: #2c3e50;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.task-meta {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    margin-top: 1px;
+    flex-wrap: wrap;
+}
+
+.task-date {
+    font-size: 0.5rem;
+    color: #95a5a6;
+}
+
+.task-date i {
+    margin-right: 2px;
+}
+
+.task-actions {
+    flex-shrink: 0;
+}
+
+.task-empty {
+    text-align: center;
+    padding: 1.5rem 0.5rem;
+}
+
+.task-empty i {
+    font-size: 2rem;
+    color: #1cc88a;
+    margin-bottom: 0.5rem;
+}
+
+.task-empty p {
+    font-size: 0.8rem;
+    color: #2c3e50;
+    margin: 0;
+}
+
+/* Badges de prioridad - Colores sólidos */
+.badge-priority-high {
+    background: #fbe9e7 !important;
+    color: #d32f2f !important;
+    font-size: 0.5rem !important;
+    padding: 0.05rem 0.4rem !important;
+    border-radius: 8px;
+}
+
+.badge-priority-medium {
+    background: #fff3e0 !important;
+    color: #f57c00 !important;
+    font-size: 0.5rem !important;
+    padding: 0.05rem 0.4rem !important;
+    border-radius: 8px;
+}
+
+.badge-priority-low {
+    background: #e8f5e9 !important;
+    color: #388e3c !important;
+    font-size: 0.5rem !important;
+    padding: 0.05rem 0.4rem !important;
+    border-radius: 8px;
+}
+
+/* Badges de estado de tareas - Colores sólidos */
+.badge-status-overdue {
+    background: #fbe9e7 !important;
+    color: #d32f2f !important;
+    font-size: 0.5rem !important;
+    padding: 0.05rem 0.4rem !important;
+    border-radius: 8px;
+}
+
+.badge-status-upcoming {
+    background: #e8f5e9 !important;
+    color: #388e3c !important;
+    font-size: 0.5rem !important;
+    padding: 0.05rem 0.4rem !important;
+    border-radius: 8px;
+}
+
+.badge-status {
+    padding: 0.1rem 0.4rem !important;
+    border-radius: 10px;
+    font-weight: 600;
+    font-size: 0.55rem !important;
+    text-transform: capitalize;
+    display: inline-block;
+}
+
+/* Tarea vencida */
+.task-item-overdue {
+    border-left: 3px solid #dc3545;
+    background: #fff5f5;
+}
+
+.task-item-overdue:hover {
+    background: #fde8e8 !important;
+}
+
+/* Tarea próxima */
+.task-item-upcoming {
+    border-left: 3px solid #28a745;
+    background: #f5fff5;
+}
+
+.task-item-upcoming:hover {
+    background: #e8fde8 !important;
+}
+
+/* Lead en tarea */
+.task-lead {
+    font-size: 0.55rem;
+    color: #6c757d;
+    margin-left: 6px;
+}
+
+.task-lead i {
+    font-size: 0.5rem;
+}
+
+/* Scroll personalizado */
+.task-list::-webkit-scrollbar {
+    width: 3px;
+}
+
+.task-list::-webkit-scrollbar-track {
+    background: #f1f1f1;
+    border-radius: 10px;
+}
+
+.task-list::-webkit-scrollbar-thumb {
+    background: #c1c7cd;
+    border-radius: 10px;
+}
+
+.task-list::-webkit-scrollbar-thumb:hover {
+    background: #a8b0b8;
+}
+
+/* --- Botones de acción --- */
+.btn-action {
+    padding: 0.1rem 0.35rem !important;
+    font-size: 0.55rem !important;
+    border-radius: 4px;
+    transition: all 0.2s ease;
+}
+
+.btn-action:hover {
+    transform: scale(1.05);
+}
+
+/* --- Progress bar --- */
+.progress-custom {
+    height: 10px !important;
+    border-radius: 5px;
+    background: #f0f0f0;
+    overflow: hidden;
+    position: relative;
+}
+
+.progress-custom .progress-bar {
+    border-radius: 5px;
+    transition: width 1.2s ease;
+    font-size: 0.45rem !important;
+    font-weight: 600;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+/* --- Objetivos --- */
+.goal-card .card-body {
+    display: block;
+    min-height: 80px;
+    padding: 0.4rem !important;
+}
+
+.goal-card .card-header {
+    padding: 0.25rem 0.5rem !important;
+}
+
+/* ============================================
+   EMBUDO DE VENTAS - TRAPECIO VISUAL
+   ============================================ */
+
+.funnel-container-trapezoid {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0px;
+    padding: 5px 0;
+    max-width: 100%;
+    margin: 0 auto;
+}
+
+/* Wrapper de cada fila del embudo (bloque + info) */
+.funnel-step-row-wrapper {
+    display: flex;
+    align-items: center;
+    width: 100%;
+    position: relative;
+    gap: 8px;
+    padding: 2px 0;
+}
+
+/* Columna del bloque trapezoidal (izquierda) */
+.funnel-step-block-col {
+    flex: 0 0 62%;
+    max-width: 62%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+/* Columna de la etiqueta + número (derecha) */
+.funnel-step-info-col {
+    flex: 0 0 38%;
+    max-width: 38%;
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    justify-content: center;
+    gap: 3px;
+    padding-left: 6px;
+}
+
+/* Etiqueta (nombre de la etapa) - Derecha */
+.funnel-step-label {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    font-size: 0.7rem;
+    font-weight: 700;
+    letter-spacing: 0.3px;
+    text-transform: uppercase;
+    white-space: nowrap;
+    line-height: 1;
+}
+
+.funnel-step-label i {
+    font-size: 0.7rem;
+}
+
+/* Número (conteo) - Badge debajo de la etiqueta */
+.funnel-step-count {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 26px;
+    height: 22px;
+    padding: 0 8px;
+    border-radius: 11px;
+    color: #ffffff;
+    font-size: 0.7rem;
+    font-weight: 700;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.15);
+    flex-shrink: 0;
+}
+
+/* Bloque del embudo (SOLO FORMA Y COLOR) */
+.funnel-block-trapezoid {
+    position: relative;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 8px 14px;
+    min-height: 36px;
+    color: #fff;
+    font-weight: 600;
+    transition: all 0.3s ease;
+    cursor: default;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+    border-top: 0px solid transparent;
+    clip-path: polygon(2% 0%, 98% 0%, 88% 100%, 12% 100%);
+    border-radius: 4px;
+}
+
+.funnel-block-trapezoid:hover {
+    transform: scale(1.02) translateY(-2px);
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2) !important;
+    z-index: 2;
+}
+
+/* Conector entre etapas */
+.funnel-connector-trapezoid {
+    width: 2px;
+    height: 8px;
+    background: #d1d5db;
+    margin: 2px auto;
+    position: relative;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+}
+
+.funnel-connector-trapezoid span {
+    position: absolute;
+    bottom: -4px;
+    left: 50%;
+    transform: translateX(-50%);
+    font-size: 7px;
+    color: #9ca3af;
+}
+
+.funnel-step-row-wrapper:last-child + .funnel-connector-trapezoid {
+    display: none;
+}
+
+/* Tooltip */
+.funnel-tooltip-trapezoid {
+    display: none;
+    position: absolute;
+    bottom: calc(100% + 10px);
+    left: 50%;
+    transform: translateX(-50%);
+    background: #1f2937;
+    color: #fff;
+    padding: 6px 12px;
+    border-radius: 6px;
+    font-size: 0.5rem;
+    font-weight: 400;
+    white-space: nowrap;
+    z-index: 10;
+    text-align: center;
+    line-height: 1.4;
+}
+
+.funnel-tooltip-trapezoid::after {
+    content: '';
+    position: absolute;
+    top: 100%;
+    left: 50%;
+    transform: translateX(-50%);
+    border: 5px solid transparent;
+    border-top-color: #1f2937;
+}
+
+.funnel-block-trapezoid:hover .funnel-tooltip-trapezoid {
+    display: block;
+}
+
+/* ============================================
+   CONTENEDOR PRINCIPAL DEL DASHBOARD
+   ============================================ */
+
+.dashboard-wrapper {
+    background: #ffffff;
+    border-radius: 12px;
+    padding: 20px 25px 25px 25px;
+    box-shadow: 0 2px 12px rgba(0, 0, 0, 0.08);
+    border: none;
+}
+
+/* ============================================
+   HEADER DEL DASHBOARD
+   ============================================ */
+
+.dashboard-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    padding-bottom: 15px;
+    margin-bottom: 20px;
+    border-bottom: 2px solid #e9ecef;
+}
+
+.dashboard-header .breadcrumb-custom {
+    font-size: 0.75rem;
+    color: #6c757d;
+    margin-bottom: 5px;
+}
+
+.dashboard-header .breadcrumb-custom .separator {
+    margin: 0 6px;
+    color: #adb5bd;
+}
+
+.dashboard-header .breadcrumb-custom .current {
+    color: #000000;
+    font-weight: 600;
+}
+
+.dashboard-header .page-title {
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: #000000;
+    margin: 0;
+}
+
+.dashboard-header .header-actions {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+    align-items: center;
+}
+
+/* ============================================
+   ANIMACIONES
+   ============================================ */
+@keyframes fadeInUp {
+    from {
+        opacity: 0;
+        transform: translateY(10px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.dashboard-card {
+    animation: fadeInUp 0.4s ease forwards;
+    opacity: 0;
+}
+
+.dashboard-card:nth-child(1) { animation-delay: 0.05s; }
+.dashboard-card:nth-child(2) { animation-delay: 0.10s; }
+.dashboard-card:nth-child(3) { animation-delay: 0.15s; }
+.dashboard-card:nth-child(4) { animation-delay: 0.20s; }
+.dashboard-card:nth-child(5) { animation-delay: 0.25s; }
+.dashboard-card:nth-child(6) { animation-delay: 0.30s; }
+
+/* ============================================
+   RESPONSIVE
+   ============================================ */
+
+@media (max-width: 992px) {
+    .stat-card {
+        min-height: 55px;
+        max-height: 55px;
+    }
+    .stat-card .stat-icon {
+        width: 20px;
+        height: 20px;
+        font-size: 0.6rem;
+    }
+    .stat-card .stat-number {
+        font-size: 0.9rem;
+    }
+
+    .funnel-step-block-col {
+        flex: 0 0 58%;
+        max-width: 58%;
+    }
+    .funnel-step-info-col {
+        flex: 0 0 42%;
+        max-width: 42%;
+        padding-left: 4px;
+    }
+    .funnel-step-label {
+        font-size: 0.65rem;
+        gap: 4px;
+    }
+    .funnel-step-label i {
+        font-size: 0.65rem;
+    }
+    .funnel-step-count {
+        font-size: 0.65rem;
+        height: 20px;
+        min-width: 24px;
+        padding: 0 6px;
+    }
+    .funnel-block-trapezoid {
+        padding: 7px 12px;
+        min-height: 32px;
+    }
+    .funnel-container-trapezoid {
+        max-width: 100%;
+    }
+
+    .chart-container canvas {
+        max-height: 200px !important;
+    }
+    .chart-container-sm canvas {
+        max-height: 120px !important;
+    }
+    .dashboard-card.h-100 .card-body {
+        min-height: 160px;
+    }
+    .task-preview-card .card-body {
+        min-height: 160px;
+    }
+    .task-list {
+        max-height: 180px;
+    }
+
+    .chart-with-legend {
+        flex-direction: column;
+        gap: 10px;
+        min-height: auto;
+    }
+    .chart-container-leads {
+        flex: 0 0 100%;
+        max-width: 70%;
+    }
+    .legend-container {
+        flex: 0 0 100%;
+        max-width: 100%;
+        flex-direction: row;
+        flex-wrap: wrap;
+        justify-content: center;
+        gap: 2px;
+    }
+    .legend-item {
+        flex: 0 0 auto;
+        padding: 2px 6px;
+        font-size: 0.6rem;
+        gap: 2px;
+    }
+
+    .leads-card-body {
+        min-height: 200px;
+        padding: 0.5rem !important;
+    }
+    .leads-card-body .chart-with-legend {
+        min-height: 150px;
+    }
+
+    .leads-monthly-grid {
+        grid-template-columns: repeat(12, 1fr);
+        gap: 2px;
+    }
+    .leads-monthly-item {
+        min-height: 30px;
+        padding: 2px 1px;
+    }
+    .leads-monthly-mes {
+        font-size: 0.42rem;
+    }
+    .leads-monthly-count {
+        font-size: 0.65rem;
+    }
+
+    .reservations-stack-list {
+        max-height: 280px;
+    }
+    .reservation-stack-item {
+        padding: 8px 10px;
+        gap: 10px;
+    }
+    .reservation-stack-icon {
+        width: 30px;
+        height: 30px;
+        min-width: 30px;
+        font-size: 0.7rem;
+    }
+    .reservation-stack-title {
+        font-size: 0.75rem;
+    }
+    .reservation-stack-lead {
+        font-size: 0.65rem;
+    }
+    .reservation-stack-meta {
+        font-size: 0.55rem;
+        gap: 8px;
+    }
+    .btn-stack-view {
+        width: 24px;
+        height: 24px;
+        font-size: 0.6rem;
+    }
+}
+
+@media (max-width: 768px) {
+    .stat-card {
+        min-height: 50px;
+        max-height: 50px;
+    }
+    .stat-card .stat-number {
+        font-size: 0.85rem !important;
+    }
+    .stat-card .stat-icon {
+        width: 18px !important;
+        height: 18px !important;
+        font-size: 0.55rem !important;
+    }
+    .stat-card .stat-label {
+        font-size: 0.45rem !important;
+    }
+    .stat-card .stat-sub {
+        font-size: 0.4rem !important;
+    }
+
+    .chart-container canvas {
+        max-height: 170px !important;
+    }
+    .chart-container-sm canvas {
+        max-height: 120px !important;
+    }
+    .dashboard-card.h-100 .card-body {
+        min-height: 140px;
+        padding: 0.3rem !important;
+    }
+    .task-preview-card .card-body {
+        min-height: 140px;
+    }
+    .dashboard-card .card-header {
+        font-size: 0.6rem !important;
+        padding: 0.3rem 0.5rem !important;
+    }
+    .task-list {
+        max-height: 150px;
+    }
+    .task-title {
+        font-size: 0.65rem;
+    }
+
+    .funnel-step-row-wrapper {
+        gap: 6px;
+    }
+    .funnel-step-block-col {
+        flex: 0 0 55%;
+        max-width: 55%;
+    }
+    .funnel-step-info-col {
+        flex: 0 0 45%;
+        max-width: 45%;
+        padding-left: 3px;
+    }
+    .funnel-step-label {
+        font-size: 0.6rem;
+        gap: 3px;
+    }
+    .funnel-step-label i {
+        font-size: 0.6rem;
+    }
+    .funnel-step-count {
+        font-size: 0.6rem;
+        height: 18px;
+        min-width: 22px;
+        padding: 0 5px;
+    }
+    .funnel-block-trapezoid {
+        padding: 6px 10px;
+        min-height: 28px;
+    }
+    .funnel-container-trapezoid {
+        padding: 3px 0;
+    }
+    .funnel-connector-trapezoid {
+        height: 6px;
+    }
+    .funnel-connector-trapezoid span {
+        font-size: 5px;
+        bottom: -3px;
+    }
+
+    .leads-card-body {
+        min-height: auto;
+        padding: 0.4rem !important;
+    }
+    .leads-card-body .chart-with-legend {
+        flex-direction: column;
+        min-height: auto;
+        gap: 8px;
+    }
+    .leads-monthly-grid {
+        grid-template-columns: repeat(6, 1fr);
+        gap: 3px;
+    }
+    .leads-monthly-item {
+        min-height: 32px;
+        padding: 2px 1px;
+    }
+    .leads-monthly-mes {
+        font-size: 0.45rem;
+    }
+    .leads-monthly-count {
+        font-size: 0.68rem;
+    }
+
+    .task-item-overdue,
+    .task-item-upcoming {
+        padding: 0.15rem 0.2rem;
+    }
+    .task-lead {
+        display: block;
+        margin-left: 0;
+        margin-top: 2px;
+    }
+    .goal-card .card-body {
+        min-height: 80px;
+        padding: 0.3rem !important;
+    }
+
+    .chart-container-leads {
+        max-width: 80%;
+    }
+    .legend-item {
+        font-size: 0.55rem;
+        padding: 2px 4px;
+        gap: 2px;
+    }
+    .legend-color {
+        width: 9px;
+        height: 9px;
+    }
+
+    .dashboard-wrapper {
+        padding: 15px;
+        border-radius: 10px;
+    }
+    .dashboard-header {
+        flex-direction: column;
+        align-items: stretch;
+        gap: 10px;
+    }
+    .dashboard-header .page-title {
+        font-size: 1.2rem;
+    }
+
+    .reservation-stack-item {
+        flex-wrap: wrap;
+        gap: 6px;
+    }
+    .reservation-stack-actions {
+        width: 100%;
+        justify-content: flex-end;
+    }
+}
+
+@media (max-width: 576px) {
+    .stat-card {
+        min-height: 45px;
+        max-height: 45px;
+    }
+    .stat-card .stat-number {
+        font-size: 0.8rem !important;
+    }
+    .stat-card .stat-icon {
+        width: 16px !important;
+        height: 16px !important;
+        font-size: 0.5rem !important;
+    }
+    .stat-card .stat-label {
+        font-size: 0.4rem !important;
+    }
+    .stat-card .stat-sub {
+        font-size: 0.35rem !important;
+    }
+
+    .chart-container canvas {
+        max-height: 140px !important;
+    }
+    .chart-container-sm canvas {
+        max-height: 100px !important;
+    }
+    .dashboard-card.h-100 .card-body {
+        min-height: 120px;
+        padding: 0.2rem !important;
+    }
+    .task-preview-card .card-body {
+        min-height: 120px;
+    }
+    .dashboard-card .card-header {
+        font-size: 0.55rem !important;
+        padding: 0.2rem 0.4rem !important;
+    }
+    .task-list {
+        max-height: 120px;
+    }
+
+    .funnel-step-row-wrapper {
+        gap: 4px;
+    }
+    .funnel-step-block-col {
+        flex: 0 0 50%;
+        max-width: 50%;
+    }
+    .funnel-step-info-col {
+        flex: 0 0 50%;
+        max-width: 50%;
+        padding-left: 2px;
+    }
+    .funnel-step-label {
+        font-size: 0.55rem;
+        gap: 2px;
+    }
+    .funnel-step-label i {
+        font-size: 0.55rem;
+    }
+    .funnel-step-count {
+        font-size: 0.55rem;
+        height: 16px;
+        min-width: 20px;
+        padding: 0 4px;
+    }
+    .funnel-block-trapezoid {
+        padding: 5px 8px;
+        min-height: 24px;
+    }
+    .funnel-container-trapezoid {
+        padding: 2px 0;
+    }
+    .funnel-connector-trapezoid {
+        height: 5px;
+    }
+    .funnel-connector-trapezoid span {
+        font-size: 4px;
+        bottom: -2px;
+    }
+
+    .leads-monthly-grid {
+        grid-template-columns: repeat(4, 1fr);
+        gap: 3px;
+    }
+    .leads-monthly-item {
+        min-height: 30px;
+        padding: 2px 1px;
+    }
+    .leads-monthly-mes {
+        font-size: 0.42rem;
+    }
+    .leads-monthly-count {
+        font-size: 0.62rem;
+    }
+
+    .chart-container-leads {
+        max-width: 90%;
+    }
+    .legend-item {
+        font-size: 0.5rem;
+        padding: 1px 3px;
+        gap: 1px;
+    }
+    .legend-color {
+        width: 7px;
+        height: 7px;
+    }
+    .legend-value {
+        font-size: 0.5rem;
+    }
+    .legend-percentage {
+        font-size: 0.5rem;
+    }
+    .legend-separator {
+        font-size: 0.4rem;
+    }
+
+    .dashboard-wrapper {
+        padding: 10px;
+        border-radius: 8px;
+    }
+    .dashboard-header .page-title {
+        font-size: 1rem;
+    }
+    .dashboard-header .breadcrumb-custom {
+        font-size: 0.65rem;
+    }
+}
+
+/* --- Scroll en tablas --- */
+.table-responsive::-webkit-scrollbar {
+    height: 4px;
+}
+
+.table-responsive::-webkit-scrollbar-track {
+    background: #f1f1f1;
+    border-radius: 10px;
+}
+
+.table-responsive::-webkit-scrollbar-thumb {
+    background: #c1c7cd;
+    border-radius: 10px;
+}
+
+.table-responsive::-webkit-scrollbar-thumb:hover {
+    background: #a8b0b8;
+}
+
+/* --- Margenes generales --- */
+.dashboard-index .row.g-2 {
+    --bs-gutter-y: 0.25rem;
+    --bs-gutter-x: 0.25rem;
+}

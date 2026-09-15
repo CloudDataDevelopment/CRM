@@ -1,0 +1,156 @@
+[22-Jun-2026 22:56:16 UTC] An Error occurred while handling another error:
+Error: Class "app\components\CompanyHelper" not found in /home/clouddatacancun/crm.clouddatacancun.com/views/layouts/main.php:12
+Stack trace:
+#0 /home/clouddatacancun/crm.clouddatacancun.com/vendor/yiisoft/yii2/base/View.php(347): require()
+#1 /home/clouddatacancun/crm.clouddatacancun.com/vendor/yiisoft/yii2/base/View.php(257): yii\base\View->renderPhpFile()
+#2 /home/clouddatacancun/crm.clouddatacancun.com/vendor/yiisoft/yii2/base/Controller.php(465): yii\base\View->renderFile()
+#3 /home/clouddatacancun/crm.clouddatacancun.com/vendor/yiisoft/yii2/base/Controller.php(451): yii\base\Controller->renderContent()
+#4 /home/clouddatacancun/crm.clouddatacancun.com/vendor/yiisoft/yii2/web/ErrorAction.php(142): yii\base\Controller->render()
+#5 /home/clouddatacancun/crm.clouddatacancun.com/vendor/yiisoft/yii2/web/ErrorAction.php(121): yii\web\ErrorAction->renderHtmlResponse()
+#6 [internal function]: yii\web\ErrorAction->run()
+#7 /home/clouddatacancun/crm.clouddatacancun.com/vendor/yiisoft/yii2/base/Action.php(104): call_user_func_array()
+#8 /home/clouddatacancun/crm.clouddatacancun.com/vendor/yiisoft/yii2/base/Controller.php(197): yii\base\Action->runWithParams()
+#9 /home/clouddatacancun/crm.clouddatacancun.com/vendor/yiisoft/yii2/base/Module.php(554): yii\base\Controller->runAction()
+#10 /home/clouddatacancun/crm.clouddatacancun.com/vendor/yiisoft/yii2/web/ErrorHandler.php(111): yii\base\Module->runAction()
+#11 /home/clouddatacancun/crm.clouddatacancun.com/vendor/yiisoft/yii2/base/ErrorHandler.php(151): yii\web\ErrorHandler->renderException()
+#12 [internal function]: yii\base\ErrorHandler->handleException()
+#13 {main}
+Previous exception:
+yii\base\InvalidRouteException: Unable to resolve the request "css/site.css". in /home/clouddatacancun/crm.clouddatacancun.com/vendor/yiisoft/yii2/base/Module.php:563
+Stack trace:
+#0 /home/clouddatacancun/crm.clouddatacancun.com/vendor/yiisoft/yii2/web/Application.php(112): yii\base\Module->runAction()
+#1 /home/clouddatacancun/crm.clouddatacancun.com/vendor/yiisoft/yii2/base/Application.php(391): yii\web\Application->handleRequest()
+#2 /home/clouddatacancun/crm.clouddatacancun.com/web/index.php(12): yii\base\Application->run()
+#3 {main}
+
+Next yii\web\NotFoundHttpException: Page not found. in /home/clouddatacancun/crm.clouddatacancun.com/vendor/yiisoft/yii2/web/Application.php:124
+Stack trace:
+#0 /home/clouddatacancun/crm.clouddatacancun.com/vendor/yiisoft/yii2/base/Application.php(391): yii\web\Application->handleRequest()
+#1 /home/clouddatacancun/crm.clouddatacancun.com/web/index.php(12): yii\base\Application->run()
+#2 {main}
+$_SERVER = [
+    'PATH' => '/usr/local/bin:/bin:/usr/bin',
+    'DOCUMENT_ROOT' => '/home/clouddatacancun/crm.clouddatacancun.com',
+    'HTTP_ACCEPT' => 'text/css,*/*;q=0.1',
+    'HTTP_ACCEPT_ENCODING' => 'gzip, deflate, br, zstd',
+    'HTTP_ACCEPT_LANGUAGE' => 'es-ES,es;q=0.5',
+    'HTTP_COOKIE' => '_csrf=c993248c958a444b743b5ad90f014b351fac8b742f8e3c111b859ee4e929a581a%3A2%3A%7Bi%3A0%3Bs%3A5%3A%22_csrf%22%3Bi%3A1%3Bs%3A32%3A%22741_xiIP_fPrszXkow5MiwYe9aS4Rvl6%22%3B%7D',
+    'HTTP_HOST' => 'crm.clouddatacancun.com',
+    'HTTP_REFERER' => 'https://crm.clouddatacancun.com/web/site/login',
+    'HTTP_USER_AGENT' => 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/149.0.0.0 Safari/537.36',
+    'HTTP_SEC_CH_UA_PLATFORM' => '"Windows"',
+    'HTTP_SEC_CH_UA' => '"Brave";v="149", "Chromium";v="149", "Not)A;Brand";v="24"',
+    'HTTP_SEC_CH_UA_MOBILE' => '?0',
+    'HTTP_SEC_GPC' => '1',
+    'HTTP_SEC_FETCH_SITE' => 'same-origin',
+    'HTTP_SEC_FETCH_MODE' => 'no-cors',
+    'HTTP_SEC_FETCH_DEST' => 'style',
+    'HTTP_PRIORITY' => 'u=0',
+    'REMOTE_ADDR' => '189.174.54.236',
+    'REMOTE_PORT' => '51346',
+    'SERVER_ADDR' => '192.250.227.13',
+    'SERVER_NAME' => 'crm.clouddatacancun.com',
+    'SERVER_ADMIN' => 'webmaster@crm.clouddatacancun.com',
+    'SERVER_PORT' => '443',
+    'REQUEST_SCHEME' => 'https',
+    'REQUEST_URI' => '/web/css/site.css',
+    'REDIRECT_URL' => '/web/css/site.css',
+    'REDIRECT_REQUEST_METHOD' => 'GET',
+    'HTTPS' => 'on',
+    'REDIRECT_STATUS' => '200',
+    'X_SPDY' => 'HTTP3',
+    'SSL_PROTOCOL' => 'QUIC',
+    'SSL_CIPHER' => 'TLS_AES_128_GCM_SHA256',
+    'SSL_CIPHER_USEKEYSIZE' => '128',
+    'SSL_CIPHER_ALGKEYSIZE' => '128',
+    'SCRIPT_FILENAME' => '/home/clouddatacancun/crm.clouddatacancun.com/web/index.php',
+    'QUERY_STRING' => '',
+    'SCRIPT_URI' => 'https://crm.clouddatacancun.com/web/css/site.css',
+    'SCRIPT_URL' => '/web/css/site.css',
+    'SCRIPT_NAME' => '/web/index.php',
+    'SERVER_PROTOCOL' => 'HTTP/1.1',
+    'SERVER_SOFTWARE' => 'LiteSpeed',
+    'REQUEST_METHOD' => 'GET',
+    'X-LSCACHE' => 'on',
+    'PHP_SELF' => '/web/index.php',
+    'REQUEST_TIME_FLOAT' => 1782168976.071658,
+    'REQUEST_TIME' => 1782168976,
+]
+[22-Jun-2026 22:56:22 UTC] An Error occurred while handling another error:
+Error: Class "app\components\CompanyHelper" not found in /home/clouddatacancun/crm.clouddatacancun.com/views/layouts/main.php:12
+Stack trace:
+#0 /home/clouddatacancun/crm.clouddatacancun.com/vendor/yiisoft/yii2/base/View.php(347): require()
+#1 /home/clouddatacancun/crm.clouddatacancun.com/vendor/yiisoft/yii2/base/View.php(257): yii\base\View->renderPhpFile()
+#2 /home/clouddatacancun/crm.clouddatacancun.com/vendor/yiisoft/yii2/base/Controller.php(465): yii\base\View->renderFile()
+#3 /home/clouddatacancun/crm.clouddatacancun.com/vendor/yiisoft/yii2/base/Controller.php(451): yii\base\Controller->renderContent()
+#4 /home/clouddatacancun/crm.clouddatacancun.com/vendor/yiisoft/yii2/web/ErrorAction.php(142): yii\base\Controller->render()
+#5 /home/clouddatacancun/crm.clouddatacancun.com/vendor/yiisoft/yii2/web/ErrorAction.php(121): yii\web\ErrorAction->renderHtmlResponse()
+#6 [internal function]: yii\web\ErrorAction->run()
+#7 /home/clouddatacancun/crm.clouddatacancun.com/vendor/yiisoft/yii2/base/Action.php(104): call_user_func_array()
+#8 /home/clouddatacancun/crm.clouddatacancun.com/vendor/yiisoft/yii2/base/Controller.php(197): yii\base\Action->runWithParams()
+#9 /home/clouddatacancun/crm.clouddatacancun.com/vendor/yiisoft/yii2/base/Module.php(554): yii\base\Controller->runAction()
+#10 /home/clouddatacancun/crm.clouddatacancun.com/vendor/yiisoft/yii2/web/ErrorHandler.php(111): yii\base\Module->runAction()
+#11 /home/clouddatacancun/crm.clouddatacancun.com/vendor/yiisoft/yii2/base/ErrorHandler.php(151): yii\web\ErrorHandler->renderException()
+#12 [internal function]: yii\base\ErrorHandler->handleException()
+#13 {main}
+Previous exception:
+yii\base\InvalidRouteException: Unable to resolve the request "css/site.css". in /home/clouddatacancun/crm.clouddatacancun.com/vendor/yiisoft/yii2/base/Module.php:563
+Stack trace:
+#0 /home/clouddatacancun/crm.clouddatacancun.com/vendor/yiisoft/yii2/web/Application.php(112): yii\base\Module->runAction()
+#1 /home/clouddatacancun/crm.clouddatacancun.com/vendor/yiisoft/yii2/base/Application.php(391): yii\web\Application->handleRequest()
+#2 /home/clouddatacancun/crm.clouddatacancun.com/web/index.php(12): yii\base\Application->run()
+#3 {main}
+
+Next yii\web\NotFoundHttpException: Page not found. in /home/clouddatacancun/crm.clouddatacancun.com/vendor/yiisoft/yii2/web/Application.php:124
+Stack trace:
+#0 /home/clouddatacancun/crm.clouddatacancun.com/vendor/yiisoft/yii2/base/Application.php(391): yii\web\Application->handleRequest()
+#1 /home/clouddatacancun/crm.clouddatacancun.com/web/index.php(12): yii\base\Application->run()
+#2 {main}
+$_SERVER = [
+    'PATH' => '/usr/local/bin:/bin:/usr/bin',
+    'DOCUMENT_ROOT' => '/home/clouddatacancun/crm.clouddatacancun.com',
+    'HTTP_ACCEPT' => 'text/css,*/*;q=0.1',
+    'HTTP_ACCEPT_ENCODING' => 'gzip, deflate, br, zstd',
+    'HTTP_ACCEPT_LANGUAGE' => 'es-ES,es;q=0.5',
+    'HTTP_COOKIE' => 'PHPSESSID=ttb1n8sgapdsj1s32ie6usngka; _identity=74c9364bb6703463157909e55ea118a8d7f97a9289f1d363792027f1b0e9bfe3a%3A2%3A%7Bi%3A0%3Bs%3A9%3A%22_identity%22%3Bi%3A1%3Bs%3A14%3A%22%5B2%2C%22%22%2C2592000%5D%22%3B%7D; _csrf=21fe11e8a071c985e624d2c2ea1b823a80efcb6fbe0afba6088a85bc3a4fa1b0a%3A2%3A%7Bi%3A0%3Bs%3A5%3A%22_csrf%22%3Bi%3A1%3Bs%3A32%3A%22r6gNQ9Bm0zVT4NvjRgFQrvXh6FDU08FH%22%3B%7D',
+    'HTTP_HOST' => 'crm.clouddatacancun.com',
+    'HTTP_REFERER' => 'https://crm.clouddatacancun.com/web/empresa/index',
+    'HTTP_USER_AGENT' => 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/149.0.0.0 Safari/537.36',
+    'HTTP_SEC_CH_UA_PLATFORM' => '"Windows"',
+    'HTTP_SEC_CH_UA' => '"Brave";v="149", "Chromium";v="149", "Not)A;Brand";v="24"',
+    'HTTP_SEC_CH_UA_MOBILE' => '?0',
+    'HTTP_SEC_GPC' => '1',
+    'HTTP_SEC_FETCH_SITE' => 'same-origin',
+    'HTTP_SEC_FETCH_MODE' => 'no-cors',
+    'HTTP_SEC_FETCH_DEST' => 'style',
+    'HTTP_PRIORITY' => 'u=0',
+    'REMOTE_ADDR' => '189.174.54.236',
+    'REMOTE_PORT' => '51346',
+    'SERVER_ADDR' => '192.250.227.13',
+    'SERVER_NAME' => 'crm.clouddatacancun.com',
+    'SERVER_ADMIN' => 'webmaster@crm.clouddatacancun.com',
+    'SERVER_PORT' => '443',
+    'REQUEST_SCHEME' => 'https',
+    'REQUEST_URI' => '/web/css/site.css',
+    'REDIRECT_URL' => '/web/css/site.css',
+    'REDIRECT_REQUEST_METHOD' => 'GET',
+    'HTTPS' => 'on',
+    'REDIRECT_STATUS' => '200',
+    'X_SPDY' => 'HTTP3',
+    'SSL_PROTOCOL' => 'QUIC',
+    'SSL_CIPHER' => 'TLS_AES_128_GCM_SHA256',
+    'SSL_CIPHER_USEKEYSIZE' => '128',
+    'SSL_CIPHER_ALGKEYSIZE' => '128',
+    'SCRIPT_FILENAME' => '/home/clouddatacancun/crm.clouddatacancun.com/web/index.php',
+    'QUERY_STRING' => '',
+    'SCRIPT_URI' => 'https://crm.clouddatacancun.com/web/css/site.css',
+    'SCRIPT_URL' => '/web/css/site.css',
+    'SCRIPT_NAME' => '/web/index.php',
+    'SERVER_PROTOCOL' => 'HTTP/1.1',
+    'SERVER_SOFTWARE' => 'LiteSpeed',
+    'REQUEST_METHOD' => 'GET',
+    'X-LSCACHE' => 'on',
+    'PHP_SELF' => '/web/index.php',
+    'REQUEST_TIME_FLOAT' => 1782168982.298308,
+    'REQUEST_TIME' => 1782168982,
+]
