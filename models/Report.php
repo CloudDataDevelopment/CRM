@@ -3,9 +3,10 @@
 namespace app\models;
 
 use Yii;
+use yii\db\ActiveRecord;
 
 /**
- * Modelo para la tabla "Report".
+ * Modelo para la tabla "Reports".
  *
  * @property int $id_report
  * @property string|null $report_name
@@ -14,47 +15,44 @@ use Yii;
  * @property int|null $id_user
  * @property int|null $id_company
  * @property int|null $id_status
+ * @property int|null $id_lead
  *
  * @property Status $status
  * @property User $user
  * @property Company $company
+ * @property Lead $lead
  */
-class Report extends \yii\db\ActiveRecord
+class Report extends ActiveRecord
 {
-    /**
-     * {@inheritdoc}
-     */
     public static function tableName()
     {
         return 'Reports';
     }
 
-    /**
-     * {@inheritdoc}
-     */
     public function rules()
     {
         return [
             [['report_name', 'id_status'], 'required'],
             [['date_report'], 'safe'],
-            [['id_user', 'id_company', 'id_status'], 'integer'],
+            [['id_user', 'id_company', 'id_status', 'id_lead'], 'integer'],
             [['report_name', 'report_type'], 'string', 'max' => 50],
+            [['id_company'], 'exist', 'skipOnError' => true, 'targetClass' => Company::class, 'targetAttribute' => ['id_company' => 'id_company']],
+            [['id_status'], 'exist', 'skipOnError' => true, 'targetClass' => Status::class, 'targetAttribute' => ['id_status' => 'id_status']],
+            [['id_lead'], 'exist', 'skipOnError' => true, 'targetClass' => Lead::class, 'targetAttribute' => ['id_lead' => 'id_lead']],
         ];
     }
 
-    /**
-     * {@inheritdoc}
-     */
     public function attributeLabels()
     {
         return [
-            'id_report' => 'ID',
-            'report_name' => 'Nombre del Reporte',
-            'report_type' => 'Tipo de Reporte',
+            'id_report'   => 'ID',
+            'report_name' => 'Nombre de la Evaluación',
+            'report_type' => 'Tipo de Evaluación',
             'date_report' => 'Fecha',
-            'id_user' => 'Usuario',
-            'id_company' => 'Empresa',
-            'id_status' => 'Estado',
+            'id_user'     => 'Usuario',
+            'id_company'  => 'Empresa',
+            'id_status'   => 'Estado',
+            'id_lead'     => 'Lead Asociado',
         ];
     }
 
@@ -76,6 +74,14 @@ class Report extends \yii\db\ActiveRecord
         return $this->hasOne(Company::class, ['id_company' => 'id_company']);
     }
 
+    /**
+     * 🔥 NUEVA RELACIÓN con Lead
+     */
+    public function getLead()
+    {
+        return $this->hasOne(Lead::class, ['id_lead' => 'id_lead']);
+    }
+
     // ============================================
     // HELPERS DE ESTADO
     // ============================================
@@ -87,12 +93,61 @@ class Report extends \yii\db\ActiveRecord
     public function getStatusBadgeClass()
     {
         $badges = [
-            'activo' => 'success',
+            'activo'     => 'success',
             'completado' => 'info',
-            'pendiente' => 'warning',
-            'cancelado' => 'danger',
+            'pendiente'  => 'warning',
+            'cancelado'  => 'danger',
         ];
         $name = strtolower(trim($this->getStatusName()));
         return $badges[$name] ?? 'secondary';
+    }
+
+    // ============================================
+    // HELPERS DE LEAD
+    // ============================================
+    public function getLeadName()
+    {
+        if ($this->lead) {
+            return trim($this->lead->name . ' ' . $this->lead->lastname);
+        }
+        return 'Sin lead asociado';
+    }
+
+    public function getLeadPhone()
+    {
+        if ($this->lead) {
+            return $this->lead->phone;
+        }
+        return 'N/A';
+    }
+
+    // ============================================
+    // HELPERS DE USUARIO / EMPRESA
+    // ============================================
+    public function getUserName()
+    {
+        if ($this->user) {
+            return trim($this->user->name . ' ' . $this->user->lastname1);
+        }
+        return 'N/A';
+    }
+
+    public function getCompanyName()
+    {
+        if ($this->company) {
+            return $this->company->name;
+        }
+        return 'N/A';
+    }
+
+    // ============================================
+    // HELPERS DE FECHA
+    // ============================================
+    public function getFormattedDate()
+    {
+        if ($this->date_report) {
+            return date('d/m/Y', strtotime($this->date_report));
+        }
+        return 'Sin fecha';
     }
 }
