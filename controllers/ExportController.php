@@ -27,6 +27,23 @@ class ExportController extends Controller
         'empresa'        => ['model' => 'app\models\Company',        'company' => null],
     ];
 
+    private $moduleTitles = [
+        'task'           => 'Tareas',
+        'lead'           => 'Leads',
+        'user'           => 'Usuarios',
+        'quote'          => 'Ventas',
+        'sales-tracking' => 'Seguimientos',
+        'reservation'    => 'Reservaciones',
+        'contact'        => 'Contactos',
+        'contacts'       => 'Contactos',
+        'report'         => 'Evaluaciones',
+        'campaign'       => 'Campañas',
+        'promotion'      => 'Promociones',
+        'company'        => 'Empresas',
+        'empresa'        => 'Empresas',
+        'marketing'      => 'Marketing',
+    ];
+
     private $excludeColumns = [
         'password', 'password_hash', 'auth_key', 'access_token',
         'created_by', 'updated_by', 'deleted_at',
@@ -36,212 +53,64 @@ class ExportController extends Controller
         'id_view', 'id_auth', 'id_permission',
     ];
 
-    // ============================================
-    // 🔥 DICCIONARIO DE ETIQUETAS AMIGABLES EN ESPAÑOL
-    // ============================================
     private $fieldLabels = [
-        // Identificadores comunes
-        'id'            => 'ID',
-        'id_lead'       => 'Lead',
-        'id_company'    => 'Empresa',
-        'id_status'     => 'Estado',
-        'id_user'       => 'Usuario',
-        'id_quote'      => 'Cotización',
-        'id_task'       => 'Tarea',
-        'id_contact'    => 'Contacto',
-        'id_report'     => 'Evaluación',
-        'id_reservation'=> 'Reservación',
-        'id_campaign'   => 'Campaña',
-        'id_promotion'  => 'Promoción',
-
-        // Persona
-        'name'          => 'Nombre',
-        'lastname'      => 'Apellido',
-        'last_name'     => 'Apellido',
-        'lastname1'     => 'Primer Apellido',
-        'lastname2'     => 'Segundo Apellido',
-        'fullname'      => 'Nombre Completo',
-        'phone'         => 'Teléfono',
-        'email'         => 'Correo Electrónico',
-        'address'       => 'Dirección',
-        'city'          => 'Ciudad',
-        'country'       => 'País',
-        'birthdate'     => 'Fecha de Nacimiento',
-        'gender'        => 'Género',
-        'role'          => 'Rol',
-        'role_type'     => 'Tipo de Rol',
-
-        // Fechas
-        'created_at'    => 'Fecha de Creación',
-        'updated_at'    => 'Fecha de Actualización',
-        'deleted_at'    => 'Fecha de Eliminación',
-        'date'          => 'Fecha',
-        'date_s'        => 'Fecha de Inicio',
-        'date_f'        => 'Fecha de Fin',
-        'date_quote'    => 'Fecha de Cotización',
-        'date_report'   => 'Fecha de Evaluación',
-        'date_reservation' => 'Fecha de Reservación',
-        'start_date'    => 'Fecha de Inicio',
-        'end_date'      => 'Fecha de Fin',
-        'hour'          => 'Hora',
-        'hour_s'        => 'Hora de Inicio',
-        'hour_f'        => 'Hora de Fin',
-        'hour_quote'    => 'Hora de Cotización',
-
-        // Descripciones y comentarios
-        'comments'      => 'Observaciones',
-        'comment'       => 'Comentario',
-        'description'   => 'Descripción',
-        'notes'         => 'Notas',
-        'title'         => 'Título',
-        'subject'       => 'Asunto',
-        'content'       => 'Contenido',
-        'message'       => 'Mensaje',
-
-        // Estados y tipos
-        'status'        => 'Estado',
-        'status_sales'  => 'Estado de Venta',
-        'type'          => 'Tipo',
-        'type_contact'  => 'Tipo de Contacto',
-        'category'      => 'Categoría',
-        'priority'      => 'Prioridad',
-        'level'         => 'Nivel',
-        'stage'         => 'Etapa',
-
-        // Montos
-        'amount'        => 'Monto',
-        'total'         => 'Total',
-        'total_amount'  => 'Monto Total',
-        'down_payment'  => 'Pago Inicial',
-        'pending_payment' => 'Saldo Pendiente',
-        'price'         => 'Precio',
-        'cost'          => 'Costo',
-        'discount'      => 'Descuento',
-        'tax'           => 'Impuesto',
-        'subtotal'      => 'Subtotal',
-
-        // Empresa
-        'company_name'  => 'Nombre de la Empresa',
-        'domain'        => 'Dominio Web',
-        'logo'          => 'Logotipo',
-        'rfc'           => 'RFC',
-        'tax_id'        => 'Identificación Fiscal',
-
-        // Marketing
-        'campaign_name' => 'Nombre de la Campaña',
-        'promotion_name'=> 'Nombre de la Promoción',
-        'budget'        => 'Presupuesto',
-        'start_campaign'=> 'Inicio de Campaña',
-        'end_campaign'  => 'Fin de Campaña',
-
-        // Evaluaciones
-        'report_name'   => 'Nombre de la Evaluación',
-        'report_type'   => 'Tipo de Evaluación',
-        'score'         => 'Puntuación',
-        'result'        => 'Resultado',
-
-        // Tareas
-        'task_name'     => 'Nombre de la Tarea',
-        'task_type'     => 'Tipo de Tarea',
-        'due_date'      => 'Fecha de Vencimiento',
-
-        // Contactos
-        'company'       => 'Empresa',
-        'position'      => 'Puesto',
-        'department'    => 'Departamento',
-
-        // Otros
-        'active'        => 'Activo',
-        'verified'      => 'Verificado',
-        'featured'      => 'Destacado',
-        'visible'       => 'Visible',
-        'order'         => 'Orden',
-        'code'          => 'Código',
-        'reference'     => 'Referencia',
-        'url'           => 'URL',
-        'link'          => 'Enlace',
-        'image'         => 'Imagen',
-        'file'          => 'Archivo',
-        'quantity'      => 'Cantidad',
-        'unit'          => 'Unidad',
-        'sku'           => 'SKU',
+        'id' => 'ID', 'id_lead' => 'Lead', 'id_company' => 'Empresa',
+        'id_status' => 'Estado', 'id_user' => 'Usuario', 'id_quote' => 'Cotización',
+        'id_task' => 'Tarea', 'id_contact' => 'Contacto', 'id_report' => 'Evaluación',
+        'id_reservation' => 'Reservación', 'id_campaign' => 'Campaña', 'id_promotion' => 'Promoción',
+        'name' => 'Nombre', 'lastname' => 'Apellido', 'last_name' => 'Apellido',
+        'lastname1' => 'Primer Apellido', 'lastname2' => 'Segundo Apellido',
+        'fullname' => 'Nombre Completo', 'phone' => 'Teléfono', 'email' => 'Correo Electrónico',
+        'address' => 'Dirección', 'city' => 'Ciudad', 'country' => 'País',
+        'birthdate' => 'Fecha de Nacimiento', 'gender' => 'Género',
+        'role' => 'Rol', 'role_type' => 'Tipo de Rol',
+        'created_at' => 'Fecha de Creación', 'updated_at' => 'Fecha de Actualización',
+        'deleted_at' => 'Fecha de Eliminación', 'date' => 'Fecha',
+        'date_s' => 'Fecha de Inicio', 'date_f' => 'Fecha de Fin',
+        'date_quote' => 'Fecha de Cotización', 'date_report' => 'Fecha de Evaluación',
+        'date_reservation' => 'Fecha de Reservación', 'start_date' => 'Fecha de Inicio',
+        'end_date' => 'Fecha de Fin', 'hour' => 'Hora', 'hour_s' => 'Hora de Inicio',
+        'hour_f' => 'Hora de Fin', 'hour_quote' => 'Hora de Cotización',
+        'comments' => 'Observaciones', 'comment' => 'Comentario',
+        'description' => 'Descripción', 'notes' => 'Notas', 'title' => 'Título',
+        'subject' => 'Asunto', 'content' => 'Contenido', 'message' => 'Mensaje',
+        'status' => 'Estado', 'status_sales' => 'Estado de Venta', 'type' => 'Tipo',
+        'type_contact' => 'Tipo de Contacto', 'category' => 'Categoría',
+        'priority' => 'Prioridad', 'level' => 'Nivel', 'stage' => 'Etapa',
+        'amount' => 'Monto', 'total' => 'Total', 'total_amount' => 'Monto Total',
+        'down_payment' => 'Pago Inicial', 'pending_payment' => 'Saldo Pendiente',
+        'price' => 'Precio', 'cost' => 'Costo', 'discount' => 'Descuento',
+        'tax' => 'Impuesto', 'subtotal' => 'Subtotal',
+        'company_name' => 'Nombre de la Empresa', 'domain' => 'Dominio Web',
+        'logo' => 'Logotipo', 'rfc' => 'RFC', 'tax_id' => 'Identificación Fiscal',
+        'campaign_name' => 'Nombre de la Campaña', 'promotion_name' => 'Nombre de la Promoción',
+        'budget' => 'Presupuesto', 'start_campaign' => 'Inicio de Campaña',
+        'end_campaign' => 'Fin de Campaña', 'report_name' => 'Nombre de la Evaluación',
+        'report_type' => 'Tipo de Evaluación', 'score' => 'Puntuación', 'result' => 'Resultado',
+        'task_name' => 'Nombre de la Tarea', 'task_type' => 'Tipo de Tarea',
+        'due_date' => 'Fecha de Vencimiento', 'company' => 'Empresa',
+        'position' => 'Puesto', 'department' => 'Departamento',
+        'active' => 'Activo', 'verified' => 'Verificado', 'featured' => 'Destacado',
+        'visible' => 'Visible', 'order' => 'Orden', 'code' => 'Código',
+        'reference' => 'Referencia', 'url' => 'URL', 'link' => 'Enlace',
+        'image' => 'Imagen', 'file' => 'Archivo', 'quantity' => 'Cantidad',
+        'unit' => 'Unidad', 'sku' => 'SKU',
     ];
 
-    // ============================================
-    // 🔥 ETIQUETAS ESPECÍFICAS POR MÓDULO
-    //    (sobrescriben las del diccionario general)
-    // ============================================
     private $moduleFieldLabels = [
-        'lead' => [
-            'name'     => 'Nombre del Lead',
-            'lastname' => 'Apellido del Lead',
-            'phone'    => 'Teléfono de Contacto',
-            'comments' => 'Observaciones del Lead',
-        ],
-        'user' => [
-            'name'      => 'Nombre del Usuario',
-            'lastname1' => 'Primer Apellido',
-            'lastname2' => 'Segundo Apellido',
-            'email'     => 'Correo del Usuario',
-            'phone'     => 'Teléfono del Usuario',
-        ],
-        'quote' => [
-            'date_quote'      => 'Fecha de Cotización',
-            'total_amount'    => 'Monto Total',
-            'down_payment'    => 'Pago Inicial',
-            'pending_payment' => 'Saldo Pendiente',
-            'comments'        => 'Observaciones de la Cotización',
-        ],
-        'task' => [
-            'comments' => 'Descripción de la Tarea',
-            'date_s'   => 'Fecha Programada',
-        ],
-        'contact' => [
-            'name'      => 'Nombre del Contacto',
-            'last_name' => 'Apellido del Contacto',
-            'email'     => 'Correo del Contacto',
-            'phone'     => 'Teléfono del Contacto',
-        ],
-        'contacts' => [
-            'name'      => 'Nombre del Contacto',
-            'last_name' => 'Apellido del Contacto',
-            'email'     => 'Correo del Contacto',
-            'phone'     => 'Teléfono del Contacto',
-        ],
-        'sales-tracking' => [
-            'comments' => 'Observaciones del Seguimiento',
-            'date_s'   => 'Fecha del Seguimiento',
-            'date_f'   => 'Próxima Fecha',
-            'hour'     => 'Hora del Seguimiento',
-        ],
-        'report' => [
-            'report_name' => 'Nombre de la Evaluación',
-            'report_type' => 'Tipo de Evaluación',
-            'date_report' => 'Fecha de la Evaluación',
-        ],
-        'reservation' => [
-            'name_reservation' => 'Nombre de la Reservación',
-            'date_reservation' => 'Fecha de la Reservación',
-            'hour_s'           => 'Hora de Inicio',
-            'hour_f'           => 'Hora de Fin',
-        ],
-        'empresa' => [
-            'name'   => 'Nombre de la Empresa',
-            'domain' => 'Dominio Web',
-            'phone'  => 'Teléfono de la Empresa',
-            'email'  => 'Correo de la Empresa',
-        ],
-        'company' => [
-            'name'   => 'Nombre de la Empresa',
-            'domain' => 'Dominio Web',
-            'phone'  => 'Teléfono de la Empresa',
-            'email'  => 'Correo de la Empresa',
-        ],
+        'lead' => ['name' => 'Nombre del Lead', 'lastname' => 'Apellido del Lead', 'phone' => 'Teléfono de Contacto', 'comments' => 'Observaciones del Lead'],
+        'user' => ['name' => 'Nombre del Usuario', 'lastname1' => 'Primer Apellido', 'lastname2' => 'Segundo Apellido', 'email' => 'Correo del Usuario', 'phone' => 'Teléfono del Usuario'],
+        'quote' => ['date_quote' => 'Fecha de Cotización', 'total_amount' => 'Monto Total', 'down_payment' => 'Pago Inicial', 'pending_payment' => 'Saldo Pendiente', 'comments' => 'Observaciones de la Cotización'],
+        'task' => ['comments' => 'Descripción de la Tarea', 'date_s' => 'Fecha Programada'],
+        'contact' => ['name' => 'Nombre del Contacto', 'last_name' => 'Apellido del Contacto', 'email' => 'Correo del Contacto', 'phone' => 'Teléfono del Contacto'],
+        'contacts' => ['name' => 'Nombre del Contacto', 'last_name' => 'Apellido del Contacto', 'email' => 'Correo del Contacto', 'phone' => 'Teléfono del Contacto'],
+        'sales-tracking' => ['comments' => 'Observaciones del Seguimiento', 'date_s' => 'Fecha del Seguimiento', 'date_f' => 'Próxima Fecha', 'hour' => 'Hora del Seguimiento'],
+        'report' => ['report_name' => 'Nombre de la Evaluación', 'report_type' => 'Tipo de Evaluación', 'date_report' => 'Fecha de la Evaluación'],
+        'reservation' => ['name_reservation' => 'Nombre de la Reservación', 'date_reservation' => 'Fecha de la Reservación', 'hour_s' => 'Hora de Inicio', 'hour_f' => 'Hora de Fin'],
+        'empresa' => ['name' => 'Nombre de la Empresa', 'domain' => 'Dominio Web', 'phone' => 'Teléfono de la Empresa', 'email' => 'Correo de la Empresa'],
+        'company' => ['name' => 'Nombre de la Empresa', 'domain' => 'Dominio Web', 'phone' => 'Teléfono de la Empresa', 'email' => 'Correo de la Empresa'],
     ];
 
-    // ============================================
-    // VALIDACIÓN DE PERMISOS
-    // ============================================
     public function beforeAction($action)
     {
         if (!parent::beforeAction($action)) {
@@ -262,9 +131,6 @@ class ExportController extends Controller
         return true;
     }
 
-    // ============================================
-    // VISTA HTML DEL REPORTE
-    // ============================================
     public function actionPdf($module = null)
     {
         try {
@@ -291,7 +157,8 @@ class ExportController extends Controller
             $tableName = $modelClass::tableName();
             $columns = $this->getColumns($tableName, $this->excludeColumns, $module);
 
-            $title = 'Reporte General de ' . ucfirst(str_replace('-', ' ', $module));
+            $moduleTitle = $this->moduleTitles[$module] ?? ucfirst(str_replace('-', ' ', $module));
+            $title = 'Reporte General de ' . $moduleTitle;
             $filters = $this->getAppliedFilters();
 
             return $this->render('pdf', [
@@ -309,9 +176,6 @@ class ExportController extends Controller
         }
     }
 
-    // ============================================
-    // DESCARGA CON FPDF
-    // ============================================
     public function actionDownload($module = null)
     {
         try {
@@ -338,7 +202,8 @@ class ExportController extends Controller
             $tableName = $modelClass::tableName();
             $columns = $this->getColumns($tableName, $this->excludeColumns, $module);
 
-            $title = 'Reporte General de ' . ucfirst(str_replace('-', ' ', $module));
+            $moduleTitle = $this->moduleTitles[$module] ?? ucfirst(str_replace('-', ' ', $module));
+            $title = 'Reporte General de ' . $moduleTitle;
             $filters = $this->getAppliedFilters();
 
             $this->generateFpdf($title, $filters, $rows, $columns, $module);
@@ -352,9 +217,6 @@ class ExportController extends Controller
         }
     }
 
-    // ============================================
-    // CONSTRUIR QUERY
-    // ============================================
     private function buildQuery($modelClass, $config, $user)
     {
         $query = $modelClass::find();
@@ -427,9 +289,6 @@ class ExportController extends Controller
         return $query;
     }
 
-    // ============================================
-    // OBTENER COLUMNAS
-    // ============================================
     private function getColumns($tableName, $exclude = [], $module = null)
     {
         $schema = Yii::$app->db->getTableSchema($tableName, true);
@@ -453,77 +312,42 @@ class ExportController extends Controller
         return $columns;
     }
 
-    // ============================================
-    // 🔥 OBTENER ETIQUETA AMIGABLE
-    // ============================================
     private function getFriendlyLabel($fieldName, $module = null)
     {
-        // 1) Buscar etiqueta específica del módulo
         if ($module && isset($this->moduleFieldLabels[$module][$fieldName])) {
             return $this->moduleFieldLabels[$module][$fieldName];
         }
 
-        // 2) Buscar en el diccionario general
         if (isset($this->fieldLabels[$fieldName])) {
             return $this->fieldLabels[$fieldName];
         }
 
-        // 3) Buscar variantes (con/sin guiones bajos)
         $normalized = str_replace(['-', ' '], '_', strtolower($fieldName));
         if (isset($this->fieldLabels[$normalized])) {
             return $this->fieldLabels[$normalized];
         }
 
-        // 4) Fallback: humanize mejorado
         return $this->humanize($fieldName);
     }
 
-    // ============================================
-    // 🔥 HUMANIZE MEJORADO (con traducción de palabras comunes)
-    // ============================================
     private function humanize($name)
     {
-        // Palabras comunes a traducir
         $translations = [
-            'id'      => 'ID',
-            'name'    => 'Nombre',
-            'date'    => 'Fecha',
-            'time'    => 'Hora',
-            'phone'   => 'Teléfono',
-            'email'   => 'Correo',
-            'type'    => 'Tipo',
-            'status'  => 'Estado',
-            'amount'  => 'Monto',
-            'total'   => 'Total',
-            'price'   => 'Precio',
-            'user'    => 'Usuario',
-            'company' => 'Empresa',
-            'lead'    => 'Lead',
-            'quote'   => 'Cotización',
-            'task'    => 'Tarea',
-            'report'  => 'Evaluación',
-            'contact' => 'Contacto',
-            'reservation' => 'Reservación',
-            'campaign'    => 'Campaña',
-            'promotion'   => 'Promoción',
-            'start'   => 'Inicio',
-            'end'     => 'Fin',
-            'created' => 'Creado',
-            'updated' => 'Actualizado',
-            'deleted' => 'Eliminado',
-            'at'      => 'en',
-            'by'      => 'por',
-            'number'  => 'Número',
-            'code'    => 'Código',
-            'quantity'=> 'Cantidad',
-            'description' => 'Descripción',
-            'comments'=> 'Observaciones',
+            'id' => 'ID', 'name' => 'Nombre', 'date' => 'Fecha', 'time' => 'Hora',
+            'phone' => 'Teléfono', 'email' => 'Correo', 'type' => 'Tipo',
+            'status' => 'Estado', 'amount' => 'Monto', 'total' => 'Total',
+            'price' => 'Precio', 'user' => 'Usuario', 'company' => 'Empresa',
+            'lead' => 'Lead', 'quote' => 'Cotización', 'task' => 'Tarea',
+            'report' => 'Evaluación', 'contact' => 'Contacto',
+            'reservation' => 'Reservación', 'campaign' => 'Campaña',
+            'promotion' => 'Promoción', 'start' => 'Inicio', 'end' => 'Fin',
+            'created' => 'Creado', 'updated' => 'Actualizado', 'deleted' => 'Eliminado',
+            'at' => 'en', 'by' => 'por', 'number' => 'Número', 'code' => 'Código',
+            'quantity' => 'Cantidad', 'description' => 'Descripción', 'comments' => 'Observaciones',
         ];
 
-        // Separar por guión bajo
         $parts = explode('_', $name);
 
-        // Traducir cada parte
         $translated = array_map(function($part) use ($translations) {
             $lower = strtolower($part);
             if (isset($translations[$lower])) {
@@ -532,10 +356,7 @@ class ExportController extends Controller
             return ucfirst($lower);
         }, $parts);
 
-        // Unir con espacio
         $result = implode(' ', $translated);
-
-        // Limpiar "ID" duplicado al inicio
         $result = preg_replace('/^ID\s+/', 'ID ', $result);
 
         return $result;
@@ -551,35 +372,28 @@ class ExportController extends Controller
             case 'date':
                 $ts = strtotime($value);
                 return $ts ? date('d/m/Y', $ts) : htmlspecialchars($value);
-
             case 'datetime':
             case 'timestamp':
                 $ts = strtotime($value);
                 return $ts ? date('d/m/Y H:i', $ts) : htmlspecialchars($value);
-
             case 'time':
                 $ts = strtotime($value);
                 return $ts ? date('H:i', $ts) : htmlspecialchars($value);
-
             case 'boolean':
                 return $value ? 'Sí' : 'No';
-
             case 'integer':
             case 'bigint':
             case 'smallint':
                 return number_format((int)$value);
-
             case 'decimal':
             case 'float':
             case 'double':
                 return number_format((float)$value, 2);
-
             case 'text':
                 $clean = strip_tags((string)$value);
                 return mb_strlen($clean) > 150
                     ? htmlspecialchars(mb_substr($clean, 0, 150)) . '…'
                     : htmlspecialchars($clean);
-
             default:
                 return htmlspecialchars((string)$value);
         }
@@ -589,11 +403,8 @@ class ExportController extends Controller
     {
         $filters = [];
         $map = [
-            'search'       => 'Búsqueda',
-            'status'       => 'Estado',
-            'type'         => 'Tipo',
-            'fecha_inicio' => 'Desde',
-            'fecha_fin'    => 'Hasta',
+            'search' => 'Búsqueda', 'status' => 'Estado', 'type' => 'Tipo',
+            'fecha_inicio' => 'Desde', 'fecha_fin' => 'Hasta',
         ];
 
         foreach ($map as $key => $label) {
@@ -606,12 +417,8 @@ class ExportController extends Controller
         return $filters;
     }
 
-    // ============================================
-    // GENERAR PDF (DISEÑO TIPO WORD)
-    // ============================================
     private function generateFpdf($title, $filters, $rows, $columns, $module)
     {
-        // Cargar FPDF
         if (!class_exists('\\FPDF')) {
             $paths = [
                 Yii::getAlias('@app/fpdf/fpdf.php'),
@@ -660,9 +467,17 @@ class ExportController extends Controller
             }
         }
 
-        // ============================================
-        // DATOS DE LA EMPRESA
-        // ============================================
+        $colorAzulCorporativo = [17, 34, 63];
+        $colorDorado          = [197, 160, 89];
+        $colorDoradoLinea     = [212, 175, 55];
+        $colorFondoFiltros    = [240, 244, 255];
+        $colorFondoResumen    = [248, 249, 250];
+        $colorFondoFilaAlt    = [248, 249, 250];
+        $colorTextoPrincipal  = [51, 51, 51];
+        $colorTextoSecundario = [108, 117, 125];
+        $colorBorde           = [224, 224, 224];
+        $colorBlanco          = [255, 255, 255];
+
         $empresaId = Yii::$app->session->get('empresa_id');
         $empresa = $empresaId ? Company::findOne($empresaId) : null;
 
@@ -682,35 +497,27 @@ class ExportController extends Controller
         try {
             $auth = Yii::$app->user->identity->authentication;
             if ($auth && $auth->role) {
-                $userRole = $auth->role->role_type;
+                $userRole = $auth->role->role_type ?? $auth->role->name ?? 'Usuario';
             }
         } catch (\Exception $e) {}
 
-        // ============================================
-        // CREAR PDF EN VERTICAL (A4 Portrait, como Word)
-        // ============================================
         $pdf = new \FPDF('P', 'mm', 'A4');
         $pdf->SetMargins(15, 15, 15);
         $pdf->SetAutoPageBreak(true, 30);
         $pdf->SetTitle($title);
         $pdf->AddPage();
 
-        // Ancho útil: 210mm - 15 - 15 = 180mm
         $pageW = 180;
         $leftX = 15;
 
-        // ============================================
-        // HEADER: LOGO + EMPRESA (arriba izquierda)
-        // ============================================
+        // HEADER
         $pdf->SetY(15);
-
-        // Cuadro del logo (30x25 mm)
         $logoW = 30;
         $logoH = 25;
         $logoY = $pdf->GetY();
 
-        $pdf->SetFillColor(248, 249, 250);
-        $pdf->SetDrawColor(220, 220, 220);
+        $pdf->SetFillColor($colorFondoResumen[0], $colorFondoResumen[1], $colorFondoResumen[2]);
+        $pdf->SetDrawColor($colorBorde[0], $colorBorde[1], $colorBorde[2]);
         $pdf->Rect($leftX, $logoY, $logoW, $logoH, 'DF');
 
         if (!empty($empresaLogo) && file_exists($empresaLogo)) {
@@ -718,73 +525,73 @@ class ExportController extends Controller
                 $pdf->Image($empresaLogo, $leftX + 2, $logoY + 2, $logoW - 4, $logoH - 4);
             } catch (\Exception $e) {
                 $pdf->SetFont('Arial', 'B', 16);
-                $pdf->SetTextColor(13, 110, 253);
+                $pdf->SetTextColor($colorAzulCorporativo[0], $colorAzulCorporativo[1], $colorAzulCorporativo[2]);
                 $pdf->SetXY($leftX, $logoY + 5);
                 $pdf->Cell($logoW, 10, strtoupper(substr($empresaNombre, 0, 1)), 0, 0, 'C');
             }
         } else {
             $pdf->SetFont('Arial', 'B', 16);
-            $pdf->SetTextColor(13, 110, 253);
+            $pdf->SetTextColor($colorAzulCorporativo[0], $colorAzulCorporativo[1], $colorAzulCorporativo[2]);
             $pdf->SetXY($leftX, $logoY + 5);
             $pdf->Cell($logoW, 10, strtoupper(substr($empresaNombre, 0, 1)), 0, 0, 'C');
         }
 
-        // Nombre de la empresa al lado del logo
         $pdf->SetFont('Arial', 'B', 14);
-        $pdf->SetTextColor(44, 62, 80);
+        $pdf->SetTextColor($colorDorado[0], $colorDorado[1], $colorDorado[2]);
         $pdf->SetXY($leftX + $logoW + 5, $logoY);
         $pdf->Cell(100, 8, $this->toLatin1($empresaNombre), 0, 1, 'L');
 
-        // Título del reporte
         $pdf->SetFont('Arial', 'B', 10);
-        $pdf->SetTextColor(13, 110, 253);
+        $pdf->SetTextColor($colorAzulCorporativo[0], $colorAzulCorporativo[1], $colorAzulCorporativo[2]);
         $pdf->SetX($leftX + $logoW + 5);
         $pdf->Cell(100, 5, $this->toLatin1($title), 0, 1, 'L');
 
-        // Cuenta + Documento oficial (arriba derecha, misma línea del logo)
         $pdf->SetFont('Arial', 'B', 9);
         $pdf->SetTextColor(44, 62, 80);
         $pdf->SetXY(120, $logoY);
         $pdf->Cell(75, 5, $this->toLatin1('Cuenta: ' . $userName), 0, 1, 'R');
 
         $pdf->SetFont('Arial', '', 8);
-        $pdf->SetTextColor(100, 100, 100);
+        $pdf->SetTextColor($colorTextoSecundario[0], $colorTextoSecundario[1], $colorTextoSecundario[2]);
         $pdf->SetXY(120, $logoY + 5);
         $pdf->Cell(75, 5, $this->toLatin1($userRole), 0, 1, 'R');
 
         $pdf->SetFont('Arial', 'B', 9);
-        $pdf->SetTextColor(13, 110, 253);
+        $pdf->SetTextColor($colorAzulCorporativo[0], $colorAzulCorporativo[1], $colorAzulCorporativo[2]);
         $pdf->SetXY(120, $logoY + 11);
         $pdf->Cell(75, 5, 'DOCUMENTO OFICIAL', 0, 1, 'R');
 
-        // Bajar el cursor al final del header (logo + margen)
         $pdf->SetY($logoY + $logoH + 3);
 
-        // ============================================
-        // DOBLE LÍNEA SEPARADORA (azul + dorado)
-        // ============================================
+        // DOBLE LÍNEA
         $lineY = $pdf->GetY();
-
-        $pdf->SetDrawColor(13, 110, 253);
+        $pdf->SetDrawColor($colorAzulCorporativo[0], $colorAzulCorporativo[1], $colorAzulCorporativo[2]);
         $pdf->SetLineWidth(1.0);
         $pdf->Line($leftX, $lineY, $leftX + $pageW, $lineY);
 
-        $pdf->SetDrawColor(212, 175, 55);
+        $pdf->SetDrawColor($colorDoradoLinea[0], $colorDoradoLinea[1], $colorDoradoLinea[2]);
         $pdf->SetLineWidth(0.4);
         $pdf->Line($leftX, $lineY + 1, $leftX + $pageW, $lineY + 1);
 
         $pdf->SetLineWidth(0.2);
         $pdf->SetDrawColor(0, 0, 0);
-
         $pdf->SetY($lineY + 5);
 
-        // ============================================
-        // FILTROS APLICADOS
-        // ============================================
+        // FILTROS
         if (!empty($filters)) {
+            $filterY = $pdf->GetY();
+            $filterH = 6 + (count($filters) > 3 ? 5 : 0);
+
+            $pdf->SetFillColor($colorFondoFiltros[0], $colorFondoFiltros[1], $colorFondoFiltros[2]);
+            $pdf->Rect($leftX, $filterY, $pageW, $filterH, 'F');
+
+            $pdf->SetFillColor($colorAzulCorporativo[0], $colorAzulCorporativo[1], $colorAzulCorporativo[2]);
+            $pdf->Rect($leftX, $filterY, 1.5, $filterH, 'F');
+
+            $pdf->SetXY($leftX + 5, $filterY + 1);
             $pdf->SetFont('Arial', 'B', 8);
-            $pdf->SetTextColor(50, 50, 50);
-            $pdf->Cell(0, 5, 'Filtros aplicados:', 0, 1, 'L');
+            $pdf->SetTextColor($colorAzulCorporativo[0], $colorAzulCorporativo[1], $colorAzulCorporativo[2]);
+            $pdf->Cell(0, 4, 'Filtros aplicados:', 0, 1, 'L');
 
             $pdf->SetFont('Arial', '', 8);
             $pdf->SetTextColor(80, 80, 80);
@@ -793,27 +600,34 @@ class ExportController extends Controller
             foreach ($filters as $label => $value) {
                 $filterText .= $label . ': ' . $value . '   ';
             }
-            $pdf->MultiCell(0, 5, $this->toLatin1($filterText), 0, 'L');
-            $pdf->Ln(2);
+            $pdf->SetX($leftX + 5);
+            $pdf->MultiCell($pageW - 10, 4, $this->toLatin1($filterText), 0, 'L');
+            $pdf->Ln(3);
         }
 
-        // ============================================
         // RESUMEN
-        // ============================================
-        $pdf->SetFont('Arial', 'B', 8);
-        $pdf->SetTextColor(50, 50, 50);
-        $pdf->Cell(0, 5, 'Total de registros: ' . count($rows) . '   |   Columnas: ' . count($columns), 0, 1, 'L');
-        $pdf->Ln(2);
+        $resumenY = $pdf->GetY();
+        $resumenH = 8;
 
-        // ============================================
+        $pdf->SetFillColor($colorFondoResumen[0], $colorFondoResumen[1], $colorFondoResumen[2]);
+        $pdf->SetDrawColor($colorBorde[0], $colorBorde[1], $colorBorde[2]);
+        $pdf->Rect($leftX, $resumenY, $pageW, $resumenH, 'DF');
+
+        $pdf->SetXY($leftX + 5, $resumenY + 1);
+        $pdf->SetFont('Arial', 'B', 8);
+        $pdf->SetTextColor($colorAzulCorporativo[0], $colorAzulCorporativo[1], $colorAzulCorporativo[2]);
+        $pdf->Cell(60, 6, 'Total de registros: ' . count($rows), 0, 0, 'L');
+        $pdf->Cell(60, 6, 'Columnas: ' . count($columns), 0, 0, 'L');
+        $pdf->Cell(55, 6, 'Modulo: ' . $this->toLatin1(ucfirst(str_replace('-', ' ', $module))), 0, 1, 'L');
+
+        $pdf->Ln(4);
+
         // TABLA
-        // ============================================
         if (empty($rows)) {
             $pdf->SetFont('Arial', 'I', 10);
             $pdf->SetTextColor(150, 150, 150);
             $pdf->Cell(0, 20, 'No hay registros que coincidan con los filtros.', 0, 1, 'C');
         } else {
-            // Calcular anchos proporcionales
             $numColWidth = 8;
             $availableWidth = $pageW - $numColWidth;
 
@@ -830,7 +644,6 @@ class ExportController extends Controller
                 if (in_array($col['type'], ['date', 'datetime', 'timestamp'])) {
                     $weight = 1.3;
                 }
-                // 🔥 Si la etiqueta es muy larga, dar más peso para que quepa
                 if (mb_strlen($col['label']) > 18) {
                     $weight = max($weight, 1.6);
                 }
@@ -846,11 +659,10 @@ class ExportController extends Controller
                 $colWidths[$col['name']] = ($availableWidth * $weights[$col['name']]) / $totalWeight;
             }
 
-            // Header de la tabla
-            $pdf->SetFillColor(13, 110, 253);
-            $pdf->SetTextColor(255, 255, 255);
+            $pdf->SetFillColor($colorAzulCorporativo[0], $colorAzulCorporativo[1], $colorAzulCorporativo[2]);
+            $pdf->SetTextColor($colorBlanco[0], $colorBlanco[1], $colorBlanco[2]);
             $pdf->SetFont('Arial', 'B', 7);
-            $pdf->SetDrawColor(13, 110, 253);
+            $pdf->SetDrawColor($colorAzulCorporativo[0], $colorAzulCorporativo[1], $colorAzulCorporativo[2]);
 
             $pdf->Cell($numColWidth, 8, '#', 1, 0, 'C', true);
             foreach ($columns as $col) {
@@ -858,14 +670,12 @@ class ExportController extends Controller
             }
             $pdf->Ln();
 
-            // Filas
-            $pdf->SetTextColor(50, 50, 50);
+            $pdf->SetTextColor($colorTextoPrincipal[0], $colorTextoPrincipal[1], $colorTextoPrincipal[2]);
             $pdf->SetFont('Arial', '', 6.5);
-            $pdf->SetDrawColor(220, 220, 220);
+            $pdf->SetDrawColor($colorBorde[0], $colorBorde[1], $colorBorde[2]);
 
             $fill = false;
             foreach ($rows as $index => $row) {
-                // Calcular altura según el contenido más alto
                 $lineHeight = 5;
                 $maxLines = 1;
 
@@ -877,7 +687,6 @@ class ExportController extends Controller
                     $formatted = $this->formatValueForPdf($value, $col['type']);
                     $textWidth = $pdf->GetStringWidth($this->toLatin1($formatted));
 
-                    // Cuántas líneas necesita este texto
                     $colWidthAvail = $colWidths[$col['name']] - 2;
                     $lines = max(1, ceil($textWidth / $colWidthAvail));
                     $maxLines = max($maxLines, $lines);
@@ -886,9 +695,9 @@ class ExportController extends Controller
                 $rowHeight = $maxLines * $lineHeight;
 
                 if ($fill) {
-                    $pdf->SetFillColor(248, 249, 250);
+                    $pdf->SetFillColor($colorFondoFilaAlt[0], $colorFondoFilaAlt[1], $colorFondoFilaAlt[2]);
                 } else {
-                    $pdf->SetFillColor(255, 255, 255);
+                    $pdf->SetFillColor($colorBlanco[0], $colorBlanco[1], $colorBlanco[2]);
                 }
 
                 $pdf->Cell($numColWidth, $rowHeight, $index + 1, 1, 0, 'C', true);
@@ -915,12 +724,9 @@ class ExportController extends Controller
             }
         }
 
-        // ============================================
-        // FOOTER (en la parte inferior de la página)
-        // ============================================
+        // FOOTER
         $footerY = 250;
 
-        // Verificar si necesitamos una nueva página para el footer
         if ($pdf->GetY() > $footerY - 20) {
             $pdf->AddPage();
             $footerY = 250;
@@ -928,13 +734,11 @@ class ExportController extends Controller
 
         $pdf->SetY($footerY);
 
-        // Línea dorada
-        $pdf->SetDrawColor(212, 175, 55);
+        $pdf->SetDrawColor($colorDoradoLinea[0], $colorDoradoLinea[1], $colorDoradoLinea[2]);
         $pdf->SetLineWidth(0.4);
         $pdf->Line($leftX, $footerY, $leftX + $pageW, $footerY);
 
-        // Línea azul
-        $pdf->SetDrawColor(13, 110, 253);
+        $pdf->SetDrawColor($colorAzulCorporativo[0], $colorAzulCorporativo[1], $colorAzulCorporativo[2]);
         $pdf->SetLineWidth(0.8);
         $pdf->Line($leftX, $footerY + 1, $leftX + $pageW, $footerY + 1);
 
@@ -943,35 +747,32 @@ class ExportController extends Controller
 
         $pdf->SetY($footerY + 3);
 
-        // Datos de la empresa (izquierda)
         $pdf->SetFont('Arial', 'B', 8);
         $pdf->SetTextColor(44, 62, 80);
         $pdf->Cell(80, 4, $this->toLatin1($empresaNombre), 0, 1, 'L');
 
         $pdf->SetFont('Arial', '', 7);
-        $pdf->SetTextColor(100, 100, 100);
+        $pdf->SetTextColor($colorTextoSecundario[0], $colorTextoSecundario[1], $colorTextoSecundario[2]);
         $pdf->Cell(80, 3.5, $this->toLatin1('Tel: ' . $empresaPhone), 0, 1, 'L');
         $pdf->Cell(80, 3.5, $this->toLatin1('Email: ' . $empresaEmail), 0, 1, 'L');
         $pdf->Cell(80, 3.5, $this->toLatin1('Web: ' . $empresaDomain), 0, 1, 'L');
 
-        // Volver arriba para el texto central y el rectángulo
         $pdf->SetY($footerY + 10);
         $pdf->SetFont('Arial', 'I', 7);
-        $pdf->SetTextColor(100, 100, 100);
+        $pdf->SetTextColor($colorTextoSecundario[0], $colorTextoSecundario[1], $colorTextoSecundario[2]);
         $pdf->Cell(0, 4, $this->toLatin1('Reporte general | Generado por: ' . $userName), 0, 1, 'C');
 
-        // Rectángulo azul con fecha (derecha)
         $rectW = 45;
         $rectH = 12;
         $rectX = $leftX + $pageW - $rectW;
         $rectY = $footerY + 3;
 
-        $pdf->SetFillColor(13, 110, 253);
-        $pdf->SetDrawColor(13, 110, 253);
+        $pdf->SetFillColor($colorAzulCorporativo[0], $colorAzulCorporativo[1], $colorAzulCorporativo[2]);
+        $pdf->SetDrawColor($colorAzulCorporativo[0], $colorAzulCorporativo[1], $colorAzulCorporativo[2]);
         $pdf->Rect($rectX, $rectY, $rectW, $rectH, 'DF');
 
         $pdf->SetFont('Arial', 'B', 7);
-        $pdf->SetTextColor(255, 255, 255);
+        $pdf->SetTextColor($colorBlanco[0], $colorBlanco[1], $colorBlanco[2]);
         $pdf->SetXY($rectX, $rectY + 2);
         $pdf->Cell($rectW, 4, 'FECHA DE EMISION', 0, 2, 'C');
 
@@ -980,15 +781,28 @@ class ExportController extends Controller
         $pdf->Cell($rectW, 4, date('d/m/Y H:i'), 0, 2, 'C');
 
         // ============================================
-        // DESCARGAR
+        // 🔥 NOMBRE DEL ARCHIVO ÚNICO (evita "Ventas (1)")
         // ============================================
-        $filename = 'reporte_' . $module . '_' . date('Ymd_His') . '.pdf';
+        $moduleTitle = $this->moduleTitles[$module] ?? ucfirst(str_replace('-', ' ', $module));
+        $safeName = preg_replace('/[^a-zA-Z0-9_-]/', '_', $moduleTitle);
+
+        // Timestamp con microsegundos + hash aleatorio = nombre único garantizado
+        $timestamp = date('Ymd_His');
+        $micro = sprintf('%03d', (int)((microtime(true) - floor(microtime(true))) * 1000));
+        $random = substr(md5(uniqid('', true)), 0, 4);
+
+        $filename = 'Reporte_' . $safeName . '_' . $timestamp . '_' . $micro . '_' . $random . '.pdf';
+
+        // Headers explícitos
+        header('Content-Type: application/pdf');
+        header('Content-Disposition: attachment; filename="' . $filename . '"');
+        header('Cache-Control: private, max-age=0, must-revalidate, no-store, no-cache');
+        header('Pragma: no-cache');
+        header('Expires: 0');
+
         $pdf->Output('D', $filename);
     }
 
-    // ============================================
-    // FORMATEAR VALOR PARA PDF
-    // ============================================
     private function formatValueForPdf($value, $type)
     {
         if ($value === null || $value === '') {
@@ -999,43 +813,33 @@ class ExportController extends Controller
             case 'date':
                 $ts = strtotime($value);
                 return $ts ? date('d/m/Y', $ts) : (string)$value;
-
             case 'datetime':
             case 'timestamp':
                 $ts = strtotime($value);
                 return $ts ? date('d/m/Y H:i', $ts) : (string)$value;
-
             case 'time':
                 $ts = strtotime($value);
                 return $ts ? date('H:i', $ts) : (string)$value;
-
             case 'boolean':
                 return $value ? 'Si' : 'No';
-
             case 'integer':
             case 'bigint':
             case 'smallint':
                 return number_format((int)$value);
-
             case 'decimal':
             case 'float':
             case 'double':
                 return number_format((float)$value, 2);
-
             case 'text':
                 $clean = strip_tags((string)$value);
                 return mb_strlen($clean) > 100
                     ? mb_substr($clean, 0, 100) . '...'
                     : $clean;
-
             default:
                 return (string)$value;
         }
     }
 
-    // ============================================
-    // CONVERTIR A LATIN1
-    // ============================================
     private function toLatin1($text)
     {
         if (empty($text)) {

@@ -97,29 +97,12 @@ $estadosPermitidos = isset($estadosPermitidos) ? $estadosPermitidos : ['Nuevo', 
                         ])->label('Teléfono <span class="text-danger">*</span>')
                         ->hint('Ingresa 10 dígitos sin espacios ni guiones', ['class' => 'text-muted']) ?>
 
-                        <!-- 🔥 ESTADO FIJO: NUEVO (solo lectura) -->
-                        <div class="status-info-box">
-                            <div class="status-info-label">
-                                <i class="fas fa-tag text-primary"></i>
-                                <strong>Estado:</strong>
-                            </div>
-                            <div class="status-info-value">
-                                <span class="badge bg-primary badge-status-fixed">
-                                    <i class="fas fa-plus-circle"></i>
-                                    Nuevo
-                                </span>
-
-                            </div>
-                        </div>
-
                         <!-- 🔥 AVISO: FECHA AUTOMÁTICA -->
                         <div class="alert alert-info d-flex align-items-center" role="alert" style="border-radius: 8px; border-left: 4px solid #0dcaf0; padding: 10px 14px; font-size: 0.85rem;">
                             <i class="fas fa-calendar-check me-2" style="font-size: 1rem;"></i>
                             <div>
                                 <strong>Fecha de registro:</strong>
-                                Se asignará automáticamente la fecha de hoy
                                 <strong><?= date('d/m/Y') ?></strong>
-                                al guardar el lead.
                             </div>
                         </div>
 
