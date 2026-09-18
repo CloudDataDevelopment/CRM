@@ -392,19 +392,19 @@ class LeadController extends Controller
             }
 
             // ============================================
-            // PRÓXIMOS SEGUIMIENTOS
+            // 🔥 PRÓXIMOS SEGUIMIENTOS (FECHA FUTURA)
             // ============================================
             try {
-                $fechaActual = date('Y-m-d');
-                $fechaLimite = date('Y-m-d', strtotime('+7 days'));
-                
+                // 🔥 Fecha de hoy (se actualiza automáticamente cada día)
+                $fechaHoy = date('Y-m-d');
+
                 $proximosTrackingsQuery = SalesTracking::find()
                     ->alias('st')
                     ->leftJoin('Lead l', 'st.id_lead = l.id_lead')
                     ->where(['not in', 'l.id_status', $excludeIds])
                     ->andWhere(['<>', 'l.id_status', 1])
-                    ->andWhere(['>=', 'st.date_f', $fechaActual])
-                    ->andWhere(['<=', 'st.date_f', $fechaLimite]);
+                    ->andWhere(['IS NOT', 'st.date_f', null])
+                    ->andWhere(['>', 'st.date_f', $fechaHoy]);  // Solo fechas futuras
                 
                 if ($user && $user->isAgent()) {
                     $proximosTrackingsQuery->andWhere(['l.id_user' => $user->id_user]);
@@ -417,17 +417,35 @@ class LeadController extends Controller
                 }
                 
                 $proximosTrackings = $proximosTrackingsQuery->orderBy(['st.date_f' => SORT_ASC])
-                    ->limit(3)
+                    ->limit(5)
                     ->all();
                 
                 foreach ($proximosTrackings as $tracking) {
                     if ($tracking->lead) {
+                        // 🔥 Calcular días restantes
+                        $diasRestantes = (int) floor((strtotime($tracking->date_f) - strtotime($fechaHoy)) / 86400);
+
+                        if ($diasRestantes == 0) {
+                            $etiquetaFecha = 'Hoy';
+                            $badgeColor = 'warning';
+                        } elseif ($diasRestantes == 1) {
+                            $etiquetaFecha = 'Mañana';
+                            $badgeColor = 'info';
+                        } elseif ($diasRestantes <= 7) {
+                            $etiquetaFecha = 'En ' . $diasRestantes . ' días';
+                            $badgeColor = 'info';
+                        } else {
+                            $etiquetaFecha = 'En ' . $diasRestantes . ' días';
+                            $badgeColor = 'success';
+                        }
+
                         $proximasActividades[] = [
                             'lead_name' => $tracking->lead->name . ' ' . $tracking->lead->lastname,
-                            'status' => 'Próximo Seguimiento',
-                            'badge_color' => 'info',
+                            'status' => 'Próximo Seguimiento (' . $etiquetaFecha . ')',
+                            'badge_color' => $badgeColor,
                             'description' => $tracking->comments ?? 'Seguimiento programado',
                             'date' => $tracking->date_f,
+                            'dias_restantes' => $diasRestantes,
                             'user_name' => $tracking->user ? $tracking->user->name . ' ' . $tracking->user->lastname1 : '',
                             'icon' => 'calendar-check',
                             'color' => 'success',
@@ -437,6 +455,11 @@ class LeadController extends Controller
             } catch (\Exception $e) {
                 Yii::warning('Error al cargar próximos seguimientos: ' . $e->getMessage());
             }
+
+            // 🔥 Ordenar todas las próximas actividades por fecha ASC
+            usort($proximasActividades, function($a, $b) {
+                return strtotime($a['date']) - strtotime($b['date']);
+            });
 
             $proximasActividades = array_slice($proximasActividades, 0, 5);
 
@@ -952,11 +975,16 @@ class LeadController extends Controller
         // 🔥 ESTADOS PERMITIDOS (UNIFICADOS)
         $estadosPermitidos = ['Nuevo', 'Contactado', 'Procesando', 'Cancelado'];
 
+        // 🔥 VALORES POR DEFECTO
+        $model->created_at = date('Y-m-d');  // Fecha de hoy automática
+        $model->id_status = 19;              // Estado "Nuevo"
+
         if ($model->load(Yii::$app->request->post())) {
             try {
                 $user = Yii::$app->user->identity;
                 $empresaId = Yii::$app->session->get('empresa_id');
                 
+                // 🔥 Asignar empresa
                 if ($user->isSuperAdmin()) {
                     if (!empty($empresaId)) {
                         $model->id_company = $empresaId;
@@ -969,12 +997,15 @@ class LeadController extends Controller
                     $model->id_company = 1;
                 }
                 
+                // 🔥 Forzar estado por defecto si no viene
                 if (empty($model->id_status)) {
                     $model->id_status = 19;
                 }
                 
+                // 🔥 FORZAR FECHA DE HOY (ignorar si viene del formulario)
                 $model->created_at = date('Y-m-d');
                 
+                // 🔥 Asignar usuario
                 if ($user && $user->isAgent()) {
                     $model->id_user = $user->id_user;
                 } else {
@@ -1017,7 +1048,7 @@ class LeadController extends Controller
             $ultimosLeads->andWhere(['Lead.id_company' => $user->id_company]);
         }
         
-        $ultimosLeads = $ultimosLeads->limit(5)->all();
+        $ultimosLeads = $ultimosLeads->orderBy(['id_lead' => SORT_DESC])->limit(5)->all();
 
         // 🔥 Obtener lista de estados (SOLO PERMITIDOS)
         $statusList = Status::find()
@@ -1033,58 +1064,59 @@ class LeadController extends Controller
             'estadosPermitidos' => $estadosPermitidos,
         ]);
     }
-    // ============================================
-// DETALLES DEL LEAD (Vista completa)
-// ============================================
-public function actionDetails($id)
-{
-    try {
-        $user = Yii::$app->user->identity;
-        $empresaId = Yii::$app->session->get('empresa_id');
-        
-        $model = Lead::find()
-            ->where(['id_lead' => $id])
-            ->with(['salesTrackings', 'quotes', 'user', 'company', 'status'])
-            ->one();
 
-        if (!$model) {
-            Yii::$app->session->setFlash('error', 'El lead solicitado no existe.');
+    // ============================================
+    // DETALLES DEL LEAD (Vista completa)
+    // ============================================
+    public function actionDetails($id)
+    {
+        try {
+            $user = Yii::$app->user->identity;
+            $empresaId = Yii::$app->session->get('empresa_id');
+            
+            $model = Lead::find()
+                ->where(['id_lead' => $id])
+                ->with(['salesTrackings', 'quotes', 'user', 'company', 'status'])
+                ->one();
+
+            if (!$model) {
+                Yii::$app->session->setFlash('error', 'El lead solicitado no existe.');
+                return $this->redirect(['index']);
+            }
+
+            // Verificar permisos
+            if ($user && $user->isAgent()) {
+                if ($model->id_user != $user->id_user) {
+                    Yii::$app->session->setFlash('error', 'No tienes permiso para ver este lead.');
+                    return $this->redirect(['index']);
+                }
+            } elseif ($user && $user->isSuperAdmin()) {
+                if (!empty($empresaId) && $model->id_company != $empresaId) {
+                    Yii::$app->session->setFlash('error', 'No tienes permiso para ver este lead.');
+                    return $this->redirect(['index']);
+                }
+            } elseif ($user && $user->isAdmin() && !$user->isSuperAdmin()) {
+                if ($model->id_company != $user->id_company) {
+                    Yii::$app->session->setFlash('error', 'No tienes permiso para ver este lead.');
+                    return $this->redirect(['index']);
+                }
+            }
+
+            $statusList = Status::find()
+                ->where(['in', 'status', ['Nuevo', 'Contactado', 'Procesando', 'Cancelado']])
+                ->select(['status', 'id_status'])
+                ->indexBy('id_status')
+                ->column();
+
+            return $this->render('details', [
+                'model' => $model,
+                'statusList' => $statusList,
+            ]);
+            
+        } catch (\Exception $e) {
+            Yii::error('Error en actionDetails: ' . $e->getMessage(), 'lead-details');
+            Yii::$app->session->setFlash('error', 'Error al cargar la información del lead.');
             return $this->redirect(['index']);
         }
-
-        // Verificar permisos
-        if ($user && $user->isAgent()) {
-            if ($model->id_user != $user->id_user) {
-                Yii::$app->session->setFlash('error', 'No tienes permiso para ver este lead.');
-                return $this->redirect(['index']);
-            }
-        } elseif ($user && $user->isSuperAdmin()) {
-            if (!empty($empresaId) && $model->id_company != $empresaId) {
-                Yii::$app->session->setFlash('error', 'No tienes permiso para ver este lead.');
-                return $this->redirect(['index']);
-            }
-        } elseif ($user && $user->isAdmin() && !$user->isSuperAdmin()) {
-            if ($model->id_company != $user->id_company) {
-                Yii::$app->session->setFlash('error', 'No tienes permiso para ver este lead.');
-                return $this->redirect(['index']);
-            }
-        }
-
-        $statusList = Status::find()
-            ->where(['in', 'status', ['Nuevo', 'Contactado', 'Procesando', 'Cancelado']])
-            ->select(['status', 'id_status'])
-            ->indexBy('id_status')
-            ->column();
-
-        return $this->render('details', [
-            'model' => $model,
-            'statusList' => $statusList,
-        ]);
-        
-    } catch (\Exception $e) {
-        Yii::error('Error en actionDetails: ' . $e->getMessage(), 'lead-details');
-        Yii::$app->session->setFlash('error', 'Error al cargar la información del lead.');
-        return $this->redirect(['index']);
     }
-}
 }

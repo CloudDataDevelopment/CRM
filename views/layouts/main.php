@@ -188,7 +188,7 @@ $this->beginPage();
                     ]) ?>
                 </li>
                 
-                <!-- 🔥 CONTACTOS - NUEVO -->
+                <!-- Contactos -->
                 <li class="nav-item searchable-item">
                     <?= Html::a('<i class="fas fa-address-book"></i> <span>Contactos</span>', ['/contacts/index'], [
                         'class' => 'nav-link' . (Yii::$app->controller->id == 'contacts' ? ' active' : '')
@@ -291,6 +291,13 @@ $this->beginPage();
                     <hr class="sidebar-divider">
                 </li>
                 
+                <!-- Mi Perfil -->
+                <li class="nav-item searchable-item">
+                    <?= Html::a('<i class="fas fa-user-circle"></i> <span>Mi Perfil</span>', ['/site/profile'], [
+                        'class' => 'nav-link' . (Yii::$app->controller->id == 'site' && Yii::$app->controller->action->id == 'profile' ? ' active' : '')
+                    ]) ?>
+                </li>
+                
                 <!-- Cerrar Sesión -->
                 <li class="nav-item">
                     <a class="nav-link logout" href="#" onclick="handleLogout('<?= Url::to(['/site/logout']) ?>'); return false;">
@@ -320,20 +327,81 @@ $this->beginPage();
             </div>
         </div>
         
-        <div class="user-info">
-            <div class="avatar">
-                <?= strtoupper(substr(Yii::$app->user->identity->name ?? 'U', 0, 1)) ?>
-            </div>
-            <div class="user-details">
-                <span class="user-name"><?= Yii::$app->user->identity->name ?? 'Usuario' ?></span>
-                <span class="user-role">
-                    <?php 
-                    $auth = Yii::$app->user->identity->authentication;
-                    $role = $auth ? $auth->role : null;
-                    echo $role ? $role->role_type : 'Usuario';
-                    ?>
-                </span>
-            </div>
+        <!-- Dropdown de usuario -->
+        <div class="dropdown user-info-wrapper">
+            <a href="#" 
+               class="user-info dropdown-toggle" 
+               id="userDropdown" 
+               role="button" 
+               data-bs-toggle="dropdown" 
+               aria-expanded="false"
+               title="Mi cuenta">
+                <div class="avatar">
+                    <?= strtoupper(substr(Yii::$app->user->identity->name ?? 'U', 0, 1)) ?>
+                </div>
+                <div class="user-details">
+                    <span class="user-name"><?= Yii::$app->user->identity->name ?? 'Usuario' ?></span>
+                    <span class="user-role">
+                        <?php 
+                        $auth = Yii::$app->user->identity->authentication;
+                        $role = $auth ? $auth->role : null;
+                        echo $role ? $role->role_type : 'Usuario';
+                        ?>
+                    </span>
+                </div>
+                <i class="fas fa-chevron-down dropdown-arrow"></i>
+            </a>
+            
+            <ul class="dropdown-menu dropdown-menu-end user-dropdown-menu" aria-labelledby="userDropdown">
+                <!-- Header del dropdown -->
+                <li class="dropdown-header">
+                    <div class="dropdown-user-header">
+                        <div class="dropdown-avatar">
+                            <?= strtoupper(substr(Yii::$app->user->identity->name ?? 'U', 0, 1)) ?>
+                        </div>
+                        <div class="dropdown-user-info">
+                            <div class="dropdown-user-name">
+                                <?= Yii::$app->user->identity->name ?? 'Usuario' ?>
+                                <?= Yii::$app->user->identity->lastname1 ?? '' ?>
+                            </div>
+                            <div class="dropdown-user-email">
+                                <?= Yii::$app->user->identity->email ?? '' ?>
+                            </div>
+                        </div>
+                    </div>
+                </li>
+                
+                <li><hr class="dropdown-divider"></li>
+                
+                <!-- Mi Perfil -->
+                <li>
+                    <a class="dropdown-item" href="<?= Url::to(['/site/profile']) ?>">
+                        <i class="fas fa-user-circle text-primary"></i>
+                        <span>Mi Perfil</span>
+                    </a>
+                </li>
+                
+                <!-- Configuración (solo admins) -->
+                <?php if ($isAdminUser || $isSuperAdmin): ?>
+                    <li>
+                        <a class="dropdown-item" href="<?= Url::to(['/user-management/index']) ?>">
+                            <i class="fas fa-cog text-secondary"></i>
+                            <span>Configuración</span>
+                        </a>
+                    </li>
+                <?php endif; ?>
+                
+                <li><hr class="dropdown-divider"></li>
+                
+                <!-- Cerrar Sesión -->
+                <li>
+                    <a class="dropdown-item text-danger" href="#" 
+                       onclick="handleLogout('<?= Url::to(['/site/logout']) ?>'); return false;">
+                        <i class="fas fa-sign-out-alt"></i>
+                        <span>Cerrar Sesión</span>
+                    </a>
+                </li>
+            </ul>
         </div>
     </div>
 
@@ -346,8 +414,9 @@ $this->beginPage();
                 $alertClass = $key == 'danger' ? 'danger' : ($key == 'error' ? 'danger' : $key);
                 $icon = $key == 'success' ? 'fa-check-circle' : ($key == 'danger' || $key == 'error' ? 'fa-exclamation-triangle' : 'fa-info-circle');
                 echo '<div class="alert alert-' . $alertClass . ' alert-dismissible fade show" role="alert">';
-                echo '<i class="fas ' . $icon . '"></i> ' . $message;
-                echo '<button type="button" class="btn-close" data-bs-dismiss="alert"></button>';
+                echo '<i class="fas ' . $icon . '"></i>';
+                echo '<span>' . $message . '</span>';
+                echo '<button type="button" class="btn-close ms-auto" data-bs-dismiss="alert"></button>';
                 echo '</div>';
             }
         }
@@ -359,7 +428,6 @@ $this->beginPage();
 <?php
 // ============================================
 // BOTÓN FLOTANTE "EXPORTAR PDF"
-// Aparece automáticamente en el index de los módulos soportados
 // ============================================
 $currentController = Yii::$app->controller->id;
 $currentAction = Yii::$app->controller->action->id;
@@ -377,7 +445,6 @@ $modulesWithReport = [
     'empresa',
 ];
 
-// Mapeo especial: nombre del controlador → nombre del módulo para el ExportController
 $moduleMap = [
     'user-management' => 'user',
     'contacts'        => 'contact',

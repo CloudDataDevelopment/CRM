@@ -10,6 +10,11 @@ use yii\filters\AccessControl;
 use app\models\LoginForm;
 use app\models\RegisterForm;
 use app\models\Authentication;
+use app\models\Lead;
+use app\models\SalesTracking;
+use app\models\Quote;
+use app\models\Task;
+use app\models\Status;
 use app\components\ErrorManager;
 
 class SiteController extends Controller
@@ -27,7 +32,12 @@ class SiteController extends Controller
                         'allow' => true,
                     ],
                     [
-                        'actions' => ['logout', 'index', 'register', 'ver-task', 'keep-alive', 'check-session'],
+                        'actions' => [
+                            'logout', 'index', 'register', 'ver-task', 'keep-alive', 'check-session',
+                            'profile',            // 🔥 NUEVO
+                            'update-profile',     // 🔥 NUEVO
+                            'change-password',    // 🔥 NUEVO
+                        ],
                         'allow' => true,
                         'roles' => ['@'],
                     ],
@@ -42,6 +52,8 @@ class SiteController extends Controller
                 'actions' => [
                     'logout' => ['post'],
                     'check-session' => ['post'],
+                    'update-profile' => ['post'],   // 🔥 NUEVO
+                    'change-password' => ['post'],  // 🔥 NUEVO
                 ],
             ],
         ];
@@ -79,7 +91,6 @@ class SiteController extends Controller
 
     public function actionLogin()
     {
-        // Si ya está logueado, redirigir
         if (!Yii::$app->user->isGuest) {
             $auth = Authentication::find()
                 ->where(['id_user' => Yii::$app->user->id])
@@ -134,16 +145,12 @@ class SiteController extends Controller
      */
     public function actionLogout()
     {
-        // Limpiar variables de sesión
         Yii::$app->session->remove('last_activity');
         Yii::$app->session->remove('empresa_id');
         Yii::$app->session->remove('empresa_nombre');
         Yii::$app->session->remove('tab_id');
         
-        // Destruir toda la sesión
         Yii::$app->session->destroy();
-        
-        // Cerrar sesión
         Yii::$app->user->logout(false);
         
         return $this->redirect(['site/login']);
@@ -164,7 +171,6 @@ class SiteController extends Controller
             ];
         }
         
-        // Verificar si la sesión sigue activa
         $tabId = Yii::$app->session->get('tab_id');
         if (!$tabId) {
             Yii::$app->user->logout(false);
@@ -352,5 +358,187 @@ class SiteController extends Controller
         Yii::$app->session->set('last_activity', time());
         
         return ['success' => true, 'message' => 'Sesión mantenida'];
+    }
+
+    // ============================================
+    // 🔥 PERFIL DE USUARIO
+    // ============================================
+    public function actionProfile()
+    {
+        try {
+            $user = Yii::$app->user->identity;
+            
+            if (!$user) {
+                return $this->redirect(['site/login']);
+            }
+
+            // Obtener autenticación con relaciones
+            $auth = Authentication::find()
+                ->where(['id_user' => $user->id_user])
+                ->with(['role', 'status', 'company'])
+                ->one();
+
+            // Estadísticas del usuario
+            $stats = [
+                'leads_asignados'   => 0,
+                'seguimientos'      => 0,
+                'cotizaciones'      => 0,
+                'tareas_pendientes' => 0,
+            ];
+
+            try {
+                $stats['leads_asignados'] = Lead::find()
+                    ->where(['id_user' => $user->id_user])
+                    ->count();
+
+                $stats['seguimientos'] = SalesTracking::find()
+                    ->where(['id_user' => $user->id_user])
+                    ->count();
+
+                $stats['cotizaciones'] = Quote::find()
+                    ->alias('q')
+                    ->leftJoin('Lead l', 'q.id_lead = l.id_lead')
+                    ->where(['l.id_user' => $user->id_user])
+                    ->count();
+
+                $statusPendiente = Status::find()->where(['status' => 'Pendiente'])->one();
+                if ($statusPendiente) {
+                    $stats['tareas_pendientes'] = Task::find()
+                        ->where(['id_status' => $statusPendiente->id_status])
+                        ->count();
+                }
+            } catch (\Exception $e) {
+                Yii::warning('Error al cargar estadísticas de perfil: ' . $e->getMessage());
+            }
+
+            return $this->render('profile', [
+                'user'         => $user,
+                'auth'         => $auth,
+                'stats'        => $stats,
+                'isAdmin'      => $user->isAdmin(),
+                'isSuperAdmin' => $user->isSuperAdmin(),
+            ]);
+
+        } catch (\Exception $e) {
+            Yii::error('Error en actionProfile: ' . $e->getMessage(), 'profile');
+            Yii::$app->session->setFlash('error', 'Error al cargar el perfil.');
+            return $this->redirect(['dashboard/index']);
+        }
+    }
+
+    // ============================================
+    // 🔥 ACTUALIZAR PERFIL (AJAX)
+    // ============================================
+    public function actionUpdateProfile()
+    {
+        Yii::$app->response->format = \yii\web\Response::FORMAT_JSON;
+
+        try {
+            $user = Yii::$app->user->identity;
+            
+            if (!$user) {
+                return ['success' => false, 'message' => 'Sesión expirada.'];
+            }
+
+            if (Yii::$app->request->isPost) {
+                $post = Yii::$app->request->post();
+
+                $user->name      = trim($post['name'] ?? $user->name);
+                $user->lastname1 = trim($post['lastname1'] ?? $user->lastname1);
+                $user->lastname2 = trim($post['lastname2'] ?? $user->lastname2);
+                $user->email     = trim($post['email'] ?? $user->email);
+                $user->phone     = trim($post['phone'] ?? $user->phone);
+
+                if ($user->save()) {
+                    return [
+                        'success' => true,
+                        'message' => 'Perfil actualizado exitosamente.',
+                    ];
+                } else {
+                    $errors = [];
+                    foreach ($user->getErrors() as $attribute => $errorList) {
+                        $errors[] = $user->getAttributeLabel($attribute) . ': ' . implode(', ', $errorList);
+                    }
+                    return [
+                        'success' => false,
+                        'message' => 'Error al guardar: ' . implode(' | ', $errors)
+                    ];
+                }
+            }
+
+            return ['success' => false, 'message' => 'Método no permitido.'];
+
+        } catch (\Exception $e) {
+            Yii::error('Error en actionUpdateProfile: ' . $e->getMessage(), 'profile');
+            return ['success' => false, 'message' => 'Error: ' . $e->getMessage()];
+        }
+    }
+
+    // ============================================
+    // 🔥 CAMBIAR CONTRASEÑA (AJAX)
+    // ============================================
+    public function actionChangePassword()
+    {
+        Yii::$app->response->format = \yii\web\Response::FORMAT_JSON;
+
+        try {
+            $user = Yii::$app->user->identity;
+            
+            if (!$user) {
+                return ['success' => false, 'message' => 'Sesión expirada.'];
+            }
+
+            if (Yii::$app->request->isPost) {
+                $post = Yii::$app->request->post();
+                $currentPassword = $post['current_password'] ?? '';
+                $newPassword     = $post['new_password'] ?? '';
+                $confirmPassword = $post['confirm_password'] ?? '';
+
+                if (empty($currentPassword) || empty($newPassword) || empty($confirmPassword)) {
+                    return ['success' => false, 'message' => 'Todos los campos son obligatorios.'];
+                }
+
+                if ($newPassword !== $confirmPassword) {
+                    return ['success' => false, 'message' => 'Las contraseñas nuevas no coinciden.'];
+                }
+
+                if (strlen($newPassword) < 4) {
+                    return ['success' => false, 'message' => 'La nueva contraseña debe tener al menos 4 caracteres.'];
+                }
+
+                if (!$user->validatePassword($currentPassword)) {
+                    return ['success' => false, 'message' => 'La contraseña actual es incorrecta.'];
+                }
+
+                $user->setPassword($newPassword);
+
+                if ($user->save()) {
+                    try {
+                        $auth = Authentication::find()
+                            ->where(['id_user' => $user->id_user])
+                            ->one();
+                        if ($auth) {
+                            $auth->password = $user->password;
+                            $auth->save(false);
+                        }
+                    } catch (\Exception $e) {
+                        Yii::warning('Error al actualizar password en Authentication: ' . $e->getMessage());
+                    }
+
+                    return [
+                        'success' => true,
+                        'message' => 'Contraseña actualizada exitosamente.'
+                    ];
+                } else {
+                    return ['success' => false, 'message' => 'Error al guardar la nueva contraseña.'];
+                }
+            }
+
+            return ['success' => false, 'message' => 'Método no permitido.'];
+
+        } catch (\Exception $e) {
+            Yii::error('Error en actionChangePassword: ' . $e->getMessage(), 'profile');
+            return ['success' => false, 'message' => 'Error: ' . $e->getMessage()];
+        }
     }
 }
