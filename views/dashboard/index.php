@@ -11,6 +11,10 @@ $this->registerJsFile('https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.um
 $this->registerCssFile('@web/css/dashboard.css', [
     'depends' => [\yii\bootstrap5\BootstrapAsset::class],
 ]);
+
+// Variables con valores por defecto
+$actividadesRecientes = isset($actividadesRecientes) ? $actividadesRecientes : [];
+$proximasActividades = isset($proximasActividades) ? $proximasActividades : [];
 ?>
 
 <div class="dashboard-index">
@@ -103,7 +107,7 @@ $this->registerCssFile('@web/css/dashboard.css', [
             </div>
         </div>
 
-        <!-- FILA 1: EMBUDO + VENTAS POR MES + RESERVACIONES RECIENTES -->
+        <!-- FILA 1: EMBUDO + VENTAS POR MES + ACTIVIDADES RECIENTES -->
         <div class="row g-2 mb-2">
             <!-- EMBUDO DE VENTAS -->
             <div class="col-md-4">
@@ -218,71 +222,59 @@ $this->registerCssFile('@web/css/dashboard.css', [
                 </div>
             </div>
 
-            <!-- RESERVACIONES RECIENTES -->
+            <!-- ACTIVIDADES RECIENTES -->
             <div class="col-md-4">
                 <div class="card task-preview-card dashboard-card h-100">
                     <div class="card-header">
                         <div class="header-left">
-                            <i class="fas fa-calendar-times text-danger"></i>
-                            <span>Reservaciones Recientes</span>
+                            <i class="fas fa-history text-primary"></i>
+                            <span>Actividades Recientes</span>
                         </div>
-                        <span class="badge bg-danger"><?= count($reservacionesRecientes) ?></span>
+                        <span class="badge bg-primary"><?= count($actividadesRecientes) ?></span>
                     </div>
                     <div class="card-body p-0">
-                        <div class="reservations-stack-list">
-                            <?php if (!empty($reservacionesRecientes)): ?>
-                                <?php foreach ($reservacionesRecientes as $index => $reservacion): ?>
-                                    <?php 
-                                    $leadName = $reservacion->lead ? $reservacion->lead->name . ' ' . $reservacion->lead->lastname : 'Lead eliminado';
-                                    ?>
-                                    <div class="reservation-stack-item" style="animation-delay: <?= $index * 0.05 ?>s;">
-                                        <div class="reservation-stack-icon">
-                                            <?php if ($reservacion->isPast()): ?>
-                                                <i class="fas fa-calendar-times text-danger"></i>
-                                            <?php else: ?>
-                                                <i class="fas fa-calendar-check text-warning"></i>
-                                            <?php endif; ?>
+                        <div class="activities-stack-list">
+                            <?php if (!empty($actividadesRecientes)): ?>
+                                <?php foreach ($actividadesRecientes as $index => $actividad): ?>
+                                    <div class="activity-stack-item" style="animation-delay: <?= $index * 0.05 ?>s;">
+                                        <div class="activity-stack-icon">
+                                            <i class="fas fa-<?= $actividad['icon'] ?> text-<?= $actividad['color'] ?>"></i>
                                         </div>
-                                        <div class="reservation-stack-content">
-                                            <div class="reservation-stack-title">
-                                                <strong><?= Html::encode($reservacion->name_reservation) ?></strong>
-                                                <span class="reservation-stack-status <?= $reservacion->isPast() ? 'status-past' : 'status-today' ?>">
-                                                    <?= $reservacion->isPast() ? 'Pasada' : 'Hoy' ?>
+                                        <div class="activity-stack-content">
+                                            <div class="activity-stack-title">
+                                                <strong><?= Html::encode($actividad['lead_name']) ?></strong>
+                                                <span class="badge bg-<?= $actividad['badge_color'] ?>">
+                                                    <?= Html::encode($actividad['status']) ?>
                                                 </span>
                                             </div>
-                                            <div class="reservation-stack-lead">
-                                                <i class="fas fa-user"></i> <?= Html::encode($leadName) ?>
+                                            <div class="activity-stack-description">
+                                                <?= Html::encode($actividad['description']) ?>
                                             </div>
-                                            <div class="reservation-stack-meta">
-                                                <span class="reservation-stack-date">
+                                            <div class="activity-stack-meta">
+                                                <span class="activity-stack-date">
                                                     <i class="far fa-calendar-alt"></i> 
-                                                    <?= $reservacion->getFormattedDate() ?>
+                                                    <?= $actividad['date'] ? date('d/m/Y H:i', strtotime($actividad['date'])) : 'Sin fecha' ?>
                                                 </span>
-                                                <span class="reservation-stack-time">
-                                                    <i class="far fa-clock"></i>
-                                                    <?= $reservacion->getFormattedHourS() ?> - <?= $reservacion->getFormattedHourF() ?>
-                                                </span>
+                                                <?php if (!empty($actividad['user_name'])): ?>
+                                                    <span class="activity-stack-user">
+                                                        <i class="fas fa-user"></i> <?= Html::encode($actividad['user_name']) ?>
+                                                    </span>
+                                                <?php endif; ?>
                                             </div>
-                                        </div>
-                                        <div class="reservation-stack-actions">
-                                            <?= Html::a('<i class="fas fa-eye"></i>', ['/reservation/view', 'id' => $reservacion->id_reservation], [
-                                                'class' => 'btn-stack-view',
-                                                'title' => 'Ver reservación'
-                                            ]) ?>
                                         </div>
                                     </div>
                                 <?php endforeach; ?>
                             <?php else: ?>
-                                <div class="reservation-stack-empty">
-                                    <i class="fas fa-check-circle text-success"></i>
-                                    <p>¡No hay reservaciones pasadas!</p>
-                                    <span class="text-muted" style="font-size: 0.7rem;">Todas las reservaciones están al día</span>
+                                <div class="activity-stack-empty">
+                                    <i class="fas fa-inbox text-muted"></i>
+                                    <p>No hay actividades recientes</p>
+                                    <span class="text-muted" style="font-size: 0.7rem;">Los seguimientos aparecerán aquí</span>
                                 </div>
                             <?php endif; ?>
                         </div>
                     </div>
                     <div class="card-footer text-center">
-                        <?= Html::a('Ver todas las reservaciones <i class="fas fa-arrow-right"></i>', ['/reservation/index'], [
+                        <?= Html::a('Ver todos los seguimientos <i class="fas fa-arrow-right"></i>', ['/sales-tracking/index'], [
                             'class' => 'btn btn-link btn-sm',
                             'style' => 'font-size: 0.7rem; text-decoration: none;'
                         ]) ?>
@@ -291,73 +283,61 @@ $this->registerCssFile('@web/css/dashboard.css', [
             </div>
         </div>
 
-        <!-- FILA 2: PRÓXIMAS RESERVACIONES + GRÁFICA DE LEADS -->
+        <!-- FILA 2: PRÓXIMAS ACTIVIDADES + GRÁFICA DE LEADS -->
         <div class="row g-2 mb-2">
+            <!-- PRÓXIMAS ACTIVIDADES -->
             <div class="col-md-6">
                 <div class="card task-preview-card dashboard-card h-100">
                     <div class="card-header">
                         <div class="header-left">
-                            <i class="fas fa-calendar-plus text-success"></i>
-                            <span>Próximas Reservaciones</span>
+                            <i class="fas fa-calendar-check text-success"></i>
+                            <span>Próximas Actividades</span>
                         </div>
-                        <span class="badge bg-success"><?= count($proximasReservaciones) ?></span>
+                        <span class="badge bg-success"><?= count($proximasActividades) ?></span>
                     </div>
                     <div class="card-body p-0">
-                        <div class="reservations-stack-list">
-                            <?php if (!empty($proximasReservaciones)): ?>
-                                <?php foreach ($proximasReservaciones as $index => $reservacion): ?>
-                                    <?php 
-                                    $leadName = $reservacion->lead ? $reservacion->lead->name . ' ' . $reservacion->lead->lastname : 'Lead eliminado';
-                                    $esHoy = $reservacion->isToday();
-                                    ?>
-                                    <div class="reservation-stack-item reservation-stack-upcoming" style="animation-delay: <?= $index * 0.05 ?>s;">
-                                        <div class="reservation-stack-icon">
-                                            <?php if ($esHoy): ?>
-                                                <i class="fas fa-calendar-day text-warning"></i>
-                                            <?php else: ?>
-                                                <i class="fas fa-calendar-plus text-success"></i>
-                                            <?php endif; ?>
+                        <div class="activities-stack-list">
+                            <?php if (!empty($proximasActividades)): ?>
+                                <?php foreach ($proximasActividades as $index => $actividad): ?>
+                                    <div class="activity-stack-item activity-stack-upcoming" style="animation-delay: <?= $index * 0.05 ?>s;">
+                                        <div class="activity-stack-icon">
+                                            <i class="fas fa-<?= $actividad['icon'] ?> text-<?= $actividad['color'] ?>"></i>
                                         </div>
-                                        <div class="reservation-stack-content">
-                                            <div class="reservation-stack-title">
-                                                <strong><?= Html::encode($reservacion->name_reservation) ?></strong>
-                                                <span class="reservation-stack-status <?= $esHoy ? 'status-today' : 'status-upcoming' ?>">
-                                                    <?= $esHoy ? 'Hoy' : 'Próxima' ?>
+                                        <div class="activity-stack-content">
+                                            <div class="activity-stack-title">
+                                                <strong><?= Html::encode($actividad['lead_name']) ?></strong>
+                                                <span class="badge bg-<?= $actividad['badge_color'] ?>">
+                                                    <?= Html::encode($actividad['status']) ?>
                                                 </span>
                                             </div>
-                                            <div class="reservation-stack-lead">
-                                                <i class="fas fa-user"></i> <?= Html::encode($leadName) ?>
+                                            <div class="activity-stack-description">
+                                                <?= Html::encode($actividad['description']) ?>
                                             </div>
-                                            <div class="reservation-stack-meta">
-                                                <span class="reservation-stack-date">
-                                                    <i class="far fa-calendar-alt"></i> 
-                                                    <?= $reservacion->getFormattedDate() ?>
+                                            <div class="activity-stack-meta">
+                                                <span class="activity-stack-date text-warning">
+                                                    <i class="far fa-clock"></i> 
+                                                    <?= $actividad['date'] ? date('d/m/Y H:i', strtotime($actividad['date'])) : 'Sin fecha' ?>
                                                 </span>
-                                                <span class="reservation-stack-time">
-                                                    <i class="far fa-clock"></i>
-                                                    <?= $reservacion->getFormattedHourS() ?> - <?= $reservacion->getFormattedHourF() ?>
-                                                </span>
+                                                <?php if (!empty($actividad['user_name'])): ?>
+                                                    <span class="activity-stack-user">
+                                                        <i class="fas fa-user"></i> <?= Html::encode($actividad['user_name']) ?>
+                                                    </span>
+                                                <?php endif; ?>
                                             </div>
-                                        </div>
-                                        <div class="reservation-stack-actions">
-                                            <?= Html::a('<i class="fas fa-eye"></i>', ['/reservation/view', 'id' => $reservacion->id_reservation], [
-                                                'class' => 'btn-stack-view',
-                                                'title' => 'Ver reservación'
-                                            ]) ?>
                                         </div>
                                     </div>
                                 <?php endforeach; ?>
                             <?php else: ?>
-                                <div class="reservation-stack-empty">
+                                <div class="activity-stack-empty">
                                     <i class="fas fa-check-circle text-success"></i>
-                                    <p>¡No hay próximas reservaciones!</p>
-                                    <span class="text-muted" style="font-size: 0.7rem;">Todo completado</span>
+                                    <p>No hay próximas actividades</p>
+                                    <span class="text-muted" style="font-size: 0.7rem;">Todo al día</span>
                                 </div>
                             <?php endif; ?>
                         </div>
                     </div>
                     <div class="card-footer text-center">
-                        <?= Html::a('Ver todas las reservaciones <i class="fas fa-arrow-right"></i>', ['/reservation/index'], [
+                        <?= Html::a('Ver todos los seguimientos <i class="fas fa-arrow-right"></i>', ['/sales-tracking/index'], [
                             'class' => 'btn btn-link btn-sm',
                             'style' => 'font-size: 0.7rem; text-decoration: none;'
                         ]) ?>
@@ -400,7 +380,7 @@ $this->registerCssFile('@web/css/dashboard.css', [
                             </div>
                         </div>
 
-                        <!-- 🔥 CONTADOR DE LEADS NUEVOS POR MES -->
+                        <!-- CONTADOR DE LEADS NUEVOS POR MES -->
                         <div class="leads-monthly-counter">
                             <div class="leads-monthly-header">
                                 <i class="fas fa-calendar-alt"></i>
@@ -521,7 +501,6 @@ $leadsLabelsJson = json_encode($leadsLabels);
 $leadsDataJson = json_encode($leadsData);
 $leadsColorsJson = json_encode($leadsColors);
 
-// Datos de Ventas por Mes
 $ventasData = array_fill(0, 12, 0);
 foreach ($ventasPorMes as $item) {
     if (isset($item['mes']) && isset($item['total'])) {
@@ -533,7 +512,6 @@ foreach ($ventasPorMes as $item) {
 }
 $ventasDataJson = json_encode($ventasData);
 
-// Datos para Actual vs Target
 $mesesLabelsJson = json_encode($mesesLabels);
 $actualDataJson = json_encode($actualData);
 $targetDataJson = json_encode($targetData);
@@ -553,7 +531,6 @@ document.addEventListener('DOMContentLoaded', function() {
     const parentWidthLeads = canvasLeads.parentElement.clientWidth || 200;
     const dprLeads = window.devicePixelRatio || 1;
 
-    // 🔥 Gráfica protagonista: 180px de alto
     canvasLeads.width = parentWidthLeads * dprLeads;
     canvasLeads.height = 180 * dprLeads;
     canvasLeads.style.width = parentWidthLeads + 'px';

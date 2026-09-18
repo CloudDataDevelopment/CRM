@@ -110,11 +110,10 @@ $estadosPermitidos = isset($estadosPermitidos) ? $estadosPermitidos : ['Nuevo', 
                         ])->label('Teléfono <span class="text-danger">*</span>')
                         ->hint('Ingresa 10 dígitos sin espacios ni guiones', ['class' => 'text-muted']) ?>
 
-                        <!-- ESTADO Y FECHA -->
+                        <!-- ESTADO -->
                         <div class="row">
-                            <div class="col-md-6">
+                            <div class="col-md-12">
                                 <?= $form->field($model, 'id_status')->dropDownList(
-                                    // 🔥 Usar $statusList (ya filtrada por el controlador)
                                     $statusList,
                                     [
                                         'prompt' => 'Seleccione un estado',
@@ -122,11 +121,16 @@ $estadosPermitidos = isset($estadosPermitidos) ? $estadosPermitidos : ['Nuevo', 
                                     ]
                                 )->label('Estado <span class="text-danger">*</span>') ?>
                             </div>
-                            <div class="col-md-6">
-                                <?= $form->field($model, 'created_at')->input('date', [
-                                    'class' => 'form-control',
-                                ])->label('Fecha de Registro')
-                                ->hint('Fecha en que se registró el lead', ['class' => 'text-muted']) ?>
+                        </div>
+
+                        <!-- 🔥 AVISO: FECHA AUTOMÁTICA -->
+                        <div class="alert alert-info d-flex align-items-center" role="alert" style="border-radius: 8px; border-left: 4px solid #0dcaf0; padding: 10px 14px; font-size: 0.85rem;">
+                            <i class="fas fa-calendar-check me-2" style="font-size: 1rem;"></i>
+                            <div>
+                                <strong>Fecha de registro:</strong>
+                                Se asignará automáticamente la fecha de hoy
+                                <strong><?= date('d/m/Y') ?></strong>
+                                al guardar el lead.
                             </div>
                         </div>
 
@@ -235,11 +239,11 @@ $estadosPermitidos = isset($estadosPermitidos) ? $estadosPermitidos : ['Nuevo', 
                             </li>
                             <li class="mb-2">
                                 <i class="fas fa-check-circle text-success me-2"></i>
-                                <strong>Estado:</strong> Asigna un estado inicial (Nuevo, Contactado, Procesando, Calificado).
+                                <strong>Estado:</strong> Asigna un estado inicial (Nuevo, Contactado, Procesando, Cancelado).
                             </li>
                             <li class="mb-0">
                                 <i class="fas fa-check-circle text-success me-2"></i>
-                                <strong>Observaciones:</strong> Notas para seguimientos.
+                                <strong>Fecha de registro:</strong> Se asigna automáticamente.
                             </li>
                         </ul>
                     </div>
