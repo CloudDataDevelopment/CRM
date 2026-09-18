@@ -17,6 +17,29 @@ class LeadController extends Controller
 {
     public $layout = 'main';
 
+    /**
+     * 🔥 Obtiene el ID del status "Nuevo" de forma dinámica.
+     * Si no existe, lo crea automáticamente.
+     */
+    protected function getStatusNuevoId()
+    {
+        $status = Status::find()->where(['status' => 'Nuevo'])->one();
+        
+        if (!$status) {
+            // Crear el status si no existe
+            $status = new Status();
+            $status->status = 'Nuevo';
+            $status->description = 'Lead nuevo sin contactar';
+            if (!$status->save()) {
+                Yii::error('No se pudo crear el status "Nuevo": ' . implode(', ', $status->getFirstErrors()), 'lead-status');
+                // Fallback al ID histórico conocido
+                return 19;
+            }
+        }
+        
+        return $status->id_status;
+    }
+
     // ============================================
     // LISTA DE LEADS CON PAGINACIÓN
     // ============================================
@@ -153,6 +176,9 @@ class LeadController extends Controller
             // MÉTRICAS
             // ============================================
             
+            // 🔥 ID dinámico del status "Nuevo"
+            $idStatusNuevo = $this->getStatusNuevoId();
+            
             $totalLeadsQuery = Lead::find()->where(['not in', 'Lead.id_status', $excludeIds]);
             if ($user && $user->isAgent()) {
                 $totalLeadsQuery->andWhere(['Lead.id_user' => $user->id_user]);
@@ -165,8 +191,9 @@ class LeadController extends Controller
             }
             $totalLeads = $totalLeadsQuery->count();
 
+            // 🔥 Usar ID dinámico en lugar de hardcodear 19
             $nuevosMesQuery = Lead::find()
-                ->where(['Lead.id_status' => 19])
+                ->where(['Lead.id_status' => $idStatusNuevo])
                 ->andWhere(['>=', 'Lead.created_at', date('Y-m-01')]);
             if ($user && $user->isAgent()) {
                 $nuevosMesQuery->andWhere(['Lead.id_user' => $user->id_user]);
@@ -878,9 +905,10 @@ class LeadController extends Controller
                     return $this->redirect(['index']);
                 }
                 
-                $model->id_status = 19;
+                // 🔥 Al restaurar, asignar el status "Nuevo" dinámicamente
+                $model->id_status = $this->getStatusNuevoId();
                 if ($model->save()) {
-                    Yii::$app->session->setFlash('success', 'Lead restaurado exitosamente.');
+                    Yii::$app->session->setFlash('success', 'Lead restaurado exitosamente con estado "Nuevo".');
                 }
             }
         } catch (\Exception $e) {
@@ -975,9 +1003,12 @@ class LeadController extends Controller
         // 🔥 ESTADOS PERMITIDOS (UNIFICADOS)
         $estadosPermitidos = ['Nuevo', 'Contactado', 'Procesando', 'Cancelado'];
 
-        // 🔥 VALORES POR DEFECTO
-        $model->created_at = date('Y-m-d');  // Fecha de hoy automática
-        $model->id_status = 19;              // Estado "Nuevo"
+        // 🔥 Obtener ID del status "Nuevo" dinámicamente
+        $idStatusNuevo = $this->getStatusNuevoId();
+
+        // 🔥 VALORES POR DEFECTO (en el modelo, no confiando en el POST)
+        $model->created_at = date('Y-m-d');      // Fecha de hoy automática
+        $model->id_status = $idStatusNuevo;      // Estado "Nuevo" automático
 
         if ($model->load(Yii::$app->request->post())) {
             try {
@@ -997,10 +1028,8 @@ class LeadController extends Controller
                     $model->id_company = 1;
                 }
                 
-                // 🔥 Forzar estado por defecto si no viene
-                if (empty($model->id_status)) {
-                    $model->id_status = 19;
-                }
+                // 🔥 FORZAR SIEMPRE el status "Nuevo" (ignorar cualquier valor del formulario)
+                $model->id_status = $idStatusNuevo;
                 
                 // 🔥 FORZAR FECHA DE HOY (ignorar si viene del formulario)
                 $model->created_at = date('Y-m-d');
@@ -1013,7 +1042,7 @@ class LeadController extends Controller
                 }
 
                 if ($model->save()) {
-                    Yii::$app->session->setFlash('success', 'Lead creado exitosamente');
+                    Yii::$app->session->setFlash('success', 'Lead creado exitosamente".');
                     return $this->redirect(['create']);
                 } else {
                     $errors = $model->getErrors();

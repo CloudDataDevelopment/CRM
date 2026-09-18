@@ -66,7 +66,7 @@ $proximasActividades = isset($proximasActividades) ? $proximasActividades : [];
                         </div>
                         <div class="flex-grow-1">
                             <div class="stat-number"><?= $totalCitas ?></div>
-                            <div class="stat-label">Total Citas</div>
+                            <div class="stat-label">Total Seguimientos</div>
                             <div class="stat-sub text-primary">
                                 <i class="fas fa-clock"></i> <?= $citasHoy ?> hoy
                             </div>

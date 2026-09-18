@@ -368,15 +368,21 @@ $this->beginPage();
 </main>
 
 <?php
-// Botón flotante PDF — SIN CSS inline (usa la clase del site.css)
+// ============================================
+// 🔥 BOTÓN FLOTANTE "GENERAR REPORTE"
+// SOLO visible para Admin y Super Admin
+// ============================================
+
 $currentController = Yii::$app->controller->id;
 $currentAction = Yii::$app->controller->action->id;
 
+// Módulos con reporte disponible
 $modulesWithReport = [
     'task', 'lead', 'user-management', 'quote', 'sales-tracking',
     'reservation', 'contacts', 'report', 'marketing', 'empresa',
 ];
 
+// Mapeo: controlador → módulo
 $moduleMap = [
     'user-management' => 'user',
     'contacts'        => 'contact',
@@ -386,14 +392,22 @@ $moduleMap = [
 
 $reportModule = $moduleMap[$currentController] ?? $currentController;
 
-if (in_array($currentController, $modulesWithReport) && $currentAction === 'index' && !Yii::$app->user->isGuest):
+// 🔥 VALIDACIÓN DE ROL
+$puedeVerReporte = $user && ($user->isAdmin() || $user->isSuperAdmin());
+
+if (
+    in_array($currentController, $modulesWithReport) &&
+    $currentAction === 'index' &&
+    !Yii::$app->user->isGuest &&
+    $puedeVerReporte
+):
 ?>
     <a href="<?= Url::to(array_merge(['/export/pdf', 'module' => $reportModule], Yii::$app->request->queryParams)) ?>"
        target="_blank"
        class="btn-pdf-floating"
-       title="Exportar esta lista a PDF">
+       title="Generar Reporte PDF">
         <i class="fas fa-file-pdf"></i>
-        <span>Exportar PDF</span>
+        <span>Generar Reporte</span>
     </a>
 <?php endif; ?>
 

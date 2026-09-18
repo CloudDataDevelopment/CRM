@@ -287,12 +287,13 @@ $statusFilter  = isset($statusFilter) ? $statusFilter : '';
                 </div>
             </div>
 
+            <!-- 🔥 PAGINACIÓN ESTILO LEADS -->
             <?php if ($dataProvider && $dataProvider->pagination->pageCount > 1): ?>
                 <div class="card-footer">
                     <div class="row align-items-center">
                         <div class="col-md-6">
                             <small class="text-muted">
-                                Mostrando <?= count($users) ?> de <?= $totalUsers ?> usuarios
+                                Mostrando <?= $dataProvider->getCount() ?> de <?= $dataProvider->getTotalCount() ?> usuarios
                                 (página <?= $dataProvider->pagination->page + 1 ?> de <?= $dataProvider->pagination->pageCount ?>)
                             </small>
                         </div>
@@ -357,4 +358,22 @@ $statusFilter  = isset($statusFilter) ? $statusFilter : '';
         </div>
     </div>
 </div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    var changeRoleModal = document.getElementById('changeRoleModal');
+    if (changeRoleModal) {
+        changeRoleModal.addEventListener('show.bs.modal', function(event) {
+            var button = event.relatedTarget;
+            var userId = button.getAttribute('data-user-id');
+            var userName = button.getAttribute('data-user-name');
+            var currentRole = button.getAttribute('data-current-role');
+            
+            document.getElementById('change-role-user-id').value = userId;
+            document.getElementById('change-role-user-name').textContent = userName;
+            document.getElementById('change-role-select').value = currentRole;
+        });
+    }
+});
+</script>
 <?php endif; ?>

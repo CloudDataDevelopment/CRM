@@ -8,18 +8,15 @@ $this->title = 'Nuevo Lead';
 $this->params['breadcrumbs'][] = ['label' => 'Leads', 'url' => ['index']];
 $this->params['breadcrumbs'][] = $this->title;
 
-// Registrar CSS del leads
 $this->registerCssFile('@web/css/leads.css', [
     'depends' => [\yii\bootstrap5\BootstrapAsset::class],
 ]);
 
-// Registrar CSS del create-leads
 $this->registerCssFile('@web/css/create-leads.css', [
     'depends' => [\yii\bootstrap5\BootstrapAsset::class],
     'position' => \yii\web\View::POS_HEAD,
 ]);
 
-// 🔥 ESTADOS PERMITIDOS (desde el controlador)
 $estadosPermitidos = isset($estadosPermitidos) ? $estadosPermitidos : ['Nuevo', 'Contactado', 'Procesando', 'Cancelado'];
 ?>
 
@@ -28,7 +25,6 @@ $estadosPermitidos = isset($estadosPermitidos) ? $estadosPermitidos : ['Nuevo', 
 
         <div class="leads-header">
             <div>
-                <!-- Ruta de navegación -->
                 <div class="breadcrumb-custom">
                     <span>CRM</span>
                     <span class="separator">›</span>
@@ -36,7 +32,6 @@ $estadosPermitidos = isset($estadosPermitidos) ? $estadosPermitidos : ['Nuevo', 
                     <span class="separator">›</span>
                     <span class="current">Nuevo lead</span>
                 </div>
-                <!-- Título principal -->
                 <h1 class="page-title">
                     Nuevo lead
                 </h1>
@@ -58,21 +53,13 @@ $estadosPermitidos = isset($estadosPermitidos) ? $estadosPermitidos : ['Nuevo', 
             </div>
         </div>
 
-        <!-- ============================================ -->
-        <!-- CONTENIDO PRINCIPAL                         -->
-        <!-- ============================================ -->
         <div class="row">
             <div class="col-md-7">
-                <!-- ============================================ -->
-                <!-- FORMULARIO CON BORDE NEGRO                  -->
-                <!-- ============================================ -->
                 <div class="lead-form-box">
-                    <!-- TÍTULO DEL CUADRO -->
                     <div class="lead-form-title">
                         <i class="fas fa-user-circle text-primary me-2"></i> Información del Lead
                     </div>
                     
-                    <!-- CUERPO DEL FORMULARIO -->
                     <div class="lead-form-body">
                         <?php $form = ActiveForm::begin([
                             'options' => ['class' => 'needs-validation', 'id' => 'lead-form'],
@@ -110,16 +97,18 @@ $estadosPermitidos = isset($estadosPermitidos) ? $estadosPermitidos : ['Nuevo', 
                         ])->label('Teléfono <span class="text-danger">*</span>')
                         ->hint('Ingresa 10 dígitos sin espacios ni guiones', ['class' => 'text-muted']) ?>
 
-                        <!-- ESTADO -->
-                        <div class="row">
-                            <div class="col-md-12">
-                                <?= $form->field($model, 'id_status')->dropDownList(
-                                    $statusList,
-                                    [
-                                        'prompt' => 'Seleccione un estado',
-                                        'class' => 'form-select',
-                                    ]
-                                )->label('Estado <span class="text-danger">*</span>') ?>
+                        <!-- 🔥 ESTADO FIJO: NUEVO (solo lectura) -->
+                        <div class="status-info-box">
+                            <div class="status-info-label">
+                                <i class="fas fa-tag text-primary"></i>
+                                <strong>Estado:</strong>
+                            </div>
+                            <div class="status-info-value">
+                                <span class="badge bg-primary badge-status-fixed">
+                                    <i class="fas fa-plus-circle"></i>
+                                    Nuevo
+                                </span>
+
                             </div>
                         </div>
 
@@ -149,9 +138,6 @@ $estadosPermitidos = isset($estadosPermitidos) ? $estadosPermitidos : ['Nuevo', 
             </div>
 
             <div class="col-md-5">
-                <!-- ============================================ -->
-                <!-- ÚLTIMOS LEADS REGISTRADOS                    -->
-                <!-- ============================================ -->
                 <div class="card lead-sidebar-card">
                     <div class="card-header bg-info text-white d-flex justify-content-between align-items-center">
                         <h5 class="card-title mb-0">
@@ -216,36 +202,6 @@ $estadosPermitidos = isset($estadosPermitidos) ? $estadosPermitidos : ['Nuevo', 
                         </a>
                     </div>
                 </div>
-
-                <!-- ============================================ -->
-                <!-- CONSEJOS RÁPIDOS                            -->
-                <!-- ============================================ -->
-                <div class="card tips-card mt-3">
-                    <div class="card-header bg-light">
-                        <h5 class="card-title mb-0">
-                            <i class="fas fa-lightbulb text-warning me-2"></i>
-                            Consejos Rápidos
-                        </h5>
-                    </div>
-                    <div class="card-body">
-                        <ul class="list-unstyled mb-0 tips-list">
-                            <li class="mb-2">
-                                <i class="fas fa-check-circle text-success me-2"></i>
-                                <strong>Nombre completo:</strong> Ingresa nombre y apellido.
-                            </li>
-                            <li class="mb-2">
-                                <i class="fas fa-check-circle text-success me-2"></i>
-                                <strong>Teléfono:</strong> 10 dígitos válidos.
-                            </li>
-                            <li class="mb-2">
-                                <i class="fas fa-check-circle text-success me-2"></i>
-                                <strong>Estado:</strong> Asigna un estado inicial (Nuevo, Contactado, Procesando, Cancelado).
-                            </li>
-                            <li class="mb-0">
-                                <i class="fas fa-check-circle text-success me-2"></i>
-                                <strong>Fecha de registro:</strong> Se asigna automáticamente.
-                            </li>
-                        </ul>
                     </div>
                 </div>
             </div>

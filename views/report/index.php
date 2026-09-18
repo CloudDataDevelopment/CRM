@@ -154,7 +154,6 @@ $fecha_fin = isset($fecha_fin) ? $fecha_fin : '';
                                         <th>Lead</th>
                                         <th>Tipo</th>
                                         <th>Fecha</th>
-                                        <?php if ($isSuperAdmin): ?><th>Empresa</th><?php endif; ?>
                                         <th>Estado</th>
                                         <th class="text-center">Acciones</th>
                                     </tr>
