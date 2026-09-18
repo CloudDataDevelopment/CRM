@@ -6,7 +6,6 @@ use yii\helpers\Url;
 $this->title = 'Bienvenido al CRM';
 $this->params['breadcrumbs'][] = $this->title;
 
-// Registrar el archivo CSS de empresas
 $this->registerCssFile('@web/css/empresa.css', [
     'depends' => [\yii\bootstrap5\BootstrapAsset::class],
 ]);
@@ -30,11 +29,21 @@ $this->registerCssFile('@web/css/empresa.css', [
     <div class="row">
         <?php foreach ($empresas as $empresa): ?>
         <div class="col-md-4 mb-4">
-            <div class="card h-100 shadow-sm">
+            <div class="card h-100 shadow-sm empresa-card">
                 <div class="card-body text-center">
+                    <!-- 🔥 LOGO DE LA EMPRESA -->
                     <div class="mb-3">
-                        <i class="fas fa-building fa-3x text-primary"></i>
+                        <?php if ($empresa->hasLogo()): ?>
+                            <img src="<?= $empresa->getLogoUrl() ?>" 
+                                 alt="<?= Html::encode($empresa->name) ?>"
+                                 class="empresa-logo-card">
+                        <?php else: ?>
+                            <div class="empresa-logo-card-placeholder">
+                                <i class="fas fa-building"></i>
+                            </div>
+                        <?php endif; ?>
                     </div>
+                    
                     <h5 class="card-title"><?= Html::encode($empresa->name) ?></h5>
                     <p class="card-text text-muted">
                         <?= Html::encode($empresa->description) ?: 'Sin descripción' ?>

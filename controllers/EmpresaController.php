@@ -5,31 +5,30 @@ namespace app\controllers;
 use Yii;
 use yii\web\Controller;
 use yii\web\NotFoundHttpException;
+use yii\web\UploadedFile;
 use app\models\Company;
 use app\models\Authentication;
 use app\models\Status;
 use app\components\ErrorManager;
-use app\components\CompanyHelper;
 
 class EmpresaController extends Controller
 {
-    // Lista de empresas - layout sin menú
+    // ============================================
+    // LISTA DE EMPRESAS
+    // ============================================
     public function actionIndex()
     {
         try {
-            // Verificar si es admin
             $auth = Authentication::find()
                 ->where(['id_user' => Yii::$app->user->id])
                 ->one();
 
             if (!$auth || $auth->id_role != 1) {
-                // No es admin, ir a su empresa
                 $empresaId = Yii::$app->user->identity->id_company ?? 1;
                 Yii::$app->session->set('empresa_id', $empresaId);
                 return $this->redirect(['dashboard', 'id' => $empresaId]);
             }
 
-            // Es admin, mostrar todas las empresas
             $this->layout = 'main-simple';
             $empresas = Company::find()
                 ->with('status')
@@ -45,11 +44,12 @@ class EmpresaController extends Controller
         }
     }
 
-    // Dashboard de una empresa - guardar empresa en sesión
+    // ============================================
+    // DASHBOARD DE EMPRESA
+    // ============================================
     public function actionDashboard($id)
     {
         try {
-            // Guardar empresa seleccionada en sesión
             Yii::$app->session->set('empresa_id', $id);
             
             $empresa = Company::findOne($id);
@@ -57,7 +57,6 @@ class EmpresaController extends Controller
                 Yii::$app->session->set('empresa_nombre', $empresa->name);
             }
             
-            // Redirigir al dashboard principal
             return $this->redirect(['dashboard/index']);
             
         } catch (\Exception $e) {
@@ -66,7 +65,9 @@ class EmpresaController extends Controller
         }
     }
 
-    // Crear nueva empresa
+    // ============================================
+    // CREAR EMPRESA
+    // ============================================
     public function actionCreate()
     {
         $this->layout = 'main-simple';
@@ -74,6 +75,9 @@ class EmpresaController extends Controller
 
         if ($model->load(Yii::$app->request->post())) {
             try {
+                // Cargar el archivo del logo
+                $model->logoFile = UploadedFile::getInstance($model, 'logoFile');
+
                 // Obtener el último ID y sumar 1
                 $lastId = Company::find()
                     ->select(['id_company'])
@@ -82,7 +86,7 @@ class EmpresaController extends Controller
                 
                 $model->id_company = ($lastId ? $lastId : 0) + 1;
 
-                // 🔥 Asignar id_status por defecto si no viene
+                // Asignar id_status por defecto si no viene
                 if (empty($model->id_status)) {
                     $statusActivo = Status::find()->where(['status' => 'Activo'])->one();
                     $model->id_status = $statusActivo ? $statusActivo->id_status : null;
@@ -104,7 +108,6 @@ class EmpresaController extends Controller
             }
         }
 
-        // 🔥 Obtener lista de estados para el dropdown
         $statusList = Status::find()
             ->select(['status', 'id_status'])
             ->indexBy('id_status')
@@ -116,7 +119,9 @@ class EmpresaController extends Controller
         ]);
     }
 
-    // Editar empresa
+    // ============================================
+    // ACTUALIZAR EMPRESA
+    // ============================================
     public function actionUpdate($id)
     {
         $this->layout = 'main-simple';
@@ -129,7 +134,9 @@ class EmpresaController extends Controller
             }
 
             if ($model->load(Yii::$app->request->post())) {
-                // 🔥 Asegurar que id_status tenga valor
+                // 🔥 Cargar el archivo del logo
+                $model->logoFile = UploadedFile::getInstance($model, 'logoFile');
+
                 if (empty($model->id_status)) {
                     $statusActivo = Status::find()->where(['status' => 'Activo'])->one();
                     $model->id_status = $statusActivo ? $statusActivo->id_status : null;
@@ -138,10 +145,12 @@ class EmpresaController extends Controller
                 if ($model->save()) {
                     Yii::$app->session->setFlash('success', 'Empresa actualizada exitosamente');
                     return $this->redirect(['index']);
+                } else {
+                    $errors = json_encode($model->getErrors());
+                    Yii::$app->session->setFlash('error', 'Error de validación: ' . $errors);
                 }
             }
 
-            // 🔥 Obtener lista de estados para el dropdown
             $statusList = Status::find()
                 ->select(['status', 'id_status'])
                 ->indexBy('id_status')
@@ -156,7 +165,7 @@ class EmpresaController extends Controller
             Yii::$app->session->setFlash('info', 'Empresa no encontrada');
             return $this->redirect(['index']);
         } catch (\yii\db\Exception $e) {
-            Yii::$app->session->setFlash('error', 'Error de base de datos al actualizar la empresa.<br>Contacta con el administrador');
+            Yii::$app->session->setFlash('error', 'Error de base de datos al actualizar la empresa.');
             Yii::error($e->getMessage(), 'empresa\update');
         } catch (\Exception $e) {
             ErrorManager::handle($e, 'Error al actualizar la empresa');
@@ -164,7 +173,9 @@ class EmpresaController extends Controller
         }
     }
 
-    // Ver empresa
+    // ============================================
+    // VER EMPRESA
+    // ============================================
     public function actionView($id)
     {
         $this->layout = 'main-simple';
@@ -192,7 +203,9 @@ class EmpresaController extends Controller
         }
     }
 
-    // Eliminar empresa
+    // ============================================
+    // ELIMINAR EMPRESA
+    // ============================================
     public function actionDelete($id)
     {
         try {
@@ -202,7 +215,7 @@ class EmpresaController extends Controller
                 throw new NotFoundHttpException('Empresa no encontrada');
             }
 
-            // 🔥 Verificar que no tenga usuarios asociados antes de eliminar
+            // Verificar que no tenga usuarios asociados
             $usersCount = $model->getUsers()->count();
             if ($usersCount > 0) {
                 Yii::$app->session->setFlash('error', 'No se puede eliminar la empresa porque tiene usuarios asociados.');
@@ -215,7 +228,7 @@ class EmpresaController extends Controller
         } catch (NotFoundHttpException $e) {
             Yii::$app->session->setFlash('info', 'Empresa no encontrada');
         } catch (\yii\db\Exception $e) {
-            Yii::$app->session->setFlash('error', 'Error de base de datos al eliminar la empresa.<br>Contacta con el administrador');
+            Yii::$app->session->setFlash('error', 'Error de base de datos al eliminar la empresa.');
             Yii::error($e->getMessage(), 'empresa\delete');
         } catch (\Exception $e) {
             ErrorManager::handle($e, 'Error al eliminar la empresa');
@@ -224,11 +237,41 @@ class EmpresaController extends Controller
         return $this->redirect(['index']);
     }
 
-    // Cambiar empresa (para admin)
+    // ============================================
+    // 🔥 ELIMINAR LOGO DE EMPRESA
+    // ============================================
+    public function actionDeleteLogo($id)
+    {
+        try {
+            $model = Company::findOne($id);
+
+            if (!$model) {
+                throw new NotFoundHttpException('Empresa no encontrada');
+            }
+
+            $model->deleteLogo();
+
+            if ($model->save(false)) {
+                Yii::$app->session->setFlash('success', 'Logotipo eliminado exitosamente');
+            } else {
+                Yii::$app->session->setFlash('error', 'Error al eliminar el logotipo');
+            }
+
+        } catch (NotFoundHttpException $e) {
+            Yii::$app->session->setFlash('error', 'Empresa no encontrada');
+        } catch (\Exception $e) {
+            ErrorManager::handle($e, 'Error al eliminar el logo');
+        }
+
+        return $this->redirect(['update', 'id' => $id]);
+    }
+
+    // ============================================
+    // CAMBIAR EMPRESA
+    // ============================================
     public function actionCambiar($id)
     {
         try {
-            // Verificar si es admin
             $auth = Authentication::find()
                 ->where(['id_user' => Yii::$app->user->id])
                 ->one();
@@ -238,7 +281,6 @@ class EmpresaController extends Controller
                 return $this->redirect(['dashboard/index']);
             }
 
-            // Guardar nueva empresa en sesión
             Yii::$app->session->set('empresa_id', $id);
             
             $empresa = Company::findOne($id);
@@ -255,20 +297,24 @@ class EmpresaController extends Controller
         }
     }
 
-    // 🔥 Obtener empresas para dropdown (API para selects)
+    // ============================================
+    // API: OBTENER EMPRESAS
+    // ============================================
     public function actionGetCompanies()
     {
         Yii::$app->response->format = \yii\web\Response::FORMAT_JSON;
         
         $companies = Company::find()
-            ->select(['id_company', 'name'])
+            ->select(['id_company', 'name', 'logo'])
             ->orderBy(['name' => SORT_ASC])
             ->all();
         
         return $companies;
     }
 
-    // 🔥 Obtener empresas activas (API)
+    // ============================================
+    // API: OBTENER EMPRESAS ACTIVAS
+    // ============================================
     public function actionGetActiveCompanies()
     {
         Yii::$app->response->format = \yii\web\Response::FORMAT_JSON;
@@ -279,7 +325,7 @@ class EmpresaController extends Controller
         }
         
         $companies = Company::find()
-            ->select(['id_company', 'name'])
+            ->select(['id_company', 'name', 'logo'])
             ->where(['id_status' => $statusActivo->id_status])
             ->orderBy(['name' => SORT_ASC])
             ->all();

@@ -3,9 +3,13 @@
 namespace app\models;
 
 use yii\db\ActiveRecord;
+use yii\web\UploadedFile;
+use Yii;
 
 class Company extends ActiveRecord
 {
+    public $logoFile;
+
     public static function tableName()
     {
         return 'Company';
@@ -23,22 +27,41 @@ class Company extends ActiveRecord
             [['name'], 'string', 'max' => 10],
             [['description'], 'string', 'max' => 45],
             [['domain'], 'string', 'max' => 20],
-            [['id_status'], 'integer'], // 🔥 Cambiado de 'status' a 'id_status'
+            [['id_status'], 'integer'],
             [['type'], 'string', 'max' => 10],
             [['name'], 'required', 'message' => 'El nombre de la empresa es obligatorio'],
             [['id_status'], 'exist', 'skipOnError' => true, 'targetClass' => Status::class, 'targetAttribute' => ['id_status' => 'id_status']],
+
+            // 🔥 SOLO PNG
+            [['logoFile'], 'file',
+                'skipOnEmpty' => true,
+                'extensions' => 'png',
+                'checkExtensionByMimeType' => true,
+                'maxSize' => 500 * 1024,        // 500 KB
+                'maxFiles' => 1,
+                'wrongExtension' => 'Solo se permiten archivos PNG.',
+                'tooBig' => 'El archivo no debe superar los 500 KB.',
+                'tooMany' => 'Solo puedes subir 1 archivo.',
+            ],
+
+            // 🔥 Validación personalizada de dimensiones
+            [['logoFile'], 'validateLogoDimensions'],
+
+            [['logo'], 'string', 'max' => 255],
         ];
     }
 
     public function attributeLabels()
     {
         return [
-            'id_company' => 'ID Empresa',
-            'name' => 'Nombre de Empresa',
+            'id_company'  => 'ID Empresa',
+            'name'        => 'Nombre de Empresa',
+            'logo'        => 'Logotipo',
+            'logoFile'    => 'Subir Logotipo',
             'description' => 'Descripción',
-            'domain' => 'Dominio',
-            'id_status' => 'Estado', // 🔥 Cambiado de 'status' a 'id_status'
-            'type' => 'Tipo',
+            'domain'      => 'Dominio',
+            'id_status'   => 'Estado',
+            'type'        => 'Tipo',
         ];
     }
 
@@ -56,7 +79,6 @@ class Company extends ActiveRecord
         return $this->hasMany(Lead::class, ['id_company' => 'id_company']);
     }
 
-    // 🔥 RELACIÓN CON STATUS
     public function getStatus()
     {
         return $this->hasOne(Status::class, ['id_status' => 'id_status']);
@@ -66,9 +88,6 @@ class Company extends ActiveRecord
     // MÉTODOS DE ESTADO
     // ============================================
     
-    /**
-     * Obtener el nombre del estado
-     */
     public function getStatusName()
     {
         if ($this->status && isset($this->status->status)) {
@@ -77,9 +96,6 @@ class Company extends ActiveRecord
         return 'Sin Estado';
     }
 
-    /**
-     * Obtener el badge del estado
-     */
     public function getStatusBadge()
     {
         if (!$this->status) {
@@ -90,9 +106,6 @@ class Company extends ActiveRecord
             'Activo' => 'success',
             'Inactivo' => 'danger',
             'Suspendido' => 'warning',
-            'activo' => 'success',
-            'inactivo' => 'danger',
-            'suspendido' => 'warning',
         ];
         
         $statusName = $this->status->status ?? 'Sin Estado';
@@ -101,9 +114,6 @@ class Company extends ActiveRecord
         return '<span class="badge bg-' . $class . '">' . $statusName . '</span>';
     }
 
-    /**
-     * Obtener opciones de estado para dropdown (desde tabla Status)
-     */
     public static function getStatusOptions()
     {
         return Status::find()
@@ -112,9 +122,6 @@ class Company extends ActiveRecord
             ->column();
     }
 
-    /**
-     * Verificar si la empresa está activa
-     */
     public function isActive()
     {
         if (!$this->status) {
@@ -123,23 +130,14 @@ class Company extends ActiveRecord
         return strtolower($this->status->status) === 'activo';
     }
 
-    /**
-     * Obtener el nombre de la empresa
-     */
     public function getDisplayName()
     {
         return $this->name ?? 'Empresa #' . $this->id_company;
     }
 
-    /**
-     * Obtener lista para dropdown
-     */
     public static function getDropdownList()
     {
-        $companies = self::find()
-            ->orderBy(['name' => SORT_ASC])
-            ->all();
-        
+        $companies = self::find()->orderBy(['name' => SORT_ASC])->all();
         $list = [];
         foreach ($companies as $company) {
             $list[$company->id_company] = $company->getDisplayName();
@@ -147,9 +145,6 @@ class Company extends ActiveRecord
         return $list;
     }
 
-    /**
-     * Obtener empresas activas
-     */
     public static function getActiveCompanies()
     {
         $statusActivo = Status::find()->where(['status' => 'Activo'])->one();
@@ -163,21 +158,176 @@ class Company extends ActiveRecord
             ->all();
     }
 
-    /**
-     * Obtener empresas para dropdown con estado
-     */
-    public static function getDropdownListWithStatus()
+    // ============================================
+    // 🔥 VALIDACIÓN DE DIMENSIONES DEL LOGO
+    // ============================================
+    public function validateLogoDimensions($attribute, $params)
     {
-        $companies = self::find()
-            ->orderBy(['name' => SORT_ASC])
-            ->all();
-        
-        $list = [];
-        foreach ($companies as $company) {
-            $status = $company->isActive() ? '✓' : '✗';
-            $list[$company->id_company] = $company->getDisplayName() . " [$status]";
+        if (empty($this->logoFile)) {
+            return;
         }
-        return $list;
+
+        // Verificar que sea una imagen válida
+        $imageInfo = @getimagesize($this->logoFile->tempName);
+        if ($imageInfo === false) {
+            $this->addError($attribute, 'No se pudo leer la imagen. Asegúrate de que sea un PNG válido.');
+            return;
+        }
+
+        list($width, $height, $type) = $imageInfo;
+
+        // Verificar que sea PNG (IMAGETYPE_PNG = 3)
+        if ($type !== IMAGETYPE_PNG) {
+            $this->addError($attribute, 'El archivo debe ser una imagen PNG válida.');
+            return;
+        }
+
+        // 🔥 Dimensiones mínimas
+        if ($width < 200 || $height < 200) {
+            $this->addError($attribute,
+                "La imagen es muy pequeña ({$width}×{$height} px). " .
+                "El mínimo es 200×200 px."
+            );
+            return;
+        }
+
+        // 🔥 Dimensiones máximas
+        if ($width > 2000 || $height > 2000) {
+            $this->addError($attribute,
+                "La imagen es muy grande ({$width}×{$height} px). " .
+                "El máximo es 2000×2000 px."
+            );
+            return;
+        }
+
+        // 🔥 Proporción (ratio entre 1:3 y 3:1)
+        $ratio = $width / $height;
+        if ($ratio < 0.33 || $ratio > 3) {
+            $this->addError($attribute,
+                "La proporción de la imagen ({$width}×{$height}) no es válida. " .
+                "Usa una imagen cuadrada o rectangular (entre 1:3 y 3:1)."
+            );
+            return;
+        }
+    }
+
+    // ============================================
+    // 🔥 MÉTODOS DEL LOGO
+    // ============================================
+
+    public function getLogoPath()
+    {
+        if (empty($this->logo)) {
+            return null;
+        }
+        return Yii::getAlias('@webroot/uploads/logos/') . $this->logo;
+    }
+
+    public function getLogoUrl()
+    {
+        if (empty($this->logo)) {
+            return null;
+        }
+        return Yii::getAlias('@web/uploads/logos/') . $this->logo;
+    }
+
+    public function hasLogo()
+    {
+        if (empty($this->logo)) {
+            return false;
+        }
+        return file_exists($this->getLogoPath());
+    }
+
+    /**
+     * 🔥 Sube el archivo del logo al servidor
+     */
+    public function uploadLogo()
+    {
+        if (empty($this->logoFile)) {
+            return true;
+        }
+
+        $uploadDir = Yii::getAlias('@webroot/uploads/logos/');
+
+        if (!is_dir($uploadDir)) {
+            if (!mkdir($uploadDir, 0775, true)) {
+                $this->addError('logoFile', 'No se pudo crear la carpeta de logos.');
+                return false;
+            }
+        }
+
+        if (!is_writable($uploadDir)) {
+            $this->addError('logoFile', 'La carpeta de logos no tiene permisos de escritura.');
+            return false;
+        }
+
+        // 🔥 Validar MIME real (solo PNG)
+        $finfo = finfo_open(FILEINFO_MIME_TYPE);
+        $realMime = finfo_file($finfo, $this->logoFile->tempName);
+        finfo_close($finfo);
+
+        if ($realMime !== 'image/png') {
+            $this->addError('logoFile', 'El archivo no es una imagen PNG válida.');
+            return false;
+        }
+
+        $baseName = 'logo_company_' . ($this->id_company ?? 'new');
+        $timestamp = date('YmdHis');
+        $filename = $baseName . '_' . $timestamp . '.png';
+
+        $fullPath = $uploadDir . $filename;
+
+        // Eliminar logo anterior si existe
+        if (!empty($this->logo) && $this->hasLogo()) {
+            @unlink($this->getLogoPath());
+        }
+
+        if ($this->logoFile->saveAs($fullPath)) {
+            $this->logo = $filename;
+            return true;
+        }
+
+        $this->addError('logoFile', 'Error al guardar el archivo del logo.');
+        return false;
+    }
+
+    /**
+     * 🔥 Elimina el logo actual
+     */
+    public function deleteLogo()
+    {
+        if ($this->hasLogo()) {
+            @unlink($this->getLogoPath());
+        }
+        $this->logo = null;
+    }
+
+    // ============================================
+    // BEFORE SAVE
+    // ============================================
+    public function beforeSave($insert)
+    {
+        if (!parent::beforeSave($insert)) {
+            return false;
+        }
+
+        if ($this->logoFile instanceof UploadedFile) {
+            if (!$this->uploadLogo()) {
+                return false;
+            }
+        }
+
+        return true;
+    }
+
+    // ============================================
+    // AFTER DELETE
+    // ============================================
+    public function afterDelete()
+    {
+        parent::afterDelete();
+        $this->deleteLogo();
     }
 
     // ============================================
@@ -189,6 +339,8 @@ class Company extends ActiveRecord
         return [
             'id_company' => $this->id_company,
             'name' => $this->name,
+            'logo' => $this->logo,
+            'has_logo' => $this->hasLogo(),
             'id_status' => $this->id_status,
             'status_name' => $this->getStatusName(),
             'isActive' => $this->isActive(),
