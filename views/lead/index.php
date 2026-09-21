@@ -28,26 +28,95 @@ $status = isset($status) ? $status : '';
 $fecha_inicio = isset($fecha_inicio) ? $fecha_inicio : '';
 $fecha_fin = isset($fecha_fin) ? $fecha_fin : '';
 
-// 🔥 ESTADOS PERMITIDOS (desde el controlador)
+// 🔥 ESTADOS PERMITIDOS
 $estadosPermitidos = isset($estadosPermitidos) ? $estadosPermitidos : ['Nuevo', 'Contactado', 'Procesando', 'Cancelado'];
 
-// Variables de métricas
-$metricas = [
-    ['class' => 'primary', 'icon' => 'users', 'label' => 'Total Leads', 'value' => $totalLeads ?? 0],
-    ['class' => 'success', 'icon' => 'plus-circle', 'label' => 'Nuevos', 'value' => $nuevosMes ?? 0],
-    ['class' => 'warning', 'icon' => 'spinner', 'label' => 'Proceso', 'value' => $enProceso ?? 0],
-    ['class' => 'info', 'icon' => 'star', 'label' => 'Calificados', 'value' => $calificados ?? 0],
-    ['class' => 'purple', 'icon' => 'arrow-right', 'label' => 'Convertidos', 'value' => $convertidos ?? 0],
-    ['class' => 'danger', 'icon' => 'times-circle', 'label' => 'Perdidos', 'value' => $perdidos ?? 0],
+// 🔥 Porcentajes
+$porcentajes = isset($porcentajes) ? $porcentajes : [
+    'nuevo' => 0, 'contactado' => 0, 'procesando' => 0, 'cancelado' => 0,
 ];
 
-// Configuración del embudo
+// 🔥 Variables de métricas (basadas en los estados reales)
+$contactados = isset($contactados) ? $contactados : 0;
+
+$metricas = [
+    [
+        'class' => 'primary',
+        'icon' => 'users',
+        'label' => 'Total Leads',
+        'value' => $totalLeads ?? 0,
+        'porcentaje' => null,
+    ],
+    [
+        'class' => 'success',
+        'icon' => 'plus-circle',
+        'label' => 'Nuevo',
+        'value' => $nuevosMes ?? 0,
+        'porcentaje' => $porcentajes['nuevo'] ?? 0,
+    ],
+    [
+        'class' => 'info',
+        'icon' => 'phone',
+        'label' => 'Contactado',
+        'value' => $contactados,
+        'porcentaje' => $porcentajes['contactado'] ?? 0,
+    ],
+    [
+        'class' => 'warning',
+        'icon' => 'spinner',
+        'label' => 'Procesando',
+        'value' => $enProceso ?? 0,
+        'porcentaje' => $porcentajes['procesando'] ?? 0,
+    ],
+    [
+        'class' => 'danger',
+        'icon' => 'times-circle',
+        'label' => 'Cancelado',
+        'value' => $perdidos ?? 0,
+        'porcentaje' => $porcentajes['cancelado'] ?? 0,
+    ],
+];
+
+// 🔥 Configuración del embudo
 $embudo = isset($embudo) ? $embudo : ['nuevo' => 0, 'contactado' => 0, 'calificado' => 0, 'ganado' => 0, 'total' => 0];
+
 $etapas = [
-    ['label' => 'Nuevo', 'count' => $embudo['nuevo'] ?? 0, 'color' => '#007BFF', 'icon' => 'fa-plus-circle', 'width' => 80, 'descripcion' => 'Leads recién ingresados', 'border_size' => '14px'],
-    ['label' => 'Contactado', 'count' => $embudo['contactado'] ?? 0, 'color' => '#14aa00', 'icon' => 'fa-phone', 'width' => 68, 'descripcion' => 'Leads con contacto inicial', 'border_size' => '12px'],
-    ['label' => 'Calificado', 'count' => $embudo['calificado'] ?? 0, 'color' => '#F97316', 'icon' => 'fa-star', 'width' => 56, 'descripcion' => 'Leads calificados', 'border_size' => '10px'],
-    ['label' => 'Ganado', 'count' => $embudo['ganado'] ?? 0, 'color' => '#8B5CF6', 'icon' => 'fa-trophy', 'width' => 44, 'descripcion' => 'Leads convertidos en clientes', 'border_size' => '8px'],
+    [
+        'label' => 'Nuevo',
+        'count' => $embudo['nuevo'] ?? 0,
+        'color' => '#007BFF',
+        'icon' => 'fa-plus-circle',
+        'width' => 80,
+        'descripcion' => 'Leads recién ingresados',
+        'border_size' => '14px',
+    ],
+    [
+        'label' => 'Contactado',
+        'count' => $embudo['contactado'] ?? 0,
+        'color' => '#14aa00',
+        'icon' => 'fa-phone',
+        'width' => 68,
+        'descripcion' => 'Leads con contacto inicial',
+        'border_size' => '12px',
+    ],
+    [
+        'label' => 'Procesando',
+        'count' => $enProceso ?? 0,
+        'color' => '#F97316',
+        'icon' => 'fa-spinner',
+        'width' => 56,
+        'descripcion' => 'Leads en proceso',
+        'border_size' => '10px',
+    ],
+    [
+        'label' => 'Cancelado',
+        'count' => $perdidos ?? 0,
+        'color' => '#dc3545',
+        'icon' => 'fa-times-circle',
+        'width' => 44,
+        'descripcion' => 'Leads cancelados',
+        'border_size' => '8px',
+    ],
 ];
 
 // Variables de actividades
@@ -78,7 +147,7 @@ $proximasActividades = isset($proximasActividades) ? $proximasActividades : [];
     <!-- MÉTRICAS -->
     <div class="row g-2 mb-2">
         <?php foreach ($metricas as $metrica): ?>
-            <div class="col-xl-2 col-md-4 col-6">
+            <div class="col-xl col-md-4 col-6">
                 <div class="card stat-card stat-card-<?= $metrica['class'] ?> dashboard-card">
                     <div class="card-body d-flex align-items-center">
                         <div class="stat-icon me-2">
@@ -87,6 +156,12 @@ $proximasActividades = isset($proximasActividades) ? $proximasActividades : [];
                         <div class="flex-grow-1">
                             <div class="stat-number"><?= $metrica['value'] ?></div>
                             <div class="stat-label"><?= $metrica['label'] ?></div>
+                            <?php if (isset($metrica['porcentaje']) && $metrica['porcentaje'] !== null): ?>
+                                <div class="stat-percent" style="font-size: 0.7rem; color: #6c757d; margin-top: 2px;">
+                                    <i class="fas fa-chart-line" style="font-size: 0.6rem;"></i>
+                                    <?= number_format($metrica['porcentaje'], 1) ?>%
+                                </div>
+                            <?php endif; ?>
                         </div>
                     </div>
                 </div>
@@ -397,9 +472,6 @@ function inicializar() {
         if (leadId) openPanel(leadId);
     });
 
-    // ============================================
-    // EDITAR LEAD EN PANEL LATERAL
-    // ============================================
     $(document).on('click', '.edit-lead-btn', function(e) {
         e.stopPropagation();
         var leadId = $(this).data('id');
@@ -419,22 +491,41 @@ function inicializar() {
     // ============================================
     // FILTROS AUTOMÁTICOS
     // ============================================
-    document.getElementById('search-input').addEventListener('keypress', function(e) {
-        if (e.key === 'Enter') document.getElementById('form-filtros').submit();
-    });
-    document.getElementById('status-select').addEventListener('change', function() {
-        document.getElementById('form-filtros').submit();
-    });
-    document.getElementById('fecha-inicio').addEventListener('change', function() {
-        document.getElementById('form-filtros').submit();
-    });
-    document.getElementById('fecha-fin').addEventListener('change', function() {
-        document.getElementById('form-filtros').submit();
-    });
-    document.getElementById('btn-filtrar').addEventListener('click', function(e) {
-        e.preventDefault();
-        document.getElementById('form-filtros').submit();
-    });
+    var searchInput = document.getElementById('search-input');
+    if (searchInput) {
+        searchInput.addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') document.getElementById('form-filtros').submit();
+        });
+    }
+    
+    var statusSelect = document.getElementById('status-select');
+    if (statusSelect) {
+        statusSelect.addEventListener('change', function() {
+            document.getElementById('form-filtros').submit();
+        });
+    }
+    
+    var fechaInicio = document.getElementById('fecha-inicio');
+    if (fechaInicio) {
+        fechaInicio.addEventListener('change', function() {
+            document.getElementById('form-filtros').submit();
+        });
+    }
+    
+    var fechaFin = document.getElementById('fecha-fin');
+    if (fechaFin) {
+        fechaFin.addEventListener('change', function() {
+            document.getElementById('form-filtros').submit();
+        });
+    }
+    
+    var btnFiltrar = document.getElementById('btn-filtrar');
+    if (btnFiltrar) {
+        btnFiltrar.addEventListener('click', function(e) {
+            e.preventDefault();
+            document.getElementById('form-filtros').submit();
+        });
+    }
 
     // ============================================
     // PANEL LATERAL

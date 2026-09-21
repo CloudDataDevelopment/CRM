@@ -5,30 +5,31 @@ namespace app\controllers;
 use Yii;
 use yii\web\Controller;
 use app\models\Company;
+use app\models\User;
 
 class ExportController extends Controller
 {
     public $layout = false;
 
     private $modules = [
-        'task'           => ['model' => 'app\models\Task',           'company' => null],
+        'task'           => ['model' => 'app\models\Task',           'company' => 'via_user'],
         'lead'           => ['model' => 'app\models\Lead',           'company' => 'id_company'],
         'user'           => ['model' => 'app\models\User',           'company' => 'id_company'],
-        'quote'          => ['model' => 'app\models\Quote',          'company' => null],
-        'sales-tracking' => ['model' => 'app\models\SalesTracking',  'company' => null],
+        'quote'          => ['model' => 'app\models\Quote',          'company' => 'via_lead'],
+        'sales-tracking' => ['model' => 'app\models\SalesTracking',  'company' => 'via_lead'],
         'reservation'    => ['model' => 'app\models\Reservation',    'company' => 'id_company'],
         'contact'        => ['model' => 'app\models\Contacts',       'company' => 'id_company'],
         'report'         => ['model' => 'app\models\Report',         'company' => 'id_company'],
         'campaign'       => ['model' => 'app\models\Campaign',       'company' => 'id_company'],
         'promotion'      => ['model' => 'app\models\Promotion',      'company' => 'id_company'],
-        'company'        => ['model' => 'app\models\Company',        'company' => null],
+        'company'        => ['model' => 'app\models\Company',        'company' => 'id_company'],
         'contacts'       => ['model' => 'app\models\Contacts',       'company' => 'id_company'],
         'marketing'      => ['model' => 'app\models\Campaign',       'company' => 'id_company'],
-        'empresa'        => ['model' => 'app\models\Company',        'company' => null],
+        'empresa'        => ['model' => 'app\models\Company',        'company' => 'id_company'],
     ];
 
     private $moduleTitles = [
-        'task'           => 'Tareas',
+        'task'           => 'Actividades',
         'lead'           => 'Leads',
         'user'           => 'Usuarios',
         'quote'          => 'Ventas',
@@ -56,7 +57,7 @@ class ExportController extends Controller
     private $fieldLabels = [
         'id' => 'ID', 'id_lead' => 'Lead', 'id_company' => 'Empresa',
         'id_status' => 'Estado', 'id_user' => 'Usuario', 'id_quote' => 'Cotización',
-        'id_task' => 'Tarea', 'id_contact' => 'Contacto', 'id_report' => 'Evaluación',
+        'id_task' => 'Actividad', 'id_contact' => 'Contacto', 'id_report' => 'Evaluación',
         'id_reservation' => 'Reservación', 'id_campaign' => 'Campaña', 'id_promotion' => 'Promoción',
         'name' => 'Nombre', 'lastname' => 'Apellido', 'last_name' => 'Apellido',
         'lastname1' => 'Primer Apellido', 'lastname2' => 'Segundo Apellido',
@@ -87,7 +88,7 @@ class ExportController extends Controller
         'budget' => 'Presupuesto', 'start_campaign' => 'Inicio de Campaña',
         'end_campaign' => 'Fin de Campaña', 'report_name' => 'Nombre de la Evaluación',
         'report_type' => 'Tipo de Evaluación', 'score' => 'Puntuación', 'result' => 'Resultado',
-        'task_name' => 'Nombre de la Tarea', 'task_type' => 'Tipo de Tarea',
+        'task_name' => 'Nombre de la Actividad', 'task_type' => 'Tipo de Actividad',
         'due_date' => 'Fecha de Vencimiento', 'company' => 'Empresa',
         'position' => 'Puesto', 'department' => 'Departamento',
         'active' => 'Activo', 'verified' => 'Verificado', 'featured' => 'Destacado',
@@ -95,13 +96,14 @@ class ExportController extends Controller
         'reference' => 'Referencia', 'url' => 'URL', 'link' => 'Enlace',
         'image' => 'Imagen', 'file' => 'Archivo', 'quantity' => 'Cantidad',
         'unit' => 'Unidad', 'sku' => 'SKU',
+        'date_time' => 'Fecha y Hora',
     ];
 
     private $moduleFieldLabels = [
         'lead' => ['name' => 'Nombre del Lead', 'lastname' => 'Apellido del Lead', 'phone' => 'Teléfono de Contacto', 'comments' => 'Observaciones del Lead'],
         'user' => ['name' => 'Nombre del Usuario', 'lastname1' => 'Primer Apellido', 'lastname2' => 'Segundo Apellido', 'email' => 'Correo del Usuario', 'phone' => 'Teléfono del Usuario'],
         'quote' => ['date_quote' => 'Fecha de Cotización', 'total_amount' => 'Monto Total', 'down_payment' => 'Pago Inicial', 'pending_payment' => 'Saldo Pendiente', 'comments' => 'Observaciones de la Cotización'],
-        'task' => ['comments' => 'Descripción de la Tarea', 'date_s' => 'Fecha Programada'],
+        'task' => ['comments' => 'Descripción de la Actividad', 'date_s' => 'Fecha Programada', 'date_time' => 'Fecha y Hora'],
         'contact' => ['name' => 'Nombre del Contacto', 'last_name' => 'Apellido del Contacto', 'email' => 'Correo del Contacto', 'phone' => 'Teléfono del Contacto'],
         'contacts' => ['name' => 'Nombre del Contacto', 'last_name' => 'Apellido del Contacto', 'email' => 'Correo del Contacto', 'phone' => 'Teléfono del Contacto'],
         'sales-tracking' => ['comments' => 'Observaciones del Seguimiento', 'date_s' => 'Fecha del Seguimiento', 'date_f' => 'Próxima Fecha', 'hour' => 'Hora del Seguimiento'],
@@ -217,20 +219,59 @@ class ExportController extends Controller
         }
     }
 
+    // ============================================
+    // 🔥 CONSTRUIR QUERY CON FILTRO POR EMPRESA
+    // ============================================
     private function buildQuery($modelClass, $config, $user)
     {
-        $query = $modelClass::find();
+        // 🔥 SIEMPRE usar alias 'main' para el modelo principal
+        $query = $modelClass::find()->alias('main');
+        $empresaId = Yii::$app->session->get('empresa_id');
 
+        // 🔥 Guardia: Super Admin sin empresa = 0 resultados
+        if ($user->isSuperAdmin() && empty($empresaId)) {
+            return $query->andWhere(['0' => '1']);
+        }
+
+        // ============================================
+        // 🔥 FILTRADO POR EMPRESA SEGÚN EL TIPO DE RELACIÓN
+        // ============================================
         if (!empty($config['company'])) {
-            $empresaId = Yii::$app->session->get('empresa_id');
+            $companyType = $config['company'];
 
-            if ($user->isSuperAdmin() && !empty($empresaId)) {
-                $query->andWhere([$config['company'] => $empresaId]);
-            } elseif (!$user->isSuperAdmin() && !empty($user->id_company)) {
-                $query->andWhere([$config['company'] => $user->id_company]);
+            if ($companyType === 'id_company') {
+                // Modelos que tienen id_company directo
+                if ($user->isSuperAdmin()) {
+                    $query->andWhere(['main.id_company' => $empresaId]);
+                } elseif ($user->isAdmin() && !$user->isSuperAdmin()) {
+                    $query->andWhere(['main.id_company' => $user->id_company]);
+                }
+
+            } elseif ($companyType === 'via_lead') {
+                // Quote y SalesTracking → filtran vía Lead.id_company
+                $query->leftJoin('Lead l', 'main.id_lead = l.id_lead');
+
+                if ($user->isSuperAdmin()) {
+                    $query->andWhere(['l.id_company' => $empresaId]);
+                } elseif ($user->isAdmin() && !$user->isSuperAdmin()) {
+                    $query->andWhere(['l.id_company' => $user->id_company]);
+                }
+
+            } elseif ($companyType === 'via_user') {
+                // Task → filtra vía User.id_company
+                $query->leftJoin('User u', 'main.id_user = u.id_user');
+
+                if ($user->isSuperAdmin()) {
+                    $query->andWhere(['u.id_company' => $empresaId]);
+                } elseif ($user->isAdmin() && !$user->isSuperAdmin()) {
+                    $query->andWhere(['u.id_company' => $user->id_company]);
+                }
             }
         }
 
+        // ============================================
+        // 🔥 FILTROS DE BÚSQUEDA
+        // ============================================
         $search       = Yii::$app->request->get('search', '');
         $status       = Yii::$app->request->get('status', '');
         $type         = Yii::$app->request->get('type', '');
@@ -242,11 +283,13 @@ class ExportController extends Controller
             return $query;
         }
 
+        // Búsqueda
         if (!empty($search)) {
             $orConditions = ['or'];
             foreach ($tableSchema->columns as $col) {
                 if (in_array($col->type, ['string', 'text'])) {
-                    $orConditions[] = ['like', $col->name, $search];
+                    // 🔥 Siempre usar main.
+                    $orConditions[] = ['like', 'main.' . $col->name, $search];
                 }
             }
             if (count($orConditions) > 1) {
@@ -254,36 +297,40 @@ class ExportController extends Controller
             }
         }
 
+        // Estado
         if (!empty($status) && isset($tableSchema->columns['id_status'])) {
             $statusModel = \app\models\Status::find()->where(['status' => $status])->one();
             if ($statusModel) {
-                $query->andWhere(['id_status' => $statusModel->id_status]);
+                $query->andWhere(['main.id_status' => $statusModel->id_status]);
             }
         }
 
+        // Tipo de contacto
         if (!empty($type) && isset($tableSchema->columns['id_type_contact'])) {
             $typeModel = \app\models\TypeContact::find()->where(['type_contact' => $type])->one();
             if ($typeModel) {
-                $query->andWhere(['id_type_contact' => $typeModel->id_type_contact]);
+                $query->andWhere(['main.id_type_contact' => $typeModel->id_type_contact]);
             }
         }
 
+        // Fechas
         $dateColumns = ['created_at', 'date_s', 'date_quote', 'date_report', 'date_reservation', 'start_date'];
         foreach ($dateColumns as $dateCol) {
             if (isset($tableSchema->columns[$dateCol])) {
                 if (!empty($fecha_inicio)) {
-                    $query->andWhere(['>=', $dateCol, $fecha_inicio]);
+                    $query->andWhere(['>=', 'main.' . $dateCol, $fecha_inicio]);
                 }
                 if (!empty($fecha_fin)) {
-                    $query->andWhere(['<=', $dateCol, $fecha_fin]);
+                    $query->andWhere(['<=', 'main.' . $dateCol, $fecha_fin]);
                 }
                 break;
             }
         }
 
+        // 🔥 Ordenar (usando siempre main.)
         $primaryKeys = $tableSchema->primaryKey;
         if (!empty($primaryKeys)) {
-            $query->orderBy([$primaryKeys[0] => SORT_DESC]);
+            $query->orderBy(['main.' . $primaryKeys[0] => SORT_DESC]);
         }
 
         return $query;
@@ -337,7 +384,7 @@ class ExportController extends Controller
             'phone' => 'Teléfono', 'email' => 'Correo', 'type' => 'Tipo',
             'status' => 'Estado', 'amount' => 'Monto', 'total' => 'Total',
             'price' => 'Precio', 'user' => 'Usuario', 'company' => 'Empresa',
-            'lead' => 'Lead', 'quote' => 'Cotización', 'task' => 'Tarea',
+            'lead' => 'Lead', 'quote' => 'Cotización', 'task' => 'Actividad',
             'report' => 'Evaluación', 'contact' => 'Contacto',
             'reservation' => 'Reservación', 'campaign' => 'Campaña',
             'promotion' => 'Promoción', 'start' => 'Inicio', 'end' => 'Fin',
@@ -613,12 +660,14 @@ class ExportController extends Controller
         $pdf->SetDrawColor($colorBorde[0], $colorBorde[1], $colorBorde[2]);
         $pdf->Rect($leftX, $resumenY, $pageW, $resumenH, 'DF');
 
+        $moduleTitle = $this->moduleTitles[$module] ?? ucfirst(str_replace('-', ' ', $module));
+
         $pdf->SetXY($leftX + 5, $resumenY + 1);
         $pdf->SetFont('Arial', 'B', 8);
         $pdf->SetTextColor($colorAzulCorporativo[0], $colorAzulCorporativo[1], $colorAzulCorporativo[2]);
         $pdf->Cell(60, 6, 'Total de registros: ' . count($rows), 0, 0, 'L');
         $pdf->Cell(60, 6, 'Columnas: ' . count($columns), 0, 0, 'L');
-        $pdf->Cell(55, 6, 'Modulo: ' . $this->toLatin1(ucfirst(str_replace('-', ' ', $module))), 0, 1, 'L');
+        $pdf->Cell(55, 6, 'Modulo: ' . $this->toLatin1($moduleTitle), 0, 1, 'L');
 
         $pdf->Ln(4);
 
@@ -780,20 +829,15 @@ class ExportController extends Controller
         $pdf->SetXY($rectX, $rectY + 6);
         $pdf->Cell($rectW, 4, date('d/m/Y H:i'), 0, 2, 'C');
 
-        // ============================================
-        // 🔥 NOMBRE DEL ARCHIVO ÚNICO (evita "Ventas (1)")
-        // ============================================
-        $moduleTitle = $this->moduleTitles[$module] ?? ucfirst(str_replace('-', ' ', $module));
+        // NOMBRE ÚNICO
         $safeName = preg_replace('/[^a-zA-Z0-9_-]/', '_', $moduleTitle);
 
-        // Timestamp con microsegundos + hash aleatorio = nombre único garantizado
         $timestamp = date('Ymd_His');
         $micro = sprintf('%03d', (int)((microtime(true) - floor(microtime(true))) * 1000));
         $random = substr(md5(uniqid('', true)), 0, 4);
 
         $filename = 'Reporte_' . $safeName . '_' . $timestamp . '_' . $micro . '_' . $random . '.pdf';
 
-        // Headers explícitos
         header('Content-Type: application/pdf');
         header('Content-Disposition: attachment; filename="' . $filename . '"');
         header('Cache-Control: private, max-age=0, must-revalidate, no-store, no-cache');

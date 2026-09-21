@@ -26,13 +26,11 @@ class LeadController extends Controller
         $status = Status::find()->where(['status' => 'Nuevo'])->one();
         
         if (!$status) {
-            // Crear el status si no existe
             $status = new Status();
             $status->status = 'Nuevo';
             $status->description = 'Lead nuevo sin contactar';
             if (!$status->save()) {
                 Yii::error('No se pudo crear el status "Nuevo": ' . implode(', ', $status->getFirstErrors()), 'lead-status');
-                // Fallback al ID histórico conocido
                 return 19;
             }
         }
@@ -65,8 +63,28 @@ class LeadController extends Controller
             $fecha_inicio = Yii::$app->request->get('fecha_inicio');
             $fecha_fin = Yii::$app->request->get('fecha_fin');
             
-            // IDs a excluir
+            // IDs a excluir (papelera)
             $excludeIds = [1, 10];
+            
+            // ============================================
+            // 🔥 HELPER: Aplica filtro por rol/empresa
+            // ============================================
+            $applyLeadFilter = function($query) use ($user, $empresaId) {
+                if ($user->isAgent()) {
+                    $query->andWhere(['Lead.id_user' => $user->id_user]);
+                } elseif ($user->isSuperAdmin()) {
+                    if (!empty($empresaId)) {
+                        $query->andWhere(['Lead.id_company' => $empresaId]);
+                    } else {
+                        $query->andWhere(['0' => '1']);
+                    }
+                } elseif ($user->isAdmin() && !$user->isSuperAdmin()) {
+                    $query->andWhere(['Lead.id_company' => $user->id_company]);
+                } else {
+                    $query->andWhere(['0' => '1']);
+                }
+                return $query;
+            };
             
             // ============================================
             // 🔥 CONSULTA CON DATAPROVIDER PARA PAGINACIÓN
@@ -76,24 +94,7 @@ class LeadController extends Controller
                 ->orderBy(['Lead.created_at' => SORT_DESC]);
             
             // 🔥 FILTROS POR ROL Y EMPRESA
-            if ($user && $user->isAdmin()) {
-                if ($user->isSuperAdmin()) {
-                    if (!empty($empresaId)) {
-                        $query->andWhere(['Lead.id_company' => $empresaId]);
-                    } else {
-                        $query->andWhere(['0' => '1']);
-                    }
-                } else {
-                    if (!empty($user->id_company)) {
-                        $query->andWhere(['Lead.id_company' => $user->id_company]);
-                    }
-                }
-            } else if ($user && $user->isAgent()) {
-                $query->andWhere(['Lead.id_user' => $user->id_user]);
-            } else {
-                Yii::$app->session->setFlash('error', 'No tienes permiso para ver leads.');
-                return $this->redirect(['dashboard/index']);
-            }
+            $applyLeadFilter($query);
             
             // Filtros
             if (!empty($search)) {
@@ -173,151 +174,97 @@ class LeadController extends Controller
                 ->column();
 
             // ============================================
-            // MÉTRICAS
+            // 🔥 MÉTRICAS POR ESTADO (DINÁMICAS)
             // ============================================
             
-            // 🔥 ID dinámico del status "Nuevo"
-            $idStatusNuevo = $this->getStatusNuevoId();
+            // 🔥 Obtener IDs de los 4 estados reales
+            $statusNuevo      = Status::find()->where(['status' => 'Nuevo'])->one();
+            $statusContactado = Status::find()->where(['status' => 'Contactado'])->one();
+            $statusProcesando = Status::find()->where(['status' => 'Procesando'])->one();
+            $statusCancelado  = Status::find()->where(['status' => 'Cancelado'])->one();
             
+            $idStatusNuevo      = $statusNuevo      ? $statusNuevo->id_status      : null;
+            $idStatusContactado = $statusContactado ? $statusContactado->id_status : null;
+            $idStatusProcesando = $statusProcesando ? $statusProcesando->id_status : null;
+            $idStatusCancelado  = $statusCancelado  ? $statusCancelado->id_status  : null;
+            
+            // ============================================
+            // 🔥 TOTAL LEADS (todos excepto papelera)
+            // ============================================
             $totalLeadsQuery = Lead::find()->where(['not in', 'Lead.id_status', $excludeIds]);
-            if ($user && $user->isAgent()) {
-                $totalLeadsQuery->andWhere(['Lead.id_user' => $user->id_user]);
-            } elseif ($user && $user->isSuperAdmin()) {
-                if (!empty($empresaId)) {
-                    $totalLeadsQuery->andWhere(['Lead.id_company' => $empresaId]);
-                }
-            } elseif ($user && $user->isAdmin() && !$user->isSuperAdmin()) {
-                $totalLeadsQuery->andWhere(['Lead.id_company' => $user->id_company]);
-            }
+            $applyLeadFilter($totalLeadsQuery);
             $totalLeads = $totalLeadsQuery->count();
-
-            // 🔥 Usar ID dinámico en lugar de hardcodear 19
-            $nuevosMesQuery = Lead::find()
-                ->where(['Lead.id_status' => $idStatusNuevo])
-                ->andWhere(['>=', 'Lead.created_at', date('Y-m-01')]);
-            if ($user && $user->isAgent()) {
-                $nuevosMesQuery->andWhere(['Lead.id_user' => $user->id_user]);
-            } elseif ($user && $user->isSuperAdmin()) {
-                if (!empty($empresaId)) {
-                    $nuevosMesQuery->andWhere(['Lead.id_company' => $empresaId]);
-                }
-            } elseif ($user && $user->isAdmin() && !$user->isSuperAdmin()) {
-                $nuevosMesQuery->andWhere(['Lead.id_company' => $user->id_company]);
+            
+            // ============================================
+            // 🔥 CONTEO POR ESTADO
+            // ============================================
+            
+            // NUEVO
+            $nuevoCount = 0;
+            if ($idStatusNuevo) {
+                $queryNuevo = Lead::find()->where(['Lead.id_status' => $idStatusNuevo]);
+                $applyLeadFilter($queryNuevo);
+                $nuevoCount = $queryNuevo->count();
             }
-            $nuevosMes = $nuevosMesQuery->count();
-
-            $enProcesoQuery = Lead::find()->where(['in', 'Lead.id_status', [7, 20]]);
-            if ($user && $user->isAgent()) {
-                $enProcesoQuery->andWhere(['Lead.id_user' => $user->id_user]);
-            } elseif ($user && $user->isSuperAdmin()) {
-                if (!empty($empresaId)) {
-                    $enProcesoQuery->andWhere(['Lead.id_company' => $empresaId]);
-                }
-            } elseif ($user && $user->isAdmin() && !$user->isSuperAdmin()) {
-                $enProcesoQuery->andWhere(['Lead.id_company' => $user->id_company]);
+            
+            // CONTACTADO
+            $contactadoCount = 0;
+            if ($idStatusContactado) {
+                $queryContactado = Lead::find()->where(['Lead.id_status' => $idStatusContactado]);
+                $applyLeadFilter($queryContactado);
+                $contactadoCount = $queryContactado->count();
             }
-            $enProceso = $enProcesoQuery->count();
-
-            $calificadosQuery = Lead::find()->where(['Lead.id_status' => 21]);
-            if ($user && $user->isAgent()) {
-                $calificadosQuery->andWhere(['Lead.id_user' => $user->id_user]);
-            } elseif ($user && $user->isSuperAdmin()) {
-                if (!empty($empresaId)) {
-                    $calificadosQuery->andWhere(['Lead.id_company' => $empresaId]);
-                }
-            } elseif ($user && $user->isAdmin() && !$user->isSuperAdmin()) {
-                $calificadosQuery->andWhere(['Lead.id_company' => $user->id_company]);
+            
+            // PROCESANDO
+            $procesandoCount = 0;
+            if ($idStatusProcesando) {
+                $queryProcesando = Lead::find()->where(['Lead.id_status' => $idStatusProcesando]);
+                $applyLeadFilter($queryProcesando);
+                $procesandoCount = $queryProcesando->count();
             }
-            $calificados = $calificadosQuery->count();
-
-            $convertidosQuery = Lead::find()->where(['Lead.id_status' => 22]);
-            if ($user && $user->isAgent()) {
-                $convertidosQuery->andWhere(['Lead.id_user' => $user->id_user]);
-            } elseif ($user && $user->isSuperAdmin()) {
-                if (!empty($empresaId)) {
-                    $convertidosQuery->andWhere(['Lead.id_company' => $empresaId]);
-                }
-            } elseif ($user && $user->isAdmin() && !$user->isSuperAdmin()) {
-                $convertidosQuery->andWhere(['Lead.id_company' => $user->id_company]);
+            
+            // CANCELADO
+            $canceladoCount = 0;
+            if ($idStatusCancelado) {
+                $queryCancelado = Lead::find()->where(['Lead.id_status' => $idStatusCancelado]);
+                $applyLeadFilter($queryCancelado);
+                $canceladoCount = $queryCancelado->count();
             }
-            $convertidos = $convertidosQuery->count();
-
-            $perdidos = 0;
+            
+            // ============================================
+            // 🔥 PORCENTAJES
+            // ============================================
+            $totalParaPorcentajes = $totalLeads > 0 ? $totalLeads : 1;
+            
+            $porcentajeNuevo      = round(($nuevoCount / $totalParaPorcentajes) * 100, 1);
+            $porcentajeContactado = round(($contactadoCount / $totalParaPorcentajes) * 100, 1);
+            $porcentajeProcesando = round(($procesandoCount / $totalParaPorcentajes) * 100, 1);
+            $porcentajeCancelado  = round(($canceladoCount / $totalParaPorcentajes) * 100, 1);
+            
+            // ============================================
+            // 🔥 ALIAS PARA COMPATIBILIDAD CON LA VISTA
+            // ============================================
+            $nuevosMes   = $nuevoCount;
+            $contactados = $contactadoCount;
+            $enProceso   = $procesandoCount;
+            $perdidos    = $canceladoCount;
+            $calificados = 0;
+            $convertidos = 0;
 
             // ============================================
             // 🔥 EMBUDO DE LEADS POR ETAPAS
             // ============================================
             
-            $statusNuevo = Status::find()->where(['status' => 'Nuevo'])->one();
-            $statusContactado = Status::find()->where(['status' => 'Contactado'])->one();
-            $statusCalificado = Status::find()->where(['status' => 'Calificado'])->one();
-            $statusCliente = Status::find()->where(['status' => 'Cliente'])->one();
+            $idNuevo      = $idStatusNuevo;
+            $idContactado = $idStatusContactado;
+            $idCalificado = null;
+            $idCliente    = null;
             
-            $idNuevo = $statusNuevo ? $statusNuevo->id_status : null;
-            $idContactado = $statusContactado ? $statusContactado->id_status : null;
-            $idCalificado = $statusCalificado ? $statusCalificado->id_status : null;
-            $idCliente = $statusCliente ? $statusCliente->id_status : null;
+            $nuevoProspecto = $nuevoCount;
+            $contactado     = $contactadoCount;
+            $calificado     = 0;
+            $ganado         = 0;
             
-            $nuevoProspecto = 0;
-            if ($idNuevo) {
-                $queryNuevo = Lead::find()->where(['id_status' => $idNuevo]);
-                if ($user && $user->isAgent()) {
-                    $queryNuevo->andWhere(['id_user' => $user->id_user]);
-                } elseif ($user && $user->isSuperAdmin()) {
-                    if (!empty($empresaId)) {
-                        $queryNuevo->andWhere(['id_company' => $empresaId]);
-                    }
-                } elseif ($user && $user->isAdmin() && !$user->isSuperAdmin()) {
-                    $queryNuevo->andWhere(['id_company' => $user->id_company]);
-                }
-                $nuevoProspecto = $queryNuevo->count();
-            }
-
-            $contactado = 0;
-            if ($idContactado) {
-                $queryContactado = Lead::find()->where(['id_status' => $idContactado]);
-                if ($user && $user->isAgent()) {
-                    $queryContactado->andWhere(['id_user' => $user->id_user]);
-                } elseif ($user && $user->isSuperAdmin()) {
-                    if (!empty($empresaId)) {
-                        $queryContactado->andWhere(['id_company' => $empresaId]);
-                    }
-                } elseif ($user && $user->isAdmin() && !$user->isSuperAdmin()) {
-                    $queryContactado->andWhere(['id_company' => $user->id_company]);
-                }
-                $contactado = $queryContactado->count();
-            }
-
-            $calificado = 0;
-            if ($idCalificado) {
-                $queryCalificado = Lead::find()->where(['id_status' => $idCalificado]);
-                if ($user && $user->isAgent()) {
-                    $queryCalificado->andWhere(['id_user' => $user->id_user]);
-                } elseif ($user && $user->isSuperAdmin()) {
-                    if (!empty($empresaId)) {
-                        $queryCalificado->andWhere(['id_company' => $empresaId]);
-                    }
-                } elseif ($user && $user->isAdmin() && !$user->isSuperAdmin()) {
-                    $queryCalificado->andWhere(['id_company' => $user->id_company]);
-                }
-                $calificado = $queryCalificado->count();
-            }
-
-            $ganado = 0;
-            if ($idCliente) {
-                $queryCliente = Lead::find()->where(['id_status' => $idCliente]);
-                if ($user && $user->isAgent()) {
-                    $queryCliente->andWhere(['id_user' => $user->id_user]);
-                } elseif ($user && $user->isSuperAdmin()) {
-                    if (!empty($empresaId)) {
-                        $queryCliente->andWhere(['id_company' => $empresaId]);
-                    }
-                } elseif ($user && $user->isAdmin() && !$user->isSuperAdmin()) {
-                    $queryCliente->andWhere(['id_company' => $user->id_company]);
-                }
-                $ganado = $queryCliente->count();
-            }
-
             $totalEmbudo = $nuevoProspecto + $contactado + $calificado + $ganado;
             $embudo = [
                 'nuevo' => (int)$nuevoProspecto,
@@ -422,7 +369,6 @@ class LeadController extends Controller
             // 🔥 PRÓXIMOS SEGUIMIENTOS (FECHA FUTURA)
             // ============================================
             try {
-                // 🔥 Fecha de hoy (se actualiza automáticamente cada día)
                 $fechaHoy = date('Y-m-d');
 
                 $proximosTrackingsQuery = SalesTracking::find()
@@ -431,7 +377,7 @@ class LeadController extends Controller
                     ->where(['not in', 'l.id_status', $excludeIds])
                     ->andWhere(['<>', 'l.id_status', 1])
                     ->andWhere(['IS NOT', 'st.date_f', null])
-                    ->andWhere(['>', 'st.date_f', $fechaHoy]);  // Solo fechas futuras
+                    ->andWhere(['>', 'st.date_f', $fechaHoy]);
                 
                 if ($user && $user->isAgent()) {
                     $proximosTrackingsQuery->andWhere(['l.id_user' => $user->id_user]);
@@ -449,7 +395,6 @@ class LeadController extends Controller
                 
                 foreach ($proximosTrackings as $tracking) {
                     if ($tracking->lead) {
-                        // 🔥 Calcular días restantes
                         $diasRestantes = (int) floor((strtotime($tracking->date_f) - strtotime($fechaHoy)) / 86400);
 
                         if ($diasRestantes == 0) {
@@ -483,7 +428,6 @@ class LeadController extends Controller
                 Yii::warning('Error al cargar próximos seguimientos: ' . $e->getMessage());
             }
 
-            // 🔥 Ordenar todas las próximas actividades por fecha ASC
             usort($proximasActividades, function($a, $b) {
                 return strtotime($a['date']) - strtotime($b['date']);
             });
@@ -503,10 +447,17 @@ class LeadController extends Controller
                 'estadosPermitidos' => $estadosPermitidos,
                 'totalLeads' => $totalLeads,
                 'nuevosMes' => $nuevosMes,
+                'contactados' => $contactados,
                 'enProceso' => $enProceso,
                 'calificados' => $calificados,
                 'convertidos' => $convertidos,
                 'perdidos' => $perdidos,
+                'porcentajes' => [
+                    'nuevo'      => $porcentajeNuevo,
+                    'contactado' => $porcentajeContactado,
+                    'procesando' => $porcentajeProcesando,
+                    'cancelado'  => $porcentajeCancelado,
+                ],
                 'actividadesRecientes' => $actividadesRecientes,
                 'proximasActividades' => $proximasActividades,
                 'embudo' => $embudo,
@@ -527,10 +478,12 @@ class LeadController extends Controller
                 'estadosPermitidos' => ['Nuevo', 'Contactado', 'Procesando', 'Cancelado'],
                 'totalLeads' => 0,
                 'nuevosMes' => 0,
+                'contactados' => 0,
                 'enProceso' => 0,
                 'calificados' => 0,
                 'convertidos' => 0,
                 'perdidos' => 0,
+                'porcentajes' => ['nuevo' => 0, 'contactado' => 0, 'procesando' => 0, 'cancelado' => 0],
                 'actividadesRecientes' => [],
                 'proximasActividades' => [],
                 'embudo' => ['nuevo' => 0, 'contactado' => 0, 'calificado' => 0, 'ganado' => 0, 'total' => 0],
@@ -584,7 +537,6 @@ class LeadController extends Controller
             $isModal = Yii::$app->request->get('modal', false);
             $isAjax = Yii::$app->request->isAjax;
             
-            // 🔥 ESTADOS PERMITIDOS (UNIFICADOS)
             $estadosPermitidos = ['Nuevo', 'Contactado', 'Procesando', 'Cancelado'];
             
             $model = Lead::find()
@@ -651,7 +603,6 @@ class LeadController extends Controller
 
             $returnUrl = Yii::$app->request->get('return', 'index');
 
-            // 🔥 Obtener lista de estados (SOLO PERMITIDOS)
             $statusList = Status::find()
                 ->where(['in', 'status', $estadosPermitidos])
                 ->select(['status', 'id_status'])
@@ -905,7 +856,6 @@ class LeadController extends Controller
                     return $this->redirect(['index']);
                 }
                 
-                // 🔥 Al restaurar, asignar el status "Nuevo" dinámicamente
                 $model->id_status = $this->getStatusNuevoId();
                 if ($model->save()) {
                     Yii::$app->session->setFlash('success', 'Lead restaurado exitosamente con estado "Nuevo".');
@@ -1000,22 +950,17 @@ class LeadController extends Controller
     {
         $model = new Lead();
 
-        // 🔥 ESTADOS PERMITIDOS (UNIFICADOS)
         $estadosPermitidos = ['Nuevo', 'Contactado', 'Procesando', 'Cancelado'];
-
-        // 🔥 Obtener ID del status "Nuevo" dinámicamente
         $idStatusNuevo = $this->getStatusNuevoId();
 
-        // 🔥 VALORES POR DEFECTO (en el modelo, no confiando en el POST)
-        $model->created_at = date('Y-m-d');      // Fecha de hoy automática
-        $model->id_status = $idStatusNuevo;      // Estado "Nuevo" automático
+        $model->created_at = date('Y-m-d');
+        $model->id_status = $idStatusNuevo;
 
         if ($model->load(Yii::$app->request->post())) {
             try {
                 $user = Yii::$app->user->identity;
                 $empresaId = Yii::$app->session->get('empresa_id');
                 
-                // 🔥 Asignar empresa
                 if ($user->isSuperAdmin()) {
                     if (!empty($empresaId)) {
                         $model->id_company = $empresaId;
@@ -1028,13 +973,9 @@ class LeadController extends Controller
                     $model->id_company = 1;
                 }
                 
-                // 🔥 FORZAR SIEMPRE el status "Nuevo" (ignorar cualquier valor del formulario)
                 $model->id_status = $idStatusNuevo;
-                
-                // 🔥 FORZAR FECHA DE HOY (ignorar si viene del formulario)
                 $model->created_at = date('Y-m-d');
                 
-                // 🔥 Asignar usuario
                 if ($user && $user->isAgent()) {
                     $model->id_user = $user->id_user;
                 } else {
@@ -1042,7 +983,7 @@ class LeadController extends Controller
                 }
 
                 if ($model->save()) {
-                    Yii::$app->session->setFlash('success', 'Lead creado exitosamente".');
+                    Yii::$app->session->setFlash('success', 'Lead creado exitosamente.');
                     return $this->redirect(['create']);
                 } else {
                     $errors = $model->getErrors();
@@ -1079,7 +1020,6 @@ class LeadController extends Controller
         
         $ultimosLeads = $ultimosLeads->orderBy(['id_lead' => SORT_DESC])->limit(5)->all();
 
-        // 🔥 Obtener lista de estados (SOLO PERMITIDOS)
         $statusList = Status::find()
             ->where(['in', 'status', $estadosPermitidos])
             ->select(['status', 'id_status'])
@@ -1113,7 +1053,6 @@ class LeadController extends Controller
                 return $this->redirect(['index']);
             }
 
-            // Verificar permisos
             if ($user && $user->isAgent()) {
                 if ($model->id_user != $user->id_user) {
                     Yii::$app->session->setFlash('error', 'No tienes permiso para ver este lead.');

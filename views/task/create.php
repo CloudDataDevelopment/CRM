@@ -3,8 +3,8 @@
 use yii\helpers\Html;
 use yii\widgets\ActiveForm;
 
-$this->title = 'Nueva Tarea';
-$this->params['breadcrumbs'][] = ['label' => 'Tareas', 'url' => ['index']];
+$this->title = 'Nueva Actividad';
+$this->params['breadcrumbs'][] = ['label' => 'Actividades', 'url' => ['index']];
 $this->params['breadcrumbs'][] = $this->title;
 
 $this->registerCssFile('@web/css/task.css', ['depends' => [\yii\bootstrap5\BootstrapAsset::class]]);
@@ -19,7 +19,7 @@ $statusOptions = $statusOptions ?? [];
             <div>
                 <div class="breadcrumb-custom">
                     <span>CRM</span><span class="separator">›</span>
-                    <span>Tareas</span><span class="separator">›</span>
+                    <span>Actividades</span><span class="separator">›</span>
                     <span class="current"><?= Html::encode($this->title) ?></span>
                 </div>
                 <h1 class="page-title">
@@ -42,7 +42,7 @@ $statusOptions = $statusOptions ?? [];
                         <!-- DESCRIPCIÓN -->
                         <?= $form->field($model, 'comments')->textarea([
                             'rows' => 4,
-                            'placeholder' => 'Descripción de la tarea...',
+                            'placeholder' => 'Descripción de la Actividad...',
                         ])->label('Descripción <span class="text-danger">*</span>') ?>
 
                         <div class="row">
@@ -64,7 +64,7 @@ $statusOptions = $statusOptions ?? [];
                         </div>
 
                         <div class="form-group mt-3">
-                            <?= Html::submitButton('<i class="fas fa-save"></i> Crear Tarea', ['class' => 'btn btn-success']) ?>
+                            <?= Html::submitButton('<i class="fas fa-save"></i> Crear Actividad', ['class' => 'btn btn-success']) ?>
                             <?= Html::a('Cancelar', ['index'], ['class' => 'btn btn-secondary']) ?>
                         </div>
 

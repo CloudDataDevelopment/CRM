@@ -4,7 +4,7 @@ use yii\helpers\Html;
 use yii\widgets\ActiveForm;
 
 $this->title = 'Actualizar Tarea #' . $model->id_task;
-$this->params['breadcrumbs'][] = ['label' => 'Tareas', 'url' => ['index']];
+$this->params['breadcrumbs'][] = ['label' => 'Actividades', 'url' => ['index']];
 $this->params['breadcrumbs'][] = ['label' => 'Tarea #' . $model->id_task, 'url' => ['view', 'id' => $model->id_task]];
 $this->params['breadcrumbs'][] = 'Actualizar';
 
@@ -20,7 +20,7 @@ $statusOptions = $statusOptions ?? [];
             <div>
                 <div class="breadcrumb-custom">
                     <span>CRM</span><span class="separator">›</span>
-                    <span>Tareas</span><span class="separator">›</span>
+                    <span>Actividades</span><span class="separator">›</span>
                     <span class="current"><?= Html::encode($this->title) ?></span>
                 </div>
                 <h1 class="page-title">

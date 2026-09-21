@@ -322,6 +322,76 @@
 }
 
 /* ============================================ */
+/* 🔥 AVATAR DE USUARIO                        */
+/* ============================================ */
+
+/* Contenedor de la celda usuario (avatar + nombre) */
+.user-cell {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    min-width: 0;
+}
+
+/* Avatar circular con inicial (azul plano) */
+.user-avatar-small {
+    width: 36px;
+    height: 36px;
+    min-width: 36px;
+    min-height: 36px;
+    border-radius: 50%;
+    background: #11223F;
+    color: #ffffff;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: bold;
+    font-size: 0.9rem;
+    text-transform: uppercase;
+    flex-shrink: 0;
+    box-shadow: 0 2px 6px rgba(17, 34, 63, 0.25);
+    overflow: hidden;
+    line-height: 1;
+    user-select: none;
+}
+
+/* Variante con imagen (si el usuario tiene foto) */
+.user-avatar-small img,
+.user-avatar-small .avatar-img {
+    width: 100%;
+    height: 100%;
+    border-radius: 50%;
+    object-fit: cover;
+    display: block;
+}
+
+/* Texto del usuario (nombre + username) */
+.user-cell > div {
+    min-width: 0;
+    overflow: hidden;
+}
+
+.user-cell strong {
+    display: block;
+    font-size: 0.85rem;
+    color: #2c3e50;
+    line-height: 1.2;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.user-cell small {
+    display: block;
+    font-size: 0.7rem;
+    color: #6c757d;
+    line-height: 1.2;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+/* ============================================ */
 /* PAGINACIÓN                                  */
 /* ============================================ */
 
@@ -519,6 +589,18 @@
     .table-card .table tbody td {
         padding: 6px 8px;
     }
+
+    /* 🔥 Avatar más pequeño en tablet/móvil */
+    .user-avatar-small {
+        width: 30px;
+        height: 30px;
+        min-width: 30px;
+        min-height: 30px;
+        font-size: 0.75rem;
+    }
+    .user-cell {
+        gap: 8px;
+    }
 }
 
 @media (max-width: 576px) {
@@ -544,5 +626,14 @@
     }
     .stat-card .stat-label {
         font-size: 0.4rem !important;
+    }
+
+    /* 🔥 Avatar aún más pequeño en móvil chico */
+    .user-avatar-small {
+        width: 26px;
+        height: 26px;
+        min-width: 26px;
+        min-height: 26px;
+        font-size: 0.7rem;
     }
 }

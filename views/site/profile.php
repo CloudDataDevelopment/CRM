@@ -210,6 +210,13 @@ $createdAt = $user->created_at ?? null;
                                 <div id="personal-read-mode">
                                     <div class="info-grid">
                                         <div class="info-grid-item">
+                                            <span class="info-grid-label">Nombre de Usuario</span>
+                                            <span class="info-grid-value">
+                                                <i class="fas fa-at text-primary"></i>
+                                                <?= Html::encode($user->username ?: '—') ?>
+                                            </span>
+                                        </div>
+                                        <div class="info-grid-item">
                                             <span class="info-grid-label">Nombre</span>
                                             <span class="info-grid-value"><?= Html::encode($user->name ?: '—') ?></span>
                                         </div>
@@ -238,22 +245,48 @@ $createdAt = $user->created_at ?? null;
                                         <?= Html::hiddenInput(Yii::$app->request->csrfParam, Yii::$app->request->csrfToken) ?>
 
                                         <div class="row g-3">
+                                            <!-- 🔥 USERNAME EDITABLE -->
                                             <div class="col-md-6">
-                                                <label class="form-label">Nombre <span class="text-danger">*</span></label>
+                                                <label class="form-label">
+                                                    <i class="fas fa-at text-primary me-1"></i>
+                                                    Nombre de Usuario <span class="text-danger">*</span>
+                                                </label>
+                                                <input type="text"
+                                                       class="form-control"
+                                                       id="profile-username"
+                                                       name="username"
+                                                       value="<?= Html::encode($user->username) ?>"
+                                                       placeholder="ej: juan.perez"
+                                                       pattern="[a-zA-Z0-9._-]{3,50}"
+                                                       maxlength="50"
+                                                       required>
+                                                <small class="text-muted">
+                                                    Solo letras, números, puntos, guiones y guiones bajos (mínimo 3 caracteres)
+                                                </small>
+                                            </div>
+
+                                            <div class="col-md-6">
+                                                <label class="form-label">
+                                                    Nombre <span class="text-danger">*</span>
+                                                </label>
                                                 <input type="text" class="form-control" name="name" value="<?= Html::encode($user->name) ?>" required>
                                             </div>
+
                                             <div class="col-md-6">
                                                 <label class="form-label">Apellido Paterno</label>
                                                 <input type="text" class="form-control" name="lastname1" value="<?= Html::encode($user->lastname1) ?>">
                                             </div>
+
                                             <div class="col-md-6">
                                                 <label class="form-label">Apellido Materno</label>
                                                 <input type="text" class="form-control" name="lastname2" value="<?= Html::encode($user->lastname2) ?>">
                                             </div>
+
                                             <div class="col-md-6">
                                                 <label class="form-label">Correo Electrónico <span class="text-danger">*</span></label>
                                                 <input type="email" class="form-control" name="email" value="<?= Html::encode($user->email) ?>" required>
                                             </div>
+
                                             <div class="col-md-6">
                                                 <label class="form-label">Teléfono</label>
                                                 <input type="tel" class="form-control" name="phone" value="<?= Html::encode($user->phone) ?>" maxlength="15">

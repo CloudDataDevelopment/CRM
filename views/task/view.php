@@ -4,7 +4,7 @@ use yii\helpers\Html;
 use yii\widgets\ActiveForm;
 
 $this->title = 'Detalle de Tarea #' . $model->id_task;
-$this->params['breadcrumbs'][] = ['label' => 'Tareas', 'url' => ['index']];
+$this->params['breadcrumbs'][] = ['label' => 'Actividades', 'url' => ['index']];
 $this->params['breadcrumbs'][] = $this->title;
 
 $this->registerCssFile('@web/css/task.css', ['depends' => [\yii\bootstrap5\BootstrapAsset::class]]);
@@ -22,7 +22,7 @@ $badgeClass    = $model->getStatusBadgeClass();
             <div>
                 <div class="breadcrumb-custom">
                     <span>CRM</span><span class="separator">›</span>
-                    <span>Tareas</span><span class="separator">›</span>
+                    <span>Actividades</span><span class="separator">›</span>
                     <span class="current"><?= Html::encode($this->title) ?></span>
                 </div>
                 <h1 class="page-title">

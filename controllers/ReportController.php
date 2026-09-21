@@ -26,12 +26,39 @@ class ReportController extends Controller
             'verbs' => [
                 'class' => VerbFilter::className(),
                 'actions' => [
-                    'delete'        => ['POST', 'GET'],  // 🔥 Acepta ambos
-                    'restore'       => ['POST', 'GET'],  // 🔥 Acepta ambos
+                    'delete'        => ['POST', 'GET'],
+                    'restore'       => ['POST', 'GET'],
                     'update-status' => ['POST'],
                 ],
             ],
         ];
+    }
+
+    // ============================================
+    // 🔥 HELPER: Aplica filtro por rol y empresa
+    // ============================================
+    private function applyRoleFilter($query, $user, $empresaId)
+    {
+        if ($user->isSuperAdmin()) {
+            // Super Admin: solo ve la empresa seleccionada en sesión
+            if (!empty($empresaId)) {
+                $query->andWhere(['r.id_company' => $empresaId]);
+            } else {
+                // Sin empresa seleccionada = sin resultados
+                $query->andWhere(['0' => '1']);
+            }
+        } elseif ($user->isAdmin() && !$user->isSuperAdmin()) {
+            // Admin: solo ve su empresa
+            $query->andWhere(['r.id_company' => $user->id_company]);
+        } elseif ($user->isAgent()) {
+            // Agente: solo ve sus propios reports
+            $query->andWhere(['r.id_user' => $user->id_user]);
+        } else {
+            // Sin rol válido = sin resultados
+            $query->andWhere(['0' => '1']);
+        }
+
+        return $query;
     }
 
     // ============================================
@@ -47,6 +74,7 @@ class ReportController extends Controller
                 return $this->redirect(['site/login']);
             }
 
+            // 🔥 Validar Super Admin sin empresa
             if ($user->isSuperAdmin() && empty($empresaId)) {
                 Yii::$app->session->setFlash('warning', 'Por favor, selecciona una empresa para continuar.');
                 return $this->redirect(['empresa/index']);
@@ -61,16 +89,10 @@ class ReportController extends Controller
                 $query->andWhere(['NOT IN', 'r.id_status', $trashStatusIds]);
             }
 
-            // FILTRO POR ROL Y EMPRESA
-            if ($user->isSuperAdmin()) {
-                if (!empty($empresaId)) {
-                    $query->andWhere(['r.id_company' => $empresaId]);
-                }
-            } elseif (!$user->isSuperAdmin()) {
-                $query->andWhere(['r.id_company' => $user->id_company]);
-            }
+            // 🔥 APLICAR FILTRO POR ROL Y EMPRESA
+            $this->applyRoleFilter($query, $user, $empresaId);
 
-            // Filtros
+            // Filtros de búsqueda
             $search       = Yii::$app->request->get('search', '');
             $status       = Yii::$app->request->get('status', '');
             $fecha_inicio = Yii::$app->request->get('fecha_inicio', '');
@@ -133,7 +155,7 @@ class ReportController extends Controller
 
             $reports = $dataProvider->getModels();
 
-            // 🔥 ESTADÍSTICAS
+            // 🔥 ESTADÍSTICAS (sobre toda la consulta filtrada, no solo la página)
             $countQuery = clone $query;
             $totalReports = $countQuery->count();
 
@@ -223,14 +245,8 @@ class ReportController extends Controller
                 ->with(['status', 'user', 'company', 'lead'])
                 ->andWhere(['IN', 'r.id_status', $trashStatusIds]);
 
-            // FILTRO POR ROL Y EMPRESA
-            if ($user->isSuperAdmin()) {
-                if (!empty($empresaId)) {
-                    $query->andWhere(['r.id_company' => $empresaId]);
-                }
-            } elseif (!$user->isSuperAdmin()) {
-                $query->andWhere(['r.id_company' => $user->id_company]);
-            }
+            // 🔥 APLICAR FILTRO POR ROL Y EMPRESA
+            $this->applyRoleFilter($query, $user, $empresaId);
 
             // Filtros
             $search = Yii::$app->request->get('search', '');
@@ -295,13 +311,8 @@ class ReportController extends Controller
                 ]);
             }
 
-            if ($user->isSuperAdmin() && !empty($empresaId) && $model->id_company != $empresaId) {
-                return $this->renderPartial('_view_modal', [
-                    'error' => 'No tienes permiso para ver esta evaluación.'
-                ]);
-            }
-
-            if (!$user->isSuperAdmin() && $model->id_company != $user->id_company) {
+            // 🔥 VALIDAR PERMISO CON HELPER
+            if (!$this->canAccessReport($model, $user, $empresaId)) {
                 return $this->renderPartial('_view_modal', [
                     'error' => 'No tienes permiso para ver esta evaluación.'
                 ]);
@@ -344,13 +355,8 @@ class ReportController extends Controller
                 ]);
             }
 
-            if ($user->isSuperAdmin() && !empty($empresaId) && $model->id_company != $empresaId) {
-                return $this->renderPartial('_update_modal', [
-                    'error' => 'No tienes permiso para editar esta evaluación.'
-                ]);
-            }
-
-            if (!$user->isSuperAdmin() && $model->id_company != $user->id_company) {
+            // 🔥 VALIDAR PERMISO CON HELPER
+            if (!$this->canAccessReport($model, $user, $empresaId)) {
                 return $this->renderPartial('_update_modal', [
                     'error' => 'No tienes permiso para editar esta evaluación.'
                 ]);
@@ -362,16 +368,8 @@ class ReportController extends Controller
                 ->indexBy('id_status')
                 ->column();
 
-            // 🔥 Lista de leads
-            $leadsQuery = Lead::find();
-            if ($user->isSuperAdmin() && !empty($empresaId)) {
-                $leadsQuery->andWhere(['id_company' => $empresaId]);
-            } elseif (!$user->isSuperAdmin()) {
-                $leadsQuery->andWhere(['id_company' => $user->id_company]);
-            }
-            $leadsList = ArrayHelper::map($leadsQuery->all(), 'id_lead', function($lead) {
-                return $lead->name . ' ' . $lead->lastname . ' (' . $lead->phone . ')';
-            });
+            // 🔥 Lista de leads filtrada por rol
+            $leadsList = $this->getLeadsListForUser($user, $empresaId);
 
             if (Yii::$app->request->isPost && $model->load(Yii::$app->request->post())) {
                 try {
@@ -446,11 +444,14 @@ class ReportController extends Controller
             $model->date_report = date('Y-m-d');
             $model->id_user = $user->id_user;
 
+            // 🔥 ASIGNAR EMPRESA SEGÚN ROL
             if ($user->isSuperAdmin()) {
                 if (!empty($empresaId)) {
                     $model->id_company = $empresaId;
                 }
-            } else {
+            } elseif ($user->isAdmin() && !$user->isSuperAdmin()) {
+                $model->id_company = $user->id_company;
+            } elseif ($user->isAgent()) {
                 $model->id_company = $user->id_company;
             }
 
@@ -460,16 +461,8 @@ class ReportController extends Controller
                 ->indexBy('id_status')
                 ->column();
 
-            // 🔥 Lista de leads
-            $leadsQuery = Lead::find();
-            if ($user->isSuperAdmin() && !empty($empresaId)) {
-                $leadsQuery->andWhere(['id_company' => $empresaId]);
-            } elseif (!$user->isSuperAdmin()) {
-                $leadsQuery->andWhere(['id_company' => $user->id_company]);
-            }
-            $leadsList = ArrayHelper::map($leadsQuery->all(), 'id_lead', function($lead) {
-                return $lead->name . ' ' . $lead->lastname . ' (' . $lead->phone . ')';
-            });
+            // 🔥 Lista de leads filtrada por rol
+            $leadsList = $this->getLeadsListForUser($user, $empresaId);
 
             $companyList = [];
             if ($user->isSuperAdmin()) {
@@ -481,6 +474,20 @@ class ReportController extends Controller
 
             if ($model->load(Yii::$app->request->post())) {
                 try {
+                    // 🔥 FORZAR empresa según rol (evitar manipulación del POST)
+                    if ($user->isSuperAdmin()) {
+                        if (!empty($empresaId)) {
+                            $model->id_company = $empresaId;
+                        }
+                    } elseif (!$user->isSuperAdmin()) {
+                        $model->id_company = $user->id_company;
+                    }
+
+                    // 🔥 FORZAR id_user para agente
+                    if ($user->isAgent()) {
+                        $model->id_user = $user->id_user;
+                    }
+
                     if ($model->save()) {
                         Yii::$app->session->setFlash('success', 'Evaluación creada exitosamente.');
                         return $this->redirect(['index']);
@@ -534,12 +541,8 @@ class ReportController extends Controller
                 throw new NotFoundHttpException('La evaluación solicitada no existe.');
             }
 
-            if ($user->isSuperAdmin() && !empty($empresaId) && $model->id_company != $empresaId) {
-                Yii::$app->session->setFlash('error', 'No tienes permiso para editar esta evaluación.');
-                return $this->redirect(['index']);
-            }
-
-            if (!$user->isSuperAdmin() && $model->id_company != $user->id_company) {
+            // 🔥 VALIDAR PERMISO CON HELPER
+            if (!$this->canAccessReport($model, $user, $empresaId)) {
                 Yii::$app->session->setFlash('error', 'No tienes permiso para editar esta evaluación.');
                 return $this->redirect(['index']);
             }
@@ -550,18 +553,19 @@ class ReportController extends Controller
                 ->indexBy('id_status')
                 ->column();
 
-            $leadsQuery = Lead::find();
-            if ($user->isSuperAdmin() && !empty($empresaId)) {
-                $leadsQuery->andWhere(['id_company' => $empresaId]);
-            } elseif (!$user->isSuperAdmin()) {
-                $leadsQuery->andWhere(['id_company' => $user->id_company]);
-            }
-            $leadsList = ArrayHelper::map($leadsQuery->all(), 'id_lead', function($lead) {
-                return $lead->name . ' ' . $lead->lastname . ' (' . $lead->phone . ')';
-            });
+            $leadsList = $this->getLeadsListForUser($user, $empresaId);
 
             if ($model->load(Yii::$app->request->post())) {
                 try {
+                    // 🔥 FORZAR empresa según rol
+                    if ($user->isSuperAdmin()) {
+                        if (!empty($empresaId)) {
+                            $model->id_company = $empresaId;
+                        }
+                    } elseif (!$user->isSuperAdmin()) {
+                        $model->id_company = $user->id_company;
+                    }
+
                     if ($model->save()) {
                         Yii::$app->session->setFlash('success', 'Evaluación actualizada exitosamente.');
                         return $this->redirect(['index']);
@@ -600,7 +604,7 @@ class ReportController extends Controller
     }
 
     // ============================================
-    // MOVER A PAPELERA (CAMBIO DE ESTADO A INACTIVO)
+    // MOVER A PAPELERA
     // ============================================
     public function actionDelete($id)
     {
@@ -615,17 +619,12 @@ class ReportController extends Controller
                 return $this->redirect(['index']);
             }
 
-            if ($user->isSuperAdmin() && !empty($empresaId) && $model->id_company != $empresaId) {
+            // 🔥 VALIDAR PERMISO CON HELPER
+            if (!$this->canAccessReport($model, $user, $empresaId)) {
                 Yii::$app->session->setFlash('error', 'No tienes permiso.');
                 return $this->redirect(['index']);
             }
 
-            if (!$user->isSuperAdmin() && $model->id_company != $user->id_company) {
-                Yii::$app->session->setFlash('error', 'No tienes permiso.');
-                return $this->redirect(['index']);
-            }
-
-            // 🔥 Buscar estado "Inactivo" y asignarlo
             $statusInactivo = Status::find()->where(['status' => 'Inactivo'])->one();
 
             if (!$statusInactivo) {
@@ -652,7 +651,7 @@ class ReportController extends Controller
     }
 
     // ============================================
-    // RESTAURAR EVALUACIÓN DESDE PAPELERA
+    // RESTAURAR EVALUACIÓN
     // ============================================
     public function actionRestore($id)
     {
@@ -667,17 +666,12 @@ class ReportController extends Controller
                 return $this->redirect(['trash']);
             }
 
-            if ($user->isSuperAdmin() && !empty($empresaId) && $model->id_company != $empresaId) {
+            // 🔥 VALIDAR PERMISO CON HELPER
+            if (!$this->canAccessReport($model, $user, $empresaId)) {
                 Yii::$app->session->setFlash('error', 'No tienes permiso.');
                 return $this->redirect(['trash']);
             }
 
-            if (!$user->isSuperAdmin() && $model->id_company != $user->id_company) {
-                Yii::$app->session->setFlash('error', 'No tienes permiso.');
-                return $this->redirect(['trash']);
-            }
-
-            // 🔥 Restaurar al estado "Activo"
             $statusActivo = Status::find()->where(['status' => 'Activo'])->one();
 
             if (!$statusActivo) {
@@ -717,11 +711,8 @@ class ReportController extends Controller
             $user = Yii::$app->user->identity;
             $empresaId = Yii::$app->session->get('empresa_id');
 
-            if ($user->isSuperAdmin() && !empty($empresaId) && $model->id_company != $empresaId) {
-                Yii::$app->session->setFlash('error', 'No tienes permiso.');
-                return $this->redirect(['index']);
-            }
-            if (!$user->isSuperAdmin() && $model->id_company != $user->id_company) {
+            // 🔥 VALIDAR PERMISO CON HELPER
+            if (!$this->canAccessReport($model, $user, $empresaId)) {
                 Yii::$app->session->setFlash('error', 'No tienes permiso.');
                 return $this->redirect(['index']);
             }
@@ -749,6 +740,51 @@ class ReportController extends Controller
         }
 
         return $this->redirect(['index']);
+    }
+
+    // ============================================
+    // 🔥 HELPER: Verificar si el usuario puede acceder al report
+    // ============================================
+    private function canAccessReport($model, $user, $empresaId)
+    {
+        if ($user->isSuperAdmin()) {
+            if (!empty($empresaId) && $model->id_company != $empresaId) {
+                return false;
+            }
+            return true;
+        }
+
+        if ($user->isAdmin() && !$user->isSuperAdmin()) {
+            return $model->id_company == $user->id_company;
+        }
+
+        if ($user->isAgent()) {
+            return $model->id_user == $user->id_user;
+        }
+
+        return false;
+    }
+
+    // ============================================
+    // 🔥 HELPER: Obtener lista de leads filtrada por rol
+    // ============================================
+    private function getLeadsListForUser($user, $empresaId)
+    {
+        $leadsQuery = Lead::find();
+
+        if ($user->isSuperAdmin()) {
+            if (!empty($empresaId)) {
+                $leadsQuery->andWhere(['id_company' => $empresaId]);
+            }
+        } elseif ($user->isAdmin() && !$user->isSuperAdmin()) {
+            $leadsQuery->andWhere(['id_company' => $user->id_company]);
+        } elseif ($user->isAgent()) {
+            $leadsQuery->andWhere(['id_user' => $user->id_user]);
+        }
+
+        return ArrayHelper::map($leadsQuery->all(), 'id_lead', function($lead) {
+            return $lead->name . ' ' . $lead->lastname . ' (' . $lead->phone . ')';
+        });
     }
 
     // ============================================

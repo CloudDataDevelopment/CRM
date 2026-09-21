@@ -174,7 +174,7 @@ $this->beginPage();
                 </li>
                 
                 <li class="nav-item searchable-item">
-                    <?= Html::a('<i class="fas fa-tasks"></i> <span>Tareas</span>', ['/task/index'], [
+                    <?= Html::a('<i class="fas fa-tasks"></i> <span>Actividades</span>', ['/task/index'], [
                         'class' => 'nav-link' . (Yii::$app->controller->id == 'task' ? ' active' : '')
                     ]) ?>
                 </li>

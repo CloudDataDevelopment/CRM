@@ -10,6 +10,7 @@ use yii\filters\VerbFilter;
 use yii\data\ActiveDataProvider;
 use app\models\Task;
 use app\models\Status;
+use app\models\User;
 
 class TaskController extends Controller
 {
@@ -33,6 +34,9 @@ class TaskController extends Controller
     // HELPERS
     // ============================================
 
+    /**
+     * 🔥 Obtiene las opciones de estado disponibles
+     */
     private function getStatusOptions()
     {
         $statusNames = ['Por hacer', 'En progreso', 'En revisión', 'Programado', 'Completado', 'Cancelado'];
@@ -44,12 +48,56 @@ class TaskController extends Controller
             ->column();
     }
 
-    private function checkPermission($task, $user)
+    /**
+     * 🔥 Verifica si el usuario tiene permiso para acceder a una tarea
+     */
+    private function checkPermission($task, $user, $empresaId = null)
     {
-        if ($user->isAdmin() || $user->isAgent()) {
-            return true;
+        if (!$user) {
+            return false;
         }
+
+        if ($user->isSuperAdmin()) {
+            if (!empty($empresaId) && $task->user) {
+                return $task->user->id_company == $empresaId;
+            }
+            return !empty($empresaId);
+        }
+
+        if ($user->isAdmin() && !$user->isSuperAdmin()) {
+            return $task->user && $task->user->id_company == $user->id_company;
+        }
+
+        if ($user->isAgent()) {
+            return $task->id_user == $user->id_user;
+        }
+
         return false;
+    }
+
+    /**
+     * 🔥 Devuelve los IDs de usuarios visibles para el usuario actual.
+     * Se usa para filtrar la tabla Task (que no tiene id_company directo).
+     */
+    private function getUserIdsForUser($user, $empresaId)
+    {
+        $query = User::find()->select('id_user');
+
+        if ($user->isSuperAdmin()) {
+            if (!empty($empresaId)) {
+                $query->andWhere(['id_company' => $empresaId]);
+            } else {
+                return [];
+            }
+        } elseif ($user->isAdmin() && !$user->isSuperAdmin()) {
+            $query->andWhere(['id_company' => $user->id_company]);
+        } elseif ($user->isAgent()) {
+            $query->andWhere(['id_user' => $user->id_user]);
+        } else {
+            return [];
+        }
+
+        return $query->column();
     }
 
     // ============================================
@@ -60,15 +108,41 @@ class TaskController extends Controller
     {
         try {
             $user = Yii::$app->user->identity;
+            $empresaId = Yii::$app->session->get('empresa_id');
 
             if (!$user) {
                 return $this->redirect(['site/login']);
             }
 
+            // 🔥 Validar Super Admin sin empresa
+            if ($user->isSuperAdmin() && empty($empresaId)) {
+                Yii::$app->session->setFlash('warning', 'Por favor, selecciona una empresa para continuar.');
+                return $this->redirect(['empresa/index']);
+            }
+
+            // 🔥 OBTENER IDs DE USUARIOS VISIBLES PARA ESTE USUARIO
+            $userIds = $this->getUserIdsForUser($user, $empresaId);
+
+            // 🔥 QUERY BASE
             $query = Task::find()
                 ->alias('t')
                 ->leftJoin('Status s', 't.id_status = s.id_status')
-                ->with(['status']);
+                ->leftJoin('User u', 't.id_user = u.id_user')
+                ->with(['status', 'user'])
+                ->andWhere(['>', 't.id_user', 0]);  // 🔥 Excluir huérfanas
+
+            // 🔥 FILTRO POR ROL Y EMPRESA
+            if ($user->isAgent()) {
+                // 🔥 AGENTE: solo sus tareas
+                $query->andWhere(['t.id_user' => $user->id_user]);
+            } else {
+                // 🔥 ADMIN/SUPER ADMIN: tareas de usuarios de su empresa
+                if (empty($userIds)) {
+                    $query->andWhere(['t.id_task' => -1]);
+                } else {
+                    $query->andWhere(['t.id_user' => $userIds]);
+                }
+            }
 
             // 🔥 FILTROS DE BÚSQUEDA
             $search       = Yii::$app->request->get('search', '');
@@ -97,6 +171,7 @@ class TaskController extends Controller
 
             $query->orderBy(['t.id_task' => SORT_DESC]);
 
+            // 🔥 DATAPROVIDER CON PAGINACIÓN
             $dataProvider = new ActiveDataProvider([
                 'query' => $query,
                 'pagination' => [
@@ -109,12 +184,25 @@ class TaskController extends Controller
                 ],
             ]);
 
-            $tasks        = $dataProvider->getModels();
-            $totalTasks   = $dataProvider->getTotalCount();
+            $tasks         = $dataProvider->getModels();
+            $totalTasks    = $dataProvider->getTotalCount();
             $statusOptions = $this->getStatusOptions();
 
-            $statusCounts = [];
-            foreach ($tasks as $task) {
+            // 🔥 CONTAR POR ESTADO (sobre TODAS las tareas filtradas, no solo la página)
+            $statusCounts = [
+                'Por hacer'   => 0,
+                'En progreso' => 0,
+                'En revisión' => 0,
+                'Programado'  => 0,
+                'Completado'  => 0,
+                'Cancelado'   => 0,
+                'Sin Estado'  => 0,
+            ];
+
+            $allTasksQuery = clone $query;
+            $allTasks = $allTasksQuery->all();
+
+            foreach ($allTasks as $task) {
                 $statusName = $task->getStatusName();
                 if (!isset($statusCounts[$statusName])) {
                     $statusCounts[$statusName] = 0;
@@ -122,9 +210,8 @@ class TaskController extends Controller
                 $statusCounts[$statusName]++;
             }
 
-            $withoutStatus = Task::find()
-                ->where(['or', ['id_status' => null], ['id_status' => 0]])
-                ->count();
+            // 🔥 TAREAS SIN ESTADO (filtradas por rol y empresa)
+            $withoutStatus = $statusCounts['Sin Estado'] ?? 0;
 
             return $this->render('index', [
                 'dataProvider'  => $dataProvider,
@@ -143,12 +230,21 @@ class TaskController extends Controller
 
         } catch (\Exception $e) {
             Yii::error('Error en Task::actionIndex: ' . $e->getMessage(), 'task');
+            Yii::error('Stack: ' . $e->getTraceAsString(), 'task');
 
             return $this->render('index', [
                 'dataProvider'  => new ActiveDataProvider(['query' => Task::find()->where(['1' => '0'])]),
                 'tasks'         => [],
                 'totalTasks'    => 0,
-                'statusCounts'  => [],
+                'statusCounts'  => [
+                    'Por hacer'   => 0,
+                    'En progreso' => 0,
+                    'En revisión' => 0,
+                    'Programado'  => 0,
+                    'Completado'  => 0,
+                    'Cancelado'   => 0,
+                    'Sin Estado'  => 0,
+                ],
                 'statusOptions' => [],
                 'withoutStatus' => 0,
                 'isAdmin'       => false,
@@ -169,18 +265,19 @@ class TaskController extends Controller
     {
         try {
             $user = Yii::$app->user->identity;
+            $empresaId = Yii::$app->session->get('empresa_id');
 
             $model = Task::find()
-                ->with(['status'])
+                ->with(['status', 'user'])
                 ->where(['id_task' => $id])
                 ->one();
 
             if (!$model) {
-                throw new NotFoundHttpException('La tarea solicitada no existe.');
+                throw new NotFoundHttpException('La actividad solicitada no existe.');
             }
 
-            if (!$this->checkPermission($model, $user)) {
-                Yii::$app->session->setFlash('error', 'No tienes permiso para ver esta tarea.');
+            if (!$this->checkPermission($model, $user, $empresaId)) {
+                Yii::$app->session->setFlash('error', 'No tienes permiso para ver esta actividad.');
                 return $this->redirect(['index']);
             }
 
@@ -193,9 +290,12 @@ class TaskController extends Controller
                 'isAgent'       => $user->isAgent(),
             ]);
 
+        } catch (NotFoundHttpException $e) {
+            Yii::$app->session->setFlash('error', 'Actividad no encontrada.');
+            return $this->redirect(['index']);
         } catch (\Exception $e) {
             Yii::error('Error en Task::actionView: ' . $e->getMessage(), 'task');
-            Yii::$app->session->setFlash('error', 'Error al cargar la tarea.');
+            Yii::$app->session->setFlash('error', 'Error al cargar la actividad.');
             return $this->redirect(['index']);
         }
     }
@@ -212,21 +312,53 @@ class TaskController extends Controller
 
             $statusOptions = $this->getStatusOptions();
 
+            // 🔥 PRE-ASIGNAR VALORES POR DEFECTO
+            $model->id_user = $user->id_user;
+            $model->date_s = date('Y-m-d');
+            $model->date_time = date('Y-m-d H:i:s');
+
+            // Estado por defecto: "Por hacer"
+            $statusPorDefecto = Status::find()->where(['status' => 'Por hacer'])->one();
+            if ($statusPorDefecto) {
+                $model->id_status = $statusPorDefecto->id_status;
+            }
+
             if ($model->load(Yii::$app->request->post())) {
                 try {
+                    // 🔥 FORZAR id_user para agentes (seguridad)
+                    if ($user->isAgent()) {
+                        $model->id_user = $user->id_user;
+                    }
+
+                    // 🔥 Si no tiene usuario asignado, auto-asignar al usuario actual
+                    if (empty($model->id_user) || $model->id_user == 0) {
+                        $model->id_user = $user->id_user;
+                    }
+
+                    // 🔥 Fechas automáticas si no vienen
+                    if (empty($model->date_s)) {
+                        $model->date_s = date('Y-m-d');
+                    }
+                    if (empty($model->date_time)) {
+                        $model->date_time = date('Y-m-d H:i:s');
+                    }
+
                     if ($model->save()) {
-                        Yii::$app->session->setFlash('success', 'Tarea creada exitosamente.');
+                        Yii::$app->session->setFlash('success', 'Actividad creada exitosamente.');
                         return $this->redirect(['view', 'id' => $model->id_task]);
                     } else {
-                        Yii::$app->session->setFlash('error', 'Error al guardar: ' . json_encode($model->getErrors()));
+                        $errors = $model->getErrors();
+                        $errorMessages = [];
+                        foreach ($errors as $attribute => $errorList) {
+                            $label = $model->getAttributeLabel($attribute);
+                            $errorMessages[] = $label . ': ' . implode(', ', $errorList);
+                        }
+                        Yii::$app->session->setFlash('error', 'Error al guardar:<br>' . implode('<br>', $errorMessages));
                     }
                 } catch (\Exception $e) {
                     Yii::error('Error en actionCreate: ' . $e->getMessage(), 'task');
-                    Yii::$app->session->setFlash('error', 'Error al crear la tarea: ' . $e->getMessage());
+                    Yii::$app->session->setFlash('error', 'Error al crear la actividad: ' . $e->getMessage());
                 }
-            } else {
-                // Valores por defecto al cargar el formulario
-                $model->date_s = date('Y-m-d');
             }
 
             return $this->render('create', [
@@ -251,18 +383,19 @@ class TaskController extends Controller
     {
         try {
             $user = Yii::$app->user->identity;
+            $empresaId = Yii::$app->session->get('empresa_id');
 
             $model = Task::find()
-                ->with(['status'])
+                ->with(['status', 'user'])
                 ->where(['id_task' => $id])
                 ->one();
 
             if (!$model) {
-                throw new NotFoundHttpException('La tarea solicitada no existe.');
+                throw new NotFoundHttpException('La actividad solicitada no existe.');
             }
 
-            if (!$this->checkPermission($model, $user)) {
-                Yii::$app->session->setFlash('error', 'No tienes permiso para editar esta tarea.');
+            if (!$this->checkPermission($model, $user, $empresaId)) {
+                Yii::$app->session->setFlash('error', 'No tienes permiso para editar esta actividad.');
                 return $this->redirect(['index']);
             }
 
@@ -271,14 +404,20 @@ class TaskController extends Controller
             if ($model->load(Yii::$app->request->post())) {
                 try {
                     if ($model->save()) {
-                        Yii::$app->session->setFlash('success', 'Tarea actualizada exitosamente.');
+                        Yii::$app->session->setFlash('success', 'Actividad actualizada exitosamente.');
                         return $this->redirect(['view', 'id' => $model->id_task]);
                     } else {
-                        Yii::$app->session->setFlash('error', 'Error al guardar: ' . json_encode($model->getErrors()));
+                        $errors = $model->getErrors();
+                        $errorMessages = [];
+                        foreach ($errors as $attribute => $errorList) {
+                            $label = $model->getAttributeLabel($attribute);
+                            $errorMessages[] = $label . ': ' . implode(', ', $errorList);
+                        }
+                        Yii::$app->session->setFlash('error', 'Error al guardar:<br>' . implode('<br>', $errorMessages));
                     }
                 } catch (\Exception $e) {
                     Yii::error('Error en actionUpdate: ' . $e->getMessage(), 'task');
-                    Yii::$app->session->setFlash('error', 'Error al actualizar la tarea.');
+                    Yii::$app->session->setFlash('error', 'Error al actualizar la actividad.');
                 }
             }
 
@@ -289,6 +428,9 @@ class TaskController extends Controller
                 'isAgent'       => $user->isAgent(),
             ]);
 
+        } catch (NotFoundHttpException $e) {
+            Yii::$app->session->setFlash('error', 'Actividad no encontrada.');
+            return $this->redirect(['index']);
         } catch (\Exception $e) {
             Yii::error('Error en Task::actionUpdate: ' . $e->getMessage(), 'task');
             Yii::$app->session->setFlash('error', 'Error al cargar el formulario.');
@@ -309,8 +451,9 @@ class TaskController extends Controller
         try {
             $model = $this->findModel($id);
             $user  = Yii::$app->user->identity;
+            $empresaId = Yii::$app->session->get('empresa_id');
 
-            if (!$this->checkPermission($model, $user)) {
+            if (!$this->checkPermission($model, $user, $empresaId)) {
                 Yii::$app->session->setFlash('error', 'No tienes permiso para cambiar el estado.');
                 return $this->redirect(['index']);
             }
@@ -331,7 +474,7 @@ class TaskController extends Controller
             }
 
         } catch (NotFoundHttpException $e) {
-            Yii::$app->session->setFlash('error', 'Tarea no encontrada.');
+            Yii::$app->session->setFlash('error', 'Actividad no encontrada.');
         } catch (\Exception $e) {
             Yii::error('Error en Task::actionUpdateStatus: ' . $e->getMessage(), 'task');
             Yii::$app->session->setFlash('error', 'Error al actualizar el estado.');
@@ -352,8 +495,9 @@ class TaskController extends Controller
         try {
             $model = $this->findModel($id);
             $user  = Yii::$app->user->identity;
+            $empresaId = Yii::$app->session->get('empresa_id');
 
-            if (!$this->checkPermission($model, $user)) {
+            if (!$this->checkPermission($model, $user, $empresaId)) {
                 Yii::$app->session->setFlash('error', 'No tienes permiso para cambiar la fecha.');
                 return $this->redirect(['index']);
             }
@@ -372,7 +516,7 @@ class TaskController extends Controller
             }
 
         } catch (NotFoundHttpException $e) {
-            Yii::$app->session->setFlash('error', 'Tarea no encontrada.');
+            Yii::$app->session->setFlash('error', 'Actividad no encontrada.');
         } catch (\Exception $e) {
             Yii::error('Error en Task::actionUpdateDate: ' . $e->getMessage(), 'task');
             Yii::$app->session->setFlash('error', 'Error al actualizar la fecha.');
@@ -390,21 +534,31 @@ class TaskController extends Controller
         try {
             $model = $this->findModel($id);
             $user  = Yii::$app->user->identity;
+            $empresaId = Yii::$app->session->get('empresa_id');
 
+            // 🔥 Solo admin y super admin pueden eliminar
             if (!$user->isAdmin()) {
-                Yii::$app->session->setFlash('error', 'No tienes permiso para eliminar tareas.');
+                Yii::$app->session->setFlash('error', 'No tienes permiso para eliminar actividades.');
+                return $this->redirect(['index']);
+            }
+
+            // 🔥 Verificar permiso sobre la tarea específica
+            if (!$this->checkPermission($model, $user, $empresaId)) {
+                Yii::$app->session->setFlash('error', 'No tienes permiso para eliminar esta actividad.');
                 return $this->redirect(['index']);
             }
 
             if ($model->delete()) {
-                Yii::$app->session->setFlash('success', 'Tarea eliminada exitosamente.');
+                Yii::$app->session->setFlash('success', 'Actividad eliminada exitosamente.');
+            } else {
+                Yii::$app->session->setFlash('error', 'Error al eliminar la actividad.');
             }
 
         } catch (NotFoundHttpException $e) {
-            Yii::$app->session->setFlash('error', 'Tarea no encontrada.');
+            Yii::$app->session->setFlash('error', 'Actividad no encontrada.');
         } catch (\Exception $e) {
             Yii::error('Error en Task::actionDelete: ' . $e->getMessage(), 'task');
-            Yii::$app->session->setFlash('error', 'Error al eliminar la tarea.');
+            Yii::$app->session->setFlash('error', 'Error al eliminar la actividad.');
         }
 
         return $this->redirect(['index']);
@@ -418,7 +572,7 @@ class TaskController extends Controller
     {
         $model = Task::findOne($id);
         if (!$model) {
-            throw new NotFoundHttpException('La tarea solicitada no existe.');
+            throw new NotFoundHttpException('La actividad solicitada no existe.');
         }
         return $model;
     }

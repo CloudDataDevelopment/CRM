@@ -34,9 +34,9 @@ class SiteController extends Controller
                     [
                         'actions' => [
                             'logout', 'index', 'register', 'ver-task', 'keep-alive', 'check-session',
-                            'profile',            // 🔥 NUEVO
-                            'update-profile',     // 🔥 NUEVO
-                            'change-password',    // 🔥 NUEVO
+                            'profile',
+                            'update-profile',
+                            'change-password',
                         ],
                         'allow' => true,
                         'roles' => ['@'],
@@ -52,8 +52,8 @@ class SiteController extends Controller
                 'actions' => [
                     'logout' => ['post'],
                     'check-session' => ['post'],
-                    'update-profile' => ['post'],   // 🔥 NUEVO
-                    'change-password' => ['post'],  // 🔥 NUEVO
+                    'update-profile' => ['post'],
+                    'change-password' => ['post'],
                 ],
             ],
         ];
@@ -81,7 +81,7 @@ class SiteController extends Controller
                 }
                 return $this->redirect(['dashboard/index']);
             }
-            
+
             return $this->redirect(['site/login']);
         } catch (\Exception $e) {
             ErrorManager::handle($e, 'Error al redirigir');
@@ -99,7 +99,7 @@ class SiteController extends Controller
             if ($auth && $auth->id_role == 1) {
                 return $this->redirect(['empresa/index']);
             }
-            
+
             $empresaId = Yii::$app->user->identity->id_company ?? 1;
             Yii::$app->session->set('empresa_id', $empresaId);
             Yii::$app->session->set('last_activity', time());
@@ -115,7 +115,7 @@ class SiteController extends Controller
                 Yii::$app->session->set('last_activity', time());
                 Yii::$app->session->set('session_id', session_id());
                 Yii::$app->session->set('tab_id', uniqid('tab_'));
-                
+
                 $auth = Authentication::find()
                     ->where(['id_user' => Yii::$app->user->id])
                     ->one();
@@ -149,10 +149,10 @@ class SiteController extends Controller
         Yii::$app->session->remove('empresa_id');
         Yii::$app->session->remove('empresa_nombre');
         Yii::$app->session->remove('tab_id');
-        
+
         Yii::$app->session->destroy();
         Yii::$app->user->logout(false);
-        
+
         return $this->redirect(['site/login']);
     }
 
@@ -162,7 +162,7 @@ class SiteController extends Controller
     public function actionCheckSession()
     {
         Yii::$app->response->format = \yii\web\Response::FORMAT_JSON;
-        
+
         if (Yii::$app->user->isGuest) {
             return [
                 'success' => false,
@@ -170,7 +170,7 @@ class SiteController extends Controller
                 'redirect' => Yii::$app->urlManager->createUrl(['site/login'])
             ];
         }
-        
+
         $tabId = Yii::$app->session->get('tab_id');
         if (!$tabId) {
             Yii::$app->user->logout(false);
@@ -180,7 +180,7 @@ class SiteController extends Controller
                 'redirect' => Yii::$app->urlManager->createUrl(['site/login'])
             ];
         }
-        
+
         return ['success' => true];
     }
 
@@ -194,7 +194,7 @@ class SiteController extends Controller
         $user = Yii::$app->user->identity;
         $isSuperAdmin = false;
         $isAdmin = false;
-        
+
         if ($user) {
             $isSuperAdmin = $user->isSuperAdmin();
             $isAdmin = $user->isAdmin() && !$isSuperAdmin;
@@ -204,60 +204,60 @@ class SiteController extends Controller
         $isFromEmpresa = false;
         $isFromCrm = false;
         $isFromMenu = false;
-        
+
         if ($referrer) {
             $isFromEmpresa = strpos($referrer, 'empresa') !== false;
-            $isFromCrm = strpos($referrer, 'dashboard') !== false || 
-                         strpos($referrer, 'lead') !== false || 
+            $isFromCrm = strpos($referrer, 'dashboard') !== false ||
+                         strpos($referrer, 'lead') !== false ||
                          strpos($referrer, 'user-management') !== false ||
                          strpos($referrer, 'task') !== false ||
                          strpos($referrer, 'calendar') !== false ||
                          strpos($referrer, 'report') !== false;
-            
+
             $isFromMenu = strpos($referrer, 'site/register') !== false;
         }
 
         $useSimpleLayout = false;
         $hideSidebar = false;
-        
+
         if ($isSuperAdmin && $isFromEmpresa) {
             $useSimpleLayout = true;
             $hideSidebar = true;
             $layout = 'main-simple';
-            
+
             $rolesList = RegisterForm::getFullRolesList();
             $headerColor = 'bg-danger';
             $backUrl = ['/empresa/index'];
             $backLabel = 'Volver a Empresas';
             $showCompanyField = true;
-            
+
         } elseif ($isSuperAdmin && ($isFromCrm || $isFromMenu)) {
             $useSimpleLayout = false;
             $hideSidebar = false;
             $layout = 'main';
-            
+
             $rolesList = RegisterForm::getFullRolesList();
             $headerColor = 'bg-danger';
             $backUrl = ['/dashboard/index'];
             $backLabel = 'Volver al Dashboard';
             $showCompanyField = true;
-            
+
         } elseif ($isAdmin && $isFromCrm) {
             $useSimpleLayout = false;
             $hideSidebar = false;
             $layout = 'main';
-            
+
             $rolesList = RegisterForm::getLimitedRolesList();
             $headerColor = 'bg-primary';
             $backUrl = ['/user-management/index'];
             $backLabel = 'Volver a Usuarios';
             $showCompanyField = false;
-            
+
         } else {
             $useSimpleLayout = false;
             $hideSidebar = false;
             $layout = 'main';
-            
+
             $rolesList = RegisterForm::getLimitedRolesList();
             $headerColor = 'bg-secondary';
             $backUrl = ['/dashboard/index'];
@@ -269,18 +269,18 @@ class SiteController extends Controller
         $this->view->params['hideSidebar'] = $hideSidebar;
 
         $model = new RegisterForm();
-        
+
         if (!$isSuperAdmin && $isAdmin) {
             $model->id_role = 2;
         }
-        
+
         $companiesList = RegisterForm::getCompaniesList();
 
         if ($model->load(Yii::$app->request->post())) {
             if ($isSuperAdmin && empty($model->id_company)) {
                 $model->addError('id_company', 'Debes seleccionar una empresa');
             }
-            
+
             if ($model->register()) {
                 Yii::$app->session->setFlash('success', 'Usuario registrado exitosamente.');
                 return $this->redirect($backUrl);
@@ -346,17 +346,17 @@ class SiteController extends Controller
     public function actionKeepAlive()
     {
         Yii::$app->response->format = \yii\web\Response::FORMAT_JSON;
-        
+
         if (Yii::$app->user->isGuest) {
             return [
-                'success' => false, 
-                'message' => 'Sesión no activa', 
+                'success' => false,
+                'message' => 'Sesión no activa',
                 'redirect' => Yii::$app->urlManager->createUrl(['site/login'])
             ];
         }
-        
+
         Yii::$app->session->set('last_activity', time());
-        
+
         return ['success' => true, 'message' => 'Sesión mantenida'];
     }
 
@@ -367,18 +367,16 @@ class SiteController extends Controller
     {
         try {
             $user = Yii::$app->user->identity;
-            
+
             if (!$user) {
                 return $this->redirect(['site/login']);
             }
 
-            // Obtener autenticación con relaciones
             $auth = Authentication::find()
                 ->where(['id_user' => $user->id_user])
                 ->with(['role', 'status', 'company'])
                 ->one();
 
-            // Estadísticas del usuario
             $stats = [
                 'leads_asignados'   => 0,
                 'seguimientos'      => 0,
@@ -427,7 +425,7 @@ class SiteController extends Controller
     }
 
     // ============================================
-    // 🔥 ACTUALIZAR PERFIL (AJAX)
+    // 🔥 ACTUALIZAR PERFIL (AJAX) — incluye username
     // ============================================
     public function actionUpdateProfile()
     {
@@ -435,7 +433,7 @@ class SiteController extends Controller
 
         try {
             $user = Yii::$app->user->identity;
-            
+
             if (!$user) {
                 return ['success' => false, 'message' => 'Sesión expirada.'];
             }
@@ -443,11 +441,40 @@ class SiteController extends Controller
             if (Yii::$app->request->isPost) {
                 $post = Yii::$app->request->post();
 
+                // 🔥 Datos básicos
                 $user->name      = trim($post['name'] ?? $user->name);
                 $user->lastname1 = trim($post['lastname1'] ?? $user->lastname1);
                 $user->lastname2 = trim($post['lastname2'] ?? $user->lastname2);
                 $user->email     = trim($post['email'] ?? $user->email);
                 $user->phone     = trim($post['phone'] ?? $user->phone);
+
+                // 🔥 USERNAME (nuevo)
+                if (isset($post['username']) && trim($post['username']) !== '') {
+                    $newUsername = trim($post['username']);
+
+                    // Validar formato: letras, números, punto, guion y guion bajo
+                    if (!preg_match('/^[a-zA-Z0-9._-]{3,50}$/', $newUsername)) {
+                        return [
+                            'success' => false,
+                            'message' => 'El nombre de usuario solo puede contener letras, números, puntos, guiones y guiones bajos (mínimo 3 caracteres).'
+                        ];
+                    }
+
+                    // Verificar que no exista otro usuario con el mismo username
+                    $existingUser = \app\models\User::find()
+                        ->where(['username' => $newUsername])
+                        ->andWhere(['<>', 'id_user', $user->id_user])
+                        ->one();
+
+                    if ($existingUser) {
+                        return [
+                            'success' => false,
+                            'message' => 'El nombre de usuario "' . $newUsername . '" ya está en uso. Elige otro.'
+                        ];
+                    }
+
+                    $user->username = $newUsername;
+                }
 
                 if ($user->save()) {
                     return [
@@ -483,7 +510,7 @@ class SiteController extends Controller
 
         try {
             $user = Yii::$app->user->identity;
-            
+
             if (!$user) {
                 return ['success' => false, 'message' => 'Sesión expirada.'];
             }

@@ -15,22 +15,24 @@ class Task extends ActiveRecord
     public function rules()
     {
         return [
-            [['comments'], 'required', 'message' => 'La descripción es obligatoria'],
-            [['id_status'], 'integer'],
+            [['comments', 'id_user', 'date_s', 'date_time'], 'required'],
+            [['id_status', 'id_user'], 'integer'],
             [['comments'], 'string', 'max' => 255],
             [['date_s', 'date_time'], 'safe'],
             [['id_status'], 'exist', 'skipOnError' => true, 'targetClass' => Status::class, 'targetAttribute' => ['id_status' => 'id_status']],
+            [['id_user'], 'exist', 'skipOnError' => true, 'targetClass' => User::class, 'targetAttribute' => ['id_user' => 'id_user']],
         ];
     }
 
     public function attributeLabels()
     {
         return [
-            'id_task'   => 'ID Tarea',
+            'id_task'   => 'ID Actividad',
             'comments'  => 'Descripción',
             'id_status' => 'Estado',
-            'date_s'    => 'Fecha de Cita',
+            'date_s'    => 'Fecha',
             'date_time' => 'Fecha y Hora',
+            'id_user'   => 'Usuario Asignado',
         ];
     }
 
@@ -41,12 +43,25 @@ class Task extends ActiveRecord
         }
 
         if ($insert) {
-            // Solo asigna fecha automática si NO viene del formulario
+            // 🔥 AUTO-ASIGNAR USUARIO AL CREAR (siempre)
+            if (empty($this->id_user) || $this->id_user == 0) {
+                $this->id_user = Yii::$app->user->id ?: 1;
+            }
+
+            // Fecha automática si no viene
             if (empty($this->date_s)) {
                 $this->date_s = date('Y-m-d');
             }
             if (empty($this->date_time)) {
                 $this->date_time = date('Y-m-d H:i:s');
+            }
+
+            // Estado por defecto si no viene
+            if (empty($this->id_status) || $this->id_status == 0) {
+                $statusPorDefecto = Status::find()->where(['status' => 'Por hacer'])->one();
+                if ($statusPorDefecto) {
+                    $this->id_status = $statusPorDefecto->id_status;
+                }
             }
         }
 
@@ -60,6 +75,11 @@ class Task extends ActiveRecord
     public function getStatus()
     {
         return $this->hasOne(Status::class, ['id_status' => 'id_status']);
+    }
+
+    public function getUser()
+    {
+        return $this->hasOne(User::class, ['id_user' => 'id_user']);
     }
 
     // ============================================
@@ -121,9 +141,6 @@ class Task extends ActiveRecord
         }
     }
 
-    /**
-     * 🔥 Formatear fecha
-     */
     public function getFormattedDate()
     {
         if ($this->date_s) {
@@ -132,9 +149,6 @@ class Task extends ActiveRecord
         return 'Sin fecha';
     }
 
-    /**
-     * 🔥 Formatear fecha y hora
-     */
     public function getFormattedDateTime()
     {
         if ($this->date_time) {
@@ -143,9 +157,6 @@ class Task extends ActiveRecord
         return 'Sin fecha';
     }
 
-    /**
-     * 🔥 Fecha para listados
-     */
     public function getTrackingDate()
     {
         if (!empty($this->date_s)) {
@@ -155,5 +166,13 @@ class Task extends ActiveRecord
             return date('d/m/Y H:i', strtotime($this->date_time));
         }
         return 'Sin fecha';
+    }
+
+    public function getUserName()
+    {
+        if ($this->user) {
+            return trim($this->user->name . ' ' . $this->user->lastname1);
+        }
+        return 'Sin asignar';
     }
 }

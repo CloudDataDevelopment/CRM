@@ -5,7 +5,7 @@ use yii\helpers\Url;
 use yii\helpers\StringHelper;
 use yii\widgets\LinkPager;
 
-$this->title = 'Tareas';
+$this->title = 'Actividades';
 $this->params['breadcrumbs'][] = $this->title;
 
 $this->registerCssFile('@web/css/task.css', ['depends' => [\yii\bootstrap5\BootstrapAsset::class]]);
@@ -49,7 +49,6 @@ $ultimasTareas = array_slice($tasks, 0, 5);
             <div>
                 <div class="breadcrumb-custom">
                     <span>CRM</span><span class="separator">›</span>
-                    <span>Tareas</span><span class="separator">›</span>
                     <span class="current"><?= Html::encode($this->title) ?></span>
                 </div>
                 <h1 class="page-title">
@@ -58,7 +57,7 @@ $ultimasTareas = array_slice($tasks, 0, 5);
                 </h1>
             </div>
             <div class="header-actions">
-                <?= Html::a('<i class="fas fa-plus"></i> Nueva Tarea', ['create'], ['class' => 'btn btn-primary btn-sm btn-header-action']) ?>
+                <?= Html::a('<i class="fas fa-plus"></i> Nueva Actividad', ['create'], ['class' => 'btn btn-primary btn-sm btn-header-action']) ?>
             </div>
         </div>
 
@@ -70,7 +69,7 @@ $ultimasTareas = array_slice($tasks, 0, 5);
                         <div class="stat-icon me-2"><i class="fas fa-tasks"></i></div>
                         <div class="flex-grow-1">
                             <div class="stat-number"><?= $totalTasks ?></div>
-                            <div class="stat-label">Total Tareas</div>
+                            <div class="stat-label">Total Actividades</div>
                         </div>
                     </div>
                 </div>
@@ -162,7 +161,7 @@ $ultimasTareas = array_slice($tasks, 0, 5);
         <?php if ($withoutStatus > 0): ?>
             <div class="alert alert-warning alert-dismissible fade show mb-3" role="alert">
                 <i class="fas fa-exclamation-triangle me-2"></i>
-                <strong>Hay <?= $withoutStatus ?> tarea(s) sin estado asignado.</strong>
+                <strong>Hay <?= $withoutStatus ?> Actividad sin estado asignado.</strong>
                 Asigna un estado desde la vista de detalle.
                 <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
             </div>
@@ -243,7 +242,7 @@ $ultimasTareas = array_slice($tasks, 0, 5);
                                                     <?= Html::a('<i class="fas fa-trash"></i>', ['delete', 'id' => $task->id_task], [
                                                         'class' => 'btn btn-danger btn-sm btn-action',
                                                         'title' => 'Eliminar',
-                                                        'data' => ['confirm' => '¿Eliminar esta tarea?', 'method' => 'post'],
+                                                        'data' => ['confirm' => '¿Eliminar esta actividad?', 'method' => 'post'],
                                                     ]) ?>
                                                 <?php endif; ?>
                                             </div>
@@ -254,7 +253,7 @@ $ultimasTareas = array_slice($tasks, 0, 5);
                                 <tr>
                                     <td colspan="5" class="text-center text-muted py-4">
                                         <i class="fas fa-inbox fa-2x d-block mb-2"></i>
-                                        No hay tareas registradas
+                                        No hay Actividades registradas
                                     </td>
                                 </tr>
                             <?php endif; ?>
@@ -265,7 +264,7 @@ $ultimasTareas = array_slice($tasks, 0, 5);
 
             <?php if ($dataProvider && $dataProvider->pagination->pageCount > 1): ?>
                 <div class="card-footer d-flex justify-content-between align-items-center">
-                    <small class="text-muted">Mostrando <?= count($tasks) ?> de <?= $totalTasks ?> tareas</small>
+                    <small class="text-muted">Mostrando <?= count($tasks) ?> de <?= $totalTasks ?> Actividades</small>
                     <?= LinkPager::widget([
                         'pagination' => $dataProvider->pagination,
                         'options' => ['class' => 'pagination pagination-sm mb-0'],
@@ -285,7 +284,7 @@ $ultimasTareas = array_slice($tasks, 0, 5);
                     <div class="card-header">
                         <div class="header-left">
                             <i class="fas fa-history text-primary"></i>
-                            <span>Últimas Tareas</span>
+                            <span>Últimas Actividades</span>
                         </div>
                         <span class="badge bg-primary"><?= count($ultimasTareas) ?></span>
                     </div>
@@ -309,7 +308,7 @@ $ultimasTareas = array_slice($tasks, 0, 5);
                             <?php else: ?>
                                 <div class="activity-empty">
                                     <i class="fas fa-inbox fa-2x d-block mb-2 text-muted"></i>
-                                    <p class="text-muted">No hay tareas recientes</p>
+                                    <p class="text-muted">No hay Actvidades recientes</p>
                                 </div>
                             <?php endif; ?>
                         </div>
@@ -322,7 +321,7 @@ $ultimasTareas = array_slice($tasks, 0, 5);
                     <div class="card-header">
                         <div class="header-left">
                             <i class="fas fa-chart-pie text-primary"></i>
-                            <span>Resumen de Tareas</span>
+                            <span>Resumen de Actividades</span>
                         </div>
                         <span class="badge bg-info text-white"><?= $totalTasks ?></span>
                     </div>
