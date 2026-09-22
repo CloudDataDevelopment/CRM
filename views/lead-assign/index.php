@@ -72,7 +72,6 @@ if ($selectedAgentId !== null && $selectedAgentId !== '') {
                     <i class="fas fa-users"></i> 
                     Agentes: <?= count($agents) ?>
                 </span>
-                <?= Html::a('<i class="fas fa-arrow-left"></i> Volver', ['lead/index'], ['class' => 'btn btn-secondary btn-sm']) ?>
             </div>
         </div>
 
@@ -441,6 +440,9 @@ $(document).ready(function() {
     // ============================================
     window.unassignLead = function(leadId, leadName) {
         if (confirm('¿Desasignar el lead "' + leadName + '" del agente?')) {
+            var csrfToken = $('meta[name="csrf-token"]').attr('content');
+            var csrfParam = $('meta[name="csrf-param"]').attr('content');
+
             var form = $('<form>', {
                 'method': 'POST',
                 'action': '<?= $unassignUrl ?>'
@@ -450,6 +452,13 @@ $(document).ready(function() {
                 'name': 'lead_id',
                 'value': leadId
             }));
+            if (csrfParam && csrfToken) {
+                form.append($('<input>', {
+                    'type': 'hidden',
+                    'name': csrfParam,
+                    'value': csrfToken
+                }));
+            }
             form.appendTo('body');
             form.submit();
         }

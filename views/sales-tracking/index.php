@@ -72,6 +72,7 @@ $metricas = [
                 </h1>
             </div>
             <div class="header-actions">
+                <?= $this->render('/layouts/_report_button') ?>
                 <?= Html::a('<i class="fas fa-plus"></i> Nuevo Seguimiento', ['create'], [
                     'class' => 'btn btn-primary btn-sm btn-tracking-action'
                 ]) ?>

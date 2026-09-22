@@ -8,16 +8,13 @@ use yii\widgets\LinkPager;
 $this->title = 'Contactos';
 $this->params['breadcrumbs'][] = $this->title;
 
-// Registrar CSS
 $this->registerCssFile('@web/css/contacts.css', ['depends' => [\yii\bootstrap5\BootstrapAsset::class]]);
 $this->registerCssFile('@web/css/dashboard.css', ['depends' => [\yii\bootstrap5\BootstrapAsset::class]]);
 $this->registerCssFile('@web/css/contact-panel.css', ['depends' => [\yii\bootstrap5\BootstrapAsset::class], 'position' => \yii\web\View::POS_HEAD]);
 $this->registerCssFile('@web/css/contact-edit-modal.css', ['depends' => [\yii\bootstrap5\BootstrapAsset::class], 'position' => \yii\web\View::POS_HEAD]);
 
-// Registrar JS (solo jQuery)
-$this->registerJsFile('https://code.jquery.com/3.6.0/jquery.min.js', ['position' => \yii\web\View::POS_HEAD]);
+$this->registerJsFile('https://code.jquery.com/jquery-3.6.0.min.js', ['position' => \yii\web\View::POS_HEAD]);
 
-// Variables del controlador
 $isAdmin = isset($isAdmin) ? $isAdmin : false;
 $isAgent = isset($isAgent) ? $isAgent : false;
 $isSuperAdmin = isset($isSuperAdmin) ? $isSuperAdmin : false;
@@ -31,8 +28,8 @@ $typeList = isset($typeList) ? $typeList : [];
 $totalContacts = isset($totalContacts) ? $totalContacts : 0;
 $activeContacts = isset($activeContacts) ? $activeContacts : 0;
 $inactiveContacts = isset($inactiveContacts) ? $inactiveContacts : 0;
+$trashCount = isset($trashCount) ? $trashCount : 0;
 
-// Variables de métricas
 $metricas = [
     ['class' => 'primary', 'icon' => 'address-book', 'label' => 'Total Contactos', 'value' => $totalContacts],
     ['class' => 'success', 'icon' => 'user-check', 'label' => 'Activos', 'value' => $activeContacts],
@@ -54,7 +51,11 @@ $metricas = [
         </div>
         <div class="header-actions">
             <?php if ($isAdmin || $isSuperAdmin): ?>
-                <?= Html::a('<i class="fas fa-tags"></i> Tipos', ['types'], ['class' => 'btn btn-outline-info btn-sm btn-header-action']) ?>
+                <?= Html::a(
+                    '<i class="fas fa-trash"></i> Papelera <span class="badge bg-danger ms-1">' . $trashCount . '</span>',
+                    ['trash'],
+                    ['class' => 'btn btn-outline-danger btn-sm btn-header-action']
+                ) ?>
             <?php endif; ?>
             <?= Html::a('<i class="fas fa-plus"></i> Nuevo Contacto', ['create'], ['class' => 'btn btn-primary btn-sm btn-header-action']) ?>
         </div>
@@ -63,7 +64,7 @@ $metricas = [
     <!-- MÉTRICAS -->
     <div class="row g-2 mb-2">
         <?php foreach ($metricas as $metrica): ?>
-            <div class="col-xl-2 col-md-4 col-6">
+            <div class="col-xl-3 col-md-4 col-6">
                 <div class="card stat-card stat-card-<?= $metrica['class'] ?> dashboard-card">
                     <div class="card-body d-flex align-items-center">
                         <div class="stat-icon me-2">
@@ -115,9 +116,8 @@ $metricas = [
         </div>
     </div>
 
-    <!-- CONTENEDOR PRINCIPAL: TABLA + PANEL -->
+    <!-- CONTENEDOR PRINCIPAL -->
     <div class="panel-container">
-        <!-- Tabla -->
         <div class="table-wrapper" id="tableWrapper">
             <div class="card table-card">
                 <div class="card-header">
@@ -187,10 +187,9 @@ $metricas = [
                                                         </button>
                                                         <?= Html::a('<i class="fas fa-trash"></i>', ['delete', 'id' => $contact->id_contact], [
                                                             'class' => 'btn btn-danger btn-sm btn-action',
-                                                            'title' => 'Eliminar',
+                                                            'title' => 'Mover a papelera',
                                                             'data' => [
-                                                                'confirm' => '¿Eliminar este contacto?',
-                                                                'method' => 'post',
+                                                                'confirm' => '¿Mover este contacto a la papelera?',
                                                             ],
                                                         ]) ?>
                                                     <?php endif; ?>
@@ -235,7 +234,6 @@ $metricas = [
             </div>
         </div>
         
-        <!-- Panel Lateral -->
         <div class="panel-wrapper" id="panelWrapper">
             <div class="card slide-panel-card">
                 <div class="card-body p-0" id="slidePanelContent"></div>
@@ -250,21 +248,13 @@ $updateModalUrl = Url::to(['contacts/update-modal']);
 ?>
 
 <script>
-// ============================================
-// ESPERAR A QUE JQUERY ESTÉ CARGADO
-// ============================================
 (function() {
     if (typeof jQuery === 'undefined') {
-        console.error('❌ jQuery no está cargado. Intentando cargar...');
         var script = document.createElement('script');
         script.src = 'https://code.jquery.com/jquery-3.6.0.min.js';
-        script.onload = function() {
-            console.log('✅ jQuery cargado manualmente');
-            inicializar();
-        };
+        script.onload = function() { inicializar(); };
         document.head.appendChild(script);
     } else {
-        console.log('✅ jQuery ya está cargado');
         inicializar();
     }
 })();
@@ -272,11 +262,6 @@ $updateModalUrl = Url::to(['contacts/update-modal']);
 function inicializar() {
     var $ = jQuery;
     
-    console.log('🚀 Inicializando panel lateral...');
-    
-    // ============================================
-    // DELEGACIÓN DE EVENTOS
-    // ============================================
     $(document).on('click', '.view-contact-btn', function(e) {
         e.stopPropagation();
         var contactId = $(this).data('id');
@@ -289,18 +274,13 @@ function inicializar() {
         if (contactId) openPanel(contactId);
     });
 
-    // ============================================
-    // EDITAR CONTACTO EN PANEL LATERAL
-    // ============================================
     $(document).on('click', '.edit-contact-btn', function(e) {
         e.stopPropagation();
         var contactId = $(this).data('id');
         if (contactId) {
             if (isOpen) {
                 closePanel(function() {
-                    setTimeout(function() {
-                        openEditPanel(contactId);
-                    }, 300);
+                    setTimeout(function() { openEditPanel(contactId); }, 300);
                 });
             } else {
                 openEditPanel(contactId);
@@ -308,9 +288,6 @@ function inicializar() {
         }
     });
 
-    // ============================================
-    // FILTROS AUTOMÁTICOS
-    // ============================================
     document.getElementById('search-input').addEventListener('keypress', function(e) {
         if (e.key === 'Enter') document.getElementById('form-filtros').submit();
     });
@@ -325,28 +302,14 @@ function inicializar() {
         document.getElementById('form-filtros').submit();
     });
 
-    // ============================================
-    // PANEL LATERAL
-    // ============================================
     var currentContactId = null;
     var viewModalUrl = '<?= $viewModalUrl ?>';
     var updateModalUrl = '<?= $updateModalUrl ?>';
     var isOpen = false;
 
     function openPanel(contactId) {
-        if (contactId === currentContactId && isOpen) {
-            closePanel();
-            return;
-        }
-        
-        if (isOpen) {
-            closePanel(function() {
-                setTimeout(function() {
-                    openPanel(contactId);
-                }, 300);
-            });
-            return;
-        }
+        if (contactId === currentContactId && isOpen) { closePanel(); return; }
+        if (isOpen) { closePanel(function() { setTimeout(function() { openPanel(contactId); }, 300); }); return; }
         
         currentContactId = contactId;
         isOpen = true;
@@ -356,20 +319,14 @@ function inicializar() {
         var tableWrapper = document.getElementById('tableWrapper');
         var filaSeleccionada = document.querySelector('.contact-row[data-id="' + contactId + '"]');
         
-        if (!panel || !tableWrapper || !panelContent) {
-            console.error('❌ Elementos no encontrados');
-            return;
-        }
+        if (!panel || !tableWrapper || !panelContent) return;
         
         document.querySelectorAll('.contact-row').forEach(function(row) {
             row.classList.remove('contact-row-selected');
         });
-        if (filaSeleccionada) {
-            filaSeleccionada.classList.add('contact-row-selected');
-        }
+        if (filaSeleccionada) filaSeleccionada.classList.add('contact-row-selected');
         
         tableWrapper.classList.add('with-panel');
-        
         panel.style.display = 'block';
         panel.classList.add('visible');
         
@@ -380,12 +337,8 @@ function inicializar() {
                 if (!response.ok) throw new Error('HTTP ' + response.status);
                 return response.text();
             })
-            .then(function(data) {
-                panelContent.innerHTML = data;
-                console.log('✅ Contenido cargado');
-            })
+            .then(function(data) { panelContent.innerHTML = data; })
             .catch(function(error) {
-                console.error('❌ Error:', error);
                 panelContent.innerHTML = '<div class="text-center text-danger py-5"><i class="fas fa-exclamation-triangle fa-3x"></i><p>Error al cargar</p><button class="btn btn-secondary btn-sm mt-3" onclick="closePanel()">Cerrar</button></div>';
             });
     }
@@ -399,20 +352,14 @@ function inicializar() {
         var tableWrapper = document.getElementById('tableWrapper');
         var filaSeleccionada = document.querySelector('.contact-row[data-id="' + contactId + '"]');
         
-        if (!panel || !tableWrapper || !panelContent) {
-            console.error('❌ Elementos no encontrados');
-            return;
-        }
+        if (!panel || !tableWrapper || !panelContent) return;
         
         document.querySelectorAll('.contact-row').forEach(function(row) {
             row.classList.remove('contact-row-selected');
         });
-        if (filaSeleccionada) {
-            filaSeleccionada.classList.add('contact-row-selected');
-        }
+        if (filaSeleccionada) filaSeleccionada.classList.add('contact-row-selected');
         
         tableWrapper.classList.add('with-panel');
-        
         panel.style.display = 'block';
         panel.classList.add('visible');
         
@@ -425,8 +372,6 @@ function inicializar() {
             })
             .then(function(data) {
                 panelContent.innerHTML = data;
-                console.log('✅ Formulario de edición cargado');
-                
                 var scripts = panelContent.getElementsByTagName('script');
                 for (var i = 0; i < scripts.length; i++) {
                     var script = document.createElement('script');
@@ -435,7 +380,6 @@ function inicializar() {
                 }
             })
             .catch(function(error) {
-                console.error('❌ Error:', error);
                 panelContent.innerHTML = '<div class="text-center text-danger py-5"><i class="fas fa-exclamation-triangle fa-3x"></i><p>Error al cargar el formulario</p><button class="btn btn-secondary btn-sm mt-3" onclick="closePanel()">Cerrar</button></div>';
             });
     }
@@ -444,10 +388,7 @@ function inicializar() {
         var panel = document.getElementById('panelWrapper');
         var tableWrapper = document.getElementById('tableWrapper');
         
-        if (!panel || !tableWrapper) {
-            if (callback) callback();
-            return;
-        }
+        if (!panel || !tableWrapper) { if (callback) callback(); return; }
         
         isOpen = false;
         
@@ -463,9 +404,7 @@ function inicializar() {
             panel.style.display = 'none';
             panel.classList.remove('closing');
             var contenido = document.getElementById('slidePanelContent');
-            if (contenido) {
-                contenido.innerHTML = '';
-            }
+            if (contenido) contenido.innerHTML = '';
             currentContactId = null;
             if (callback) callback();
         }, 300);
@@ -476,11 +415,7 @@ function inicializar() {
     window.closePanel = closePanel;
 
     document.addEventListener('keydown', function(e) {
-        if (e.key === 'Escape' && isOpen) {
-            closePanel();
-        }
+        if (e.key === 'Escape' && isOpen) closePanel();
     });
-
-    console.log('✅ Panel lateral inicializado correctamente');
 }
 </script>

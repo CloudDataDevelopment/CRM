@@ -137,6 +137,7 @@ $proximasActividades = isset($proximasActividades) ? $proximasActividades : [];
             <h1 class="page-title"><?= Html::encode($this->title) ?> <small><?= date('d/m/Y H:i') ?></small></h1>
         </div>
         <div class="header-actions">
+            <?= $this->render('/layouts/_report_button') ?>
             <?php if ($isAdmin): ?>
                 <?= Html::a('<i class="fas fa-trash"></i> Papelera', ['trash'], ['class' => 'btn btn-outline-danger btn-sm btn-header-action']) ?>
             <?php endif; ?>
@@ -233,10 +234,10 @@ $proximasActividades = isset($proximasActividades) ? $proximasActividades : [];
                         <table class="table table-hover mb-0" id="leads-table">
                             <thead class="table-light">
                                 <tr>
-                                    <th><?= $dataProvider ? $dataProvider->getSort()->link('name') : 'Nombre' ?></th>
+                                    <th>Nombre</th>
                                     <th>Teléfono</th>
-                                    <th><?= $dataProvider ? $dataProvider->getSort()->link('id_status') : 'Estado' ?></th>
-                                    <th><?= $dataProvider ? $dataProvider->getSort()->link('created_at') : 'Fecha Registro' ?></th>
+                                    <th>Estado</th>
+                                    <th>Fecha Registro</th>
                                     <th>Observaciones</th>
                                     <th class="text-center">Acciones</th>
                                 </tr>

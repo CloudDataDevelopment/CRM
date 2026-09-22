@@ -56,6 +56,7 @@ $currentPage = $dataProvider ? $dataProvider->getPagination()->getPage() + 1 : 1
                 <h1 class="page-title"><?= Html::encode($this->title) ?> <small><?= date('d/m/Y H:i') ?></small></h1>
             </div>
             <div class="header-actions">
+                <?= $this->render('/layouts/_report_button') ?>
                 <?php if ($isAdmin): ?>
                     <?= Html::a('<i class="fas fa-trash"></i> Papelera', ['trash'], ['class' => 'btn btn-outline-danger btn-sm']) ?>
                 <?php endif; ?>

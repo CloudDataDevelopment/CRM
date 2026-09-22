@@ -45,6 +45,7 @@ $statusFilter  = isset($statusFilter) ? $statusFilter : '';
                 </h1>
             </div>
             <div class="header-actions">
+                <?= $this->render('/layouts/_report_button') ?>
                 <?= Html::a('<i class="fas fa-user-plus"></i> Registrar Usuario', ['/site/register'], [
                     'class' => 'btn btn-primary btn-sm'
                 ]) ?>

@@ -39,6 +39,7 @@ $fecha_fin = isset($fecha_fin) ? $fecha_fin : '';
                 </h1>
             </div>
             <div class="header-actions">
+                <?= $this->render('/layouts/_report_button') ?>
                 <?php if ($isAdmin || $isSuperAdmin): ?>
                     <?= Html::a('<i class="fas fa-trash"></i> Papelera', ['trash'], ['class' => 'btn btn-outline-danger btn-sm']) ?>
                     <?= Html::a('<i class="fas fa-plus"></i> Nueva Evaluación', ['create'], ['class' => 'btn btn-primary btn-sm']) ?>

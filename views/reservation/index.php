@@ -41,6 +41,7 @@ $fecha_fin = isset($fecha_fin) ? $fecha_fin : '';
                 </h1>
             </div>
             <div class="header-actions">
+                <?= $this->render('/layouts/_report_button') ?>
                 <?= Html::a('<i class="fas fa-plus"></i> Nueva Reservación', ['create'], [
                     'class' => 'btn btn-primary btn-sm btn-header-action'
                 ]) ?>

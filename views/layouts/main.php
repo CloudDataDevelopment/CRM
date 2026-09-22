@@ -367,50 +367,6 @@ $this->beginPage();
     </div>
 </main>
 
-<?php
-// ============================================
-// 🔥 BOTÓN FLOTANTE "GENERAR REPORTE"
-// SOLO visible para Admin y Super Admin
-// ============================================
-
-$currentController = Yii::$app->controller->id;
-$currentAction = Yii::$app->controller->action->id;
-
-// Módulos con reporte disponible
-$modulesWithReport = [
-    'task', 'lead', 'user-management', 'quote', 'sales-tracking',
-    'reservation', 'contacts', 'report', 'marketing', 'empresa',
-];
-
-// Mapeo: controlador → módulo
-$moduleMap = [
-    'user-management' => 'user',
-    'contacts'        => 'contact',
-    'marketing'       => 'campaign',
-    'empresa'         => 'company',
-];
-
-$reportModule = $moduleMap[$currentController] ?? $currentController;
-
-// 🔥 VALIDACIÓN DE ROL
-$puedeVerReporte = $user && ($user->isAdmin() || $user->isSuperAdmin());
-
-if (
-    in_array($currentController, $modulesWithReport) &&
-    $currentAction === 'index' &&
-    !Yii::$app->user->isGuest &&
-    $puedeVerReporte
-):
-?>
-    <a href="<?= Url::to(array_merge(['/export/pdf', 'module' => $reportModule], Yii::$app->request->queryParams)) ?>"
-       target="_blank"
-       class="btn-pdf-floating"
-       title="Generar Reporte PDF">
-        <i class="fas fa-file-pdf"></i>
-        <span>Generar Reporte</span>
-    </a>
-<?php endif; ?>
-
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 <?php $this->endBody() ?>
 </body>

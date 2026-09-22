@@ -57,6 +57,7 @@ $ultimasTareas = array_slice($tasks, 0, 5);
                 </h1>
             </div>
             <div class="header-actions">
+                <?= $this->render('/layouts/_report_button') ?>
                 <?= Html::a('<i class="fas fa-plus"></i> Nueva Actividad', ['create'], ['class' => 'btn btn-primary btn-sm btn-header-action']) ?>
             </div>
         </div>

@@ -22,9 +22,12 @@ $canCreate = $isAdmin;
     <!-- Header -->
     <div class="d-flex justify-content-between align-items-center mb-3">
         <h1><i class="fas fa-bullhorn text-primary me-2"></i> <?= Html::encode($this->title) ?></h1>
-        <?php if ($canCreate): ?>
-            <?= Html::a('<i class="fas fa-plus-circle"></i> Nueva Campaña o Promoción', ['create'], ['class' => 'btn btn-primary']) ?>
-        <?php endif; ?>
+        <div class="header-actions d-flex gap-2">
+            <?= $this->render('/layouts/_report_button') ?>
+            <?php if ($canCreate): ?>
+                <?= Html::a('<i class="fas fa-plus-circle"></i> Nueva Campaña o Promoción', ['create'], ['class' => 'btn btn-primary']) ?>
+            <?php endif; ?>
+        </div>
     </div>
 
     <!-- Tarjetas de métricas -->
