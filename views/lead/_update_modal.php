@@ -349,15 +349,6 @@ if ($success) {
         ])->label('Observaciones')
         ->hint('Información adicional relevante sobre el lead', ['class' => 'text-muted']) ?>
 
-        <div class="form-group mt-3">
-            <?= Html::submitButton('<i class="fas fa-save"></i> Actualizar', [
-                'class' => 'btn-submit',
-                'form' => 'update-lead-form',
-                'id' => 'submit-update',
-                'onclick' => 'submitForm(); return false;',
-            ]) ?>
-        </div>
-
         <?php ActiveForm::end(); ?>
     </div>
 

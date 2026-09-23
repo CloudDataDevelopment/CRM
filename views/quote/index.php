@@ -12,6 +12,14 @@ $this->params['breadcrumbs'][] = $this->title;
 $this->registerCssFile('@web/css/quote.css', ['depends' => [\yii\bootstrap5\BootstrapAsset::class]]);
 $this->registerCssFile('@web/css/quote-panel.css', ['depends' => [\yii\bootstrap5\BootstrapAsset::class], 'position' => \yii\web\View::POS_HEAD]);
 
+// 🔥 CSS del modal de edición (necesario para el panel lateral AJAX)
+$editModalCssPath = Yii::getAlias('@webroot/css/quote-edit-modal.css');
+$editModalCssVersion = file_exists($editModalCssPath) ? filemtime($editModalCssPath) : time();
+$this->registerCssFile('@web/css/quote-edit-modal.css?v=' . $editModalCssVersion, [
+    'depends' => [\yii\bootstrap5\BootstrapAsset::class],
+    'position' => \yii\web\View::POS_HEAD,
+]);
+
 // Registrar JS
 $this->registerJsFile('https://code.jquery.com/jquery-3.6.0.min.js', ['position' => \yii\web\View::POS_HEAD]);
 
@@ -57,14 +65,20 @@ $currentPage = $dataProvider ? $dataProvider->getPagination()->getPage() + 1 : 1
             </div>
             <div class="header-actions">
                 <?= $this->render('/layouts/_report_button') ?>
-                <?php if ($isAdmin): ?>
-                    <?= Html::a('<i class="fas fa-trash"></i> Papelera', ['trash'], ['class' => 'btn btn-outline-danger btn-sm']) ?>
+                
+                <?php if ($isAdmin || $isSuperAdmin): ?>
+                    <?= Html::a(
+                        '<i class="fas fa-trash"></i> Papelera',
+                        ['trash'],
+                        ['class' => 'btn btn-outline-danger btn-sm']
+                    ) ?>
                 <?php endif; ?>
+                
                 <?= Html::a('<i class="fas fa-plus"></i> Nueva Cotización', ['create'], ['class' => 'btn btn-primary btn-sm']) ?>
             </div>
         </div>
 
-        <!-- 🔥 MÉTRICAS CON PENDIENTE Y COMPLETADO -->
+        <!-- 🔥 MÉTRICAS -->
         <div class="row g-2 mb-2">
             <div class="col-xl-3 col-md-4 col-6">
                 <div class="card stat-card stat-card-primary dashboard-card">
@@ -201,12 +215,12 @@ $currentPage = $dataProvider ? $dataProvider->getPagination()->getPage() + 1 : 1
                                                         <?php if ($isAdmin || ($isAgent && $quote->lead && $quote->lead->id_user == Yii::$app->user->id)): ?>
                                                             <button class="btn btn-primary btn-sm btn-action edit-quote-btn" data-id="<?= $quote->id_quote ?>" title="Editar"><i class="fas fa-edit"></i></button>
                                                         <?php endif; ?>
-                                                        <?php if ($isAdmin): ?>
+                                                        <?php if ($isAdmin || $isSuperAdmin): ?>
                                                             <?= Html::a('<i class="fas fa-trash"></i>', ['delete', 'id' => $quote->id_quote], [
                                                                 'class' => 'btn btn-danger btn-sm btn-action',
-                                                                'title' => 'Eliminar',
+                                                                'title' => 'Mover a papelera',
                                                                 'data' => [
-                                                                    'confirm' => '¿Eliminar esta cotización?',
+                                                                    'confirm' => '¿Mover esta cotización a la papelera?',
                                                                     'method' => 'post',
                                                                 ],
                                                             ]) ?>
@@ -265,7 +279,7 @@ $currentPage = $dataProvider ? $dataProvider->getPagination()->getPage() + 1 : 1
                                                 <div class="activity-icon"><i class="fas fa-file-invoice text-primary"></i></div>
                                                 <div class="activity-content">
                                                     <div class="activity-title"><strong><?= $quote->lead ? Html::encode($quote->lead->name . ' ' . $quote->lead->lastname) : 'Lead no disponible' ?></strong> <span class="badge bg-<?= $quote->getStatusBadgeClass() ?>"><?= $quote->getStatusName() ?></span></div>
-                                                    <div class="activity-description">$<?= number_format($quote->total_amount ?? 0, 0, '.', ',') ?> - <?= StringHelper::truncate(Html::encode($quote->comments ?? 'Sin observaciones'), 40, '...') ?></div>
+                                                    <div class="activity-description">$<?= number_format($quote->total_amount ?? 0, 0, '.', ',') ?> - <?= StringHelper::truncate(Html::encode($quote->getNotes() ?? 'Sin observaciones'), 40, '...') ?></div>
                                                     <div class="activity-meta"><span class="activity-date"><i class="far fa-calendar-alt"></i> <?= date('d/m/Y H:i', strtotime($quote->date_quote)) ?></span></div>
                                                 </div>
                                             </div>
@@ -540,22 +554,41 @@ function inicializar() {
     // ============================================
     // FILTROS AUTOMÁTICOS
     // ============================================
-    document.getElementById('search-input').addEventListener('keypress', function(e) {
-        if (e.key === 'Enter') document.getElementById('form-filtros').submit();
-    });
-    document.getElementById('status-select').addEventListener('change', function() {
-        document.getElementById('form-filtros').submit();
-    });
-    document.getElementById('fecha-inicio').addEventListener('change', function() {
-        document.getElementById('form-filtros').submit();
-    });
-    document.getElementById('fecha-fin').addEventListener('change', function() {
-        document.getElementById('form-filtros').submit();
-    });
-    document.getElementById('btn-filtrar').addEventListener('click', function(e) {
-        e.preventDefault();
-        document.getElementById('form-filtros').submit();
-    });
+    var searchInput = document.getElementById('search-input');
+    if (searchInput) {
+        searchInput.addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') document.getElementById('form-filtros').submit();
+        });
+    }
+    
+    var statusSelect = document.getElementById('status-select');
+    if (statusSelect) {
+        statusSelect.addEventListener('change', function() {
+            document.getElementById('form-filtros').submit();
+        });
+    }
+    
+    var fechaInicio = document.getElementById('fecha-inicio');
+    if (fechaInicio) {
+        fechaInicio.addEventListener('change', function() {
+            document.getElementById('form-filtros').submit();
+        });
+    }
+    
+    var fechaFin = document.getElementById('fecha-fin');
+    if (fechaFin) {
+        fechaFin.addEventListener('change', function() {
+            document.getElementById('form-filtros').submit();
+        });
+    }
+    
+    var btnFiltrar = document.getElementById('btn-filtrar');
+    if (btnFiltrar) {
+        btnFiltrar.addEventListener('click', function(e) {
+            e.preventDefault();
+            document.getElementById('form-filtros').submit();
+        });
+    }
     
     console.log('✅ Panel lateral de cotizaciones inicializado');
 }

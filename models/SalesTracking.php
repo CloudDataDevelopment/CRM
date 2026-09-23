@@ -15,7 +15,8 @@ class SalesTracking extends ActiveRecord
     public function rules()
     {
         return [
-            [['id_user', 'id_lead', 'id_status'], 'required'],
+            // 🔥 id_user ya no es required — se auto-asigna
+            [['id_lead', 'id_status'], 'required'],
             [['id_user', 'id_lead', 'id_status'], 'integer'],
             [['hour', 'date_s', 'date_f'], 'safe'],
             [['comments'], 'string', 'max' => 50],
@@ -40,7 +41,24 @@ class SalesTracking extends ActiveRecord
     }
 
     // ============================================
-    // 🔥 BEFORE SAVE - ASIGNAR VALORES POR DEFECTO
+    // 🔥 BEFORE VALIDATE - ASIGNAR USUARIO ACTUAL
+    // ============================================
+    public function beforeValidate()
+    {
+        if (!parent::beforeValidate()) {
+            return false;
+        }
+
+        // 🔥 Asignar id_user ANTES de validar (evita "Usuario cannot be blank")
+        if (empty($this->id_user)) {
+            $this->id_user = Yii::$app->user->id ?: 1;
+        }
+
+        return true;
+    }
+
+    // ============================================
+    // 🔥 BEFORE SAVE - VALORES POR DEFECTO
     // ============================================
     public function beforeSave($insert)
     {
@@ -49,7 +67,7 @@ class SalesTracking extends ActiveRecord
         }
 
         if ($insert) {
-            // Asignar usuario actual
+            // Asignar usuario actual (por si acaso)
             if (empty($this->id_user)) {
                 $this->id_user = Yii::$app->user->id ?: 1;
             }
@@ -125,9 +143,6 @@ class SalesTracking extends ActiveRecord
         return $badges[$statusName] ?? 'secondary';
     }
 
-    /**
-     * Obtener el nombre de la empresa a través del lead
-     */
     public function getCompanyId()
     {
         if ($this->lead) {
@@ -136,9 +151,6 @@ class SalesTracking extends ActiveRecord
         return null;
     }
 
-    /**
-     * Obtener el nombre de la empresa
-     */
     public function getCompanyName()
     {
         if ($this->lead && $this->lead->company) {

@@ -5,25 +5,23 @@ use yii\helpers\Url;
 use yii\helpers\StringHelper;
 use yii\widgets\LinkPager;
 
-$this->title = 'Papelera de Leads';
-$this->params['breadcrumbs'][] = ['label' => 'Leads', 'url' => ['index']];
+$this->title = 'Papelera de Cotizaciones';
+$this->params['breadcrumbs'][] = ['label' => 'Cotizaciones', 'url' => ['index']];
 $this->params['breadcrumbs'][] = $this->title;
 
-// 🔥 REGISTRAR TODOS LOS CSS QUE USA COTIZACIONES
-$this->registerCssFile('@web/css/leads.css', ['depends' => [\yii\bootstrap5\BootstrapAsset::class]]);
-$this->registerCssFile('@web/css/dashboard.css', ['depends' => [\yii\bootstrap5\BootstrapAsset::class]]);
 $this->registerCssFile('@web/css/quote.css', ['depends' => [\yii\bootstrap5\BootstrapAsset::class]]);
+$this->registerCssFile('@web/css/dashboard.css', ['depends' => [\yii\bootstrap5\BootstrapAsset::class]]);
 
 $isAdmin = isset($isAdmin) ? $isAdmin : false;
 $isSuperAdmin = isset($isSuperAdmin) ? $isSuperAdmin : false;
-$leads = isset($leads) ? $leads : [];
+$quotes = isset($quotes) ? $quotes : [];
 $dataProvider = isset($dataProvider) ? $dataProvider : null;
-$totalLeads = isset($totalLeads) ? $totalLeads : 0;
+$totalQuotes = isset($totalQuotes) ? $totalQuotes : 0;
 $search = isset($search) ? $search : '';
 $statusOptions = isset($statusOptions) ? $statusOptions : [];
 
-$totalCount = $dataProvider ? $dataProvider->getTotalCount() : count($leads);
-$currentCount = $dataProvider ? $dataProvider->getCount() : count($leads);
+$totalCount = $dataProvider ? $dataProvider->getTotalCount() : 0;
+$currentCount = $dataProvider ? $dataProvider->getCount() : 0;
 $pageCount = $dataProvider ? $dataProvider->getPagination()->getPageCount() : 1;
 $currentPage = $dataProvider ? $dataProvider->getPagination()->getPage() + 1 : 1;
 ?>
@@ -39,7 +37,7 @@ $currentPage = $dataProvider ? $dataProvider->getPagination()->getPage() + 1 : 1
                 <div class="breadcrumb-custom">
                     <span>CRM</span><span class="separator">›</span>
                     <span>Ventas</span><span class="separator">›</span>
-                    <span>Leads</span><span class="separator">›</span>
+                    <span>Cotizaciones</span><span class="separator">›</span>
                     <span class="current">Papelera</span>
                 </div>
                 <h1 class="page-title">
@@ -50,7 +48,7 @@ $currentPage = $dataProvider ? $dataProvider->getPagination()->getPage() + 1 : 1
             </div>
             <div class="header-actions">
                 <?= Html::a(
-                    '<i class="fas fa-arrow-left"></i> Volver a Leads',
+                    '<i class="fas fa-arrow-left"></i> Volver a Cotizaciones',
                     ['index'],
                     ['class' => 'btn btn-secondary btn-sm']
                 ) ?>
@@ -63,8 +61,8 @@ $currentPage = $dataProvider ? $dataProvider->getPagination()->getPage() + 1 : 1
         <div class="alert alert-warning d-flex align-items-center mb-3" role="alert">
             <i class="fas fa-info-circle me-2" style="font-size: 1.2rem;"></i>
             <div>
-                <strong>Papelera:</strong> Aquí se encuentran los leads marcados como <strong>eliminados</strong>.
-                Puedes restaurarlos para que vuelvan al listado activo.
+                <strong>Papelera:</strong> Aquí se encuentran las cotizaciones marcadas como <strong>canceladas</strong>.
+                Puedes restaurarlas para que vuelvan al listado activo.
             </div>
         </div>
 
@@ -92,7 +90,7 @@ $currentPage = $dataProvider ? $dataProvider->getPagination()->getPage() + 1 : 1
         <!-- ============================================ -->
         <div class="card filtros-card mb-3">
             <div class="card-body">
-                <form method="get" action="<?= Url::to(['lead/trash']) ?>" id="form-filtros">
+                <form method="get" action="<?= Url::to(['quote/trash']) ?>" id="form-filtros">
                     <div class="row align-items-end g-2">
                         <div class="col-md-1">
                             <label class="form-label fw-bold mb-0">Buscar</label>
@@ -101,7 +99,7 @@ $currentPage = $dataProvider ? $dataProvider->getPagination()->getPage() + 1 : 1
                             <input type="text" 
                                    class="form-control" 
                                    name="search" 
-                                   placeholder="Buscar por nombre, teléfono, observaciones..." 
+                                   placeholder="Buscar por cliente, teléfono, observaciones..." 
                                    value="<?= Html::encode($search) ?>" 
                                    id="search-input">
                         </div>
@@ -111,7 +109,7 @@ $currentPage = $dataProvider ? $dataProvider->getPagination()->getPage() + 1 : 1
                             </button>
                         </div>
                         <div class="col-md-2">
-                            <a href="<?= Url::to(['lead/trash']) ?>" 
+                            <a href="<?= Url::to(['quote/trash']) ?>" 
                                class="btn btn-secondary w-100" 
                                title="Limpiar filtros">
                                 <i class="fas fa-undo"></i> Limpiar
@@ -129,7 +127,7 @@ $currentPage = $dataProvider ? $dataProvider->getPagination()->getPage() + 1 : 1
             <div class="card-header">
                 <div class="header-left">
                     <i class="fas fa-trash text-danger"></i>
-                    <span>Leads en Papelera</span>
+                    <span>Cotizaciones en Papelera</span>
                     <span class="badge bg-danger ms-2"><?= $totalCount ?></span>
                 </div>
                 <div class="header-right">
@@ -140,58 +138,79 @@ $currentPage = $dataProvider ? $dataProvider->getPagination()->getPage() + 1 : 1
             </div>
             <div class="card-body p-0">
                 <div class="table-responsive">
-                    <table class="table table-hover mb-0" id="leads-table">
+                    <table class="table table-hover mb-0" id="quotes-table">
                         <thead class="table-light">
                             <tr>
                                 <th width="50">#</th>
-                                <th>Nombre</th>
-                                <th>Teléfono</th>
+                                <th>Cliente</th>
+                                <th>Fecha</th>
+                                <th>Total</th>
                                 <th>Estado</th>
-                                <th>Fecha Eliminación</th>
+                                <th>Motivo</th>
                                 <th class="text-center" width="180">Acciones</th>
                             </tr>
                         </thead>
                         <tbody>
-                            <?php if (!empty($leads)): ?>
-                                <?php foreach ($leads as $index => $lead): ?>
-                                    <tr class="lead-row" data-id="<?= $lead->id_lead ?>">
+                            <?php if (!empty($quotes)): ?>
+                                <?php foreach ($quotes as $index => $quote): ?>
+                                    <?php
+                                    $lead = $quote->lead;
+                                    $leadName = $lead ? $lead->name . ' ' . $lead->lastname : 'Lead eliminado';
+                                    $leadPhone = $lead ? $lead->phone : null;
+                                    $statusName = $quote->getStatusName();
+                                    $badgeClass = $quote->getStatusBadgeClass();
+                                    ?>
+                                    <tr class="quote-row" data-id="<?= $quote->id_quote ?>">
                                         <td><?= $index + 1 ?></td>
                                         <td>
-                                            <strong><?= Html::encode($lead->name . ' ' . $lead->lastname) ?></strong>
-                                        </td>
-                                        <td>
-                                            <?php if ($lead->phone): ?>
-                                                <i class="fas fa-phone text-success"></i>
-                                                <?= Html::encode($lead->phone) ?>
-                                            <?php else: ?>
-                                                <span class="text-muted">N/A</span>
+                                            <strong><?= Html::encode($leadName) ?></strong>
+                                            <?php if ($leadPhone): ?>
+                                                <br>
+                                                <small class="text-muted">
+                                                    <i class="fas fa-phone"></i> <?= Html::encode($leadPhone) ?>
+                                                </small>
                                             <?php endif; ?>
                                         </td>
                                         <td>
-                                            <span class="badge bg-dark">
-                                                <i class="fas fa-ban"></i> Eliminado
+                                            <?= date('d/m/Y', strtotime($quote->date_quote)) ?>
+                                            <?php if (!empty($quote->hour_quote)): ?>
+                                                <br>
+                                                <small class="text-muted">
+                                                    <?= date('H:i', strtotime($quote->hour_quote)) ?>
+                                                </small>
+                                            <?php endif; ?>
+                                        </td>
+                                        <td>
+                                            <strong>$<?= number_format($quote->total_amount ?? 0, 0, '.', ',') ?></strong>
+                                        </td>
+                                        <td>
+                                            <span class="badge bg-<?= $badgeClass ?>">
+                                                <?= Html::encode($statusName) ?>
                                             </span>
                                         </td>
                                         <td>
-                                            <?= date('d/m/Y', strtotime($lead->created_at)) ?>
+                                            <?php 
+                                            $notas = $quote->getNotes();
+                                            echo $notas ? StringHelper::truncate(Html::encode($notas), 50, '...') : '<span class="text-muted">Sin motivo</span>';
+                                            ?>
                                         </td>
                                         <td class="text-center">
                                             <div class="d-flex gap-1 justify-content-center">
                                                 <?= Html::a(
                                                     '<i class="fas fa-undo"></i> Restaurar',
-                                                    ['restore', 'id' => $lead->id_lead],
+                                                    ['restore', 'id' => $quote->id_quote],
                                                     [
                                                         'class' => 'btn btn-sm btn-success',
-                                                        'title' => 'Restaurar lead',
+                                                        'title' => 'Restaurar cotización',
                                                         'data' => [
-                                                            'confirm' => '¿Restaurar este lead? Volverá al listado activo.',
+                                                            'confirm' => '¿Restaurar esta cotización? Volverá al listado activo.',
                                                             'method' => 'post',
                                                         ],
                                                     ]
                                                 ) ?>
                                                 <?= Html::a(
                                                     '<i class="fas fa-eye"></i>',
-                                                    ['details', 'id' => $lead->id_lead],
+                                                    ['details', 'id' => $quote->id_quote],
                                                     [
                                                         'class' => 'btn btn-sm btn-info',
                                                         'title' => 'Ver detalles',
@@ -203,14 +222,14 @@ $currentPage = $dataProvider ? $dataProvider->getPagination()->getPage() + 1 : 1
                                 <?php endforeach; ?>
                             <?php else: ?>
                                 <tr>
-                                    <td colspan="6" class="text-center text-muted py-5">
+                                    <td colspan="7" class="text-center text-muted py-5">
                                         <i class="fas fa-trash fa-3x d-block mb-3 text-muted"></i>
-                                        <p class="mb-2">No hay leads en la papelera.</p>
+                                        <p class="mb-2">No hay cotizaciones en la papelera.</p>
                                         <small class="text-muted d-block mb-3">
-                                            Los leads eliminados aparecerán aquí.
+                                            Las cotizaciones canceladas aparecerán aquí.
                                         </small>
                                         <?= Html::a(
-                                            '<i class="fas fa-arrow-left"></i> Volver a Leads',
+                                            '<i class="fas fa-arrow-left"></i> Volver a Cotizaciones',
                                             ['index'],
                                             ['class' => 'btn btn-sm btn-primary']
                                         ) ?>
@@ -226,7 +245,7 @@ $currentPage = $dataProvider ? $dataProvider->getPagination()->getPage() + 1 : 1
                 <div class="card-footer d-flex justify-content-between align-items-center flex-wrap gap-2">
                     <small class="text-muted">
                         <i class="fas fa-info-circle"></i>
-                        Mostrando <?= $currentCount ?> de <?= $totalCount ?> leads
+                        Mostrando <?= $currentCount ?> de <?= $totalCount ?> cotizaciones
                     </small>
                     <?= LinkPager::widget([
                         'pagination' => $dataProvider->pagination,

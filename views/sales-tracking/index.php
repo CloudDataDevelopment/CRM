@@ -9,13 +9,14 @@ $this->title = 'Seguimientos';
 $this->params['breadcrumbs'][] = $this->title;
 
 // ============================================
-// REGISTRAR CSS (solo sales-tracking)
+// REGISTRAR CSS
 // ============================================
 $this->registerCssFile('@web/css/sales-tracking.css', ['depends' => [\yii\bootstrap5\BootstrapAsset::class]]);
 $this->registerCssFile('@web/css/sales-tracking-panel.css', ['depends' => [\yii\bootstrap5\BootstrapAsset::class], 'position' => \yii\web\View::POS_HEAD]);
 $this->registerCssFile('@web/css/sales-tracking-edit-modal.css', ['depends' => [\yii\bootstrap5\BootstrapAsset::class], 'position' => \yii\web\View::POS_HEAD]);
 
 // Registrar JS
+$this->registerJsFile('https://code.jquery.com/3.6.0/jquery.min.js', ['position' => \yii\web\View::POS_HEAD]);
 $this->registerJsFile('https://code.jquery.com/jquery-3.6.0.min.js', ['position' => \yii\web\View::POS_HEAD]);
 
 // ============================================
@@ -38,7 +39,7 @@ $fecha_fin = isset($fecha_fin) ? $fecha_fin : '';
 $hasData = !empty($trackings);
 
 // ============================================
-// MÉTRICAS (formato leads)
+// MÉTRICAS
 // ============================================
 $metricas = [
     ['class' => 'primary', 'icon' => 'phone', 'label' => 'Total Seguimientos', 'value' => $totalTrackings],
@@ -73,6 +74,15 @@ $metricas = [
             </div>
             <div class="header-actions">
                 <?= $this->render('/layouts/_report_button') ?>
+                
+                <?php if ($isAdmin || $isSuperAdmin): ?>
+                    <?= Html::a(
+                        '<i class="fas fa-trash"></i> Papelera',
+                        ['trash'],
+                        ['class' => 'btn btn-outline-danger btn-sm btn-tracking-action']
+                    ) ?>
+                <?php endif; ?>
+                
                 <?= Html::a('<i class="fas fa-plus"></i> Nuevo Seguimiento', ['create'], [
                     'class' => 'btn btn-primary btn-sm btn-tracking-action'
                 ]) ?>
@@ -80,7 +90,7 @@ $metricas = [
         </div>
 
         <!-- ============================================ -->
-        <!-- MÉTRICAS (6 tarjetas) -->
+        <!-- MÉTRICAS -->
         <!-- ============================================ -->
         <div class="row g-2 mb-2">
             <?php foreach ($metricas as $metrica): ?>
@@ -137,7 +147,7 @@ $metricas = [
         </div>
 
         <!-- ============================================ -->
-        <!-- CONTENEDOR PRINCIPAL: TABLA + PANEL -->
+        <!-- CONTENEDOR PRINCIPAL -->
         <!-- ============================================ -->
         <div class="tracking-panel-container">
             <!-- Tabla -->
@@ -214,10 +224,9 @@ $metricas = [
                                                             </button>
                                                             <?= Html::a('<i class="fas fa-trash"></i>', ['delete', 'id' => $tracking->id_sales_tracking], [
                                                                 'class' => 'btn btn-danger btn-sm tracking-btn-action',
-                                                                'title' => 'Eliminar',
+                                                                'title' => 'Mover a papelera',
                                                                 'data' => [
-                                                                    'confirm' => '¿Eliminar este seguimiento?',
-                                                                    'method' => 'post',
+                                                                    'confirm' => '¿Mover este seguimiento a la papelera?',
                                                                 ],
                                                             ]) ?>
                                                         <?php endif; ?>
@@ -262,9 +271,7 @@ $metricas = [
                     </div>
                 </div>
                 
-                <!-- ============================================ -->
                 <!-- ÚLTIMOS SEGUIMIENTOS + RESUMEN -->
-                <!-- ============================================ -->
                 <div class="row g-2 mt-3 bottom-cards">
                     <div class="col-md-6">
                         <div class="card tracking-activities-card">
@@ -342,9 +349,7 @@ $metricas = [
             <!-- Panel Lateral -->
             <div class="panel-wrapper" id="panelWrapper">
                 <div class="card slide-panel-card">
-                    <div class="card-body p-0" id="slidePanelContent">
-                        <!-- El contenido se carga dinámicamente vía AJAX -->
-                    </div>
+                    <div class="card-body p-0" id="slidePanelContent"></div>
                 </div>
             </div>
         </div>
@@ -555,22 +560,41 @@ function inicializar() {
         }
     });
     
-    document.getElementById('search-input').addEventListener('keypress', function(e) {
-        if (e.key === 'Enter') document.getElementById('form-filtros').submit();
-    });
-    document.getElementById('status-select').addEventListener('change', function() {
-        document.getElementById('form-filtros').submit();
-    });
-    document.getElementById('fecha-inicio').addEventListener('change', function() {
-        document.getElementById('form-filtros').submit();
-    });
-    document.getElementById('fecha-fin').addEventListener('change', function() {
-        document.getElementById('form-filtros').submit();
-    });
-    document.getElementById('btn-filtrar').addEventListener('click', function(e) {
-        e.preventDefault();
-        document.getElementById('form-filtros').submit();
-    });
+    var searchInput = document.getElementById('search-input');
+    if (searchInput) {
+        searchInput.addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') document.getElementById('form-filtros').submit();
+        });
+    }
+    
+    var statusSelect = document.getElementById('status-select');
+    if (statusSelect) {
+        statusSelect.addEventListener('change', function() {
+            document.getElementById('form-filtros').submit();
+        });
+    }
+    
+    var fechaInicio = document.getElementById('fecha-inicio');
+    if (fechaInicio) {
+        fechaInicio.addEventListener('change', function() {
+            document.getElementById('form-filtros').submit();
+        });
+    }
+    
+    var fechaFin = document.getElementById('fecha-fin');
+    if (fechaFin) {
+        fechaFin.addEventListener('change', function() {
+            document.getElementById('form-filtros').submit();
+        });
+    }
+    
+    var btnFiltrar = document.getElementById('btn-filtrar');
+    if (btnFiltrar) {
+        btnFiltrar.addEventListener('click', function(e) {
+            e.preventDefault();
+            document.getElementById('form-filtros').submit();
+        });
+    }
     
     console.log('✅ Panel lateral de seguimientos inicializado');
 }

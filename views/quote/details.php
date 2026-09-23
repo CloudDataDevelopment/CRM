@@ -177,7 +177,7 @@ $statusIcons = [
                         </div>
                         <div class="text-center mt-3">
                             <?php if ($lead): ?>
-                                <?= Html::a('<i class="fas fa-eye"></i> Ver Lead', ['lead/view', 'id' => $lead->id_lead], ['class' => 'btn btn-outline-primary btn-sm']) ?>
+                                <?= Html::a('<i class="fas fa-eye"></i> Ver Lead', ['lead/details', 'id' => $lead->id_lead], ['class' => 'btn btn-outline-primary btn-sm']) ?>
                                 <?= Html::a('<i class="fas fa-phone"></i> Llamar', 'tel:' . $leadPhone, ['class' => 'btn btn-outline-success btn-sm']) ?>
                                 <a href="https://wa.me/<?= preg_replace('/[^0-9]/', '', $leadPhone) ?>" target="_blank" class="btn btn-outline-success btn-sm">
                                     <i class="fab fa-whatsapp"></i> WhatsApp

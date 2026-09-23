@@ -28,7 +28,6 @@ $typeList = isset($typeList) ? $typeList : [];
 $totalContacts = isset($totalContacts) ? $totalContacts : 0;
 $activeContacts = isset($activeContacts) ? $activeContacts : 0;
 $inactiveContacts = isset($inactiveContacts) ? $inactiveContacts : 0;
-$trashCount = isset($trashCount) ? $trashCount : 0;
 
 $metricas = [
     ['class' => 'primary', 'icon' => 'address-book', 'label' => 'Total Contactos', 'value' => $totalContacts],
@@ -52,7 +51,7 @@ $metricas = [
         <div class="header-actions">
             <?php if ($isAdmin || $isSuperAdmin): ?>
                 <?= Html::a(
-                    '<i class="fas fa-trash"></i> Papelera <span class="badge bg-danger ms-1">' . $trashCount . '</span>',
+                    '<i class="fas fa-trash"></i> Papelera',
                     ['trash'],
                     ['class' => 'btn btn-outline-danger btn-sm btn-header-action']
                 ) ?>

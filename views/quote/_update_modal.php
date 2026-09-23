@@ -11,8 +11,11 @@ $leadsList = isset($leadsList) ? $leadsList : [];
 $statusOptions = isset($statusOptions) ? $statusOptions : [];
 $isAdmin = isset($isAdmin) ? $isAdmin : false;
 
-// Registrar CSS del modal de edición
-$this->registerCssFile('@web/css/quote-edit-modal.css', [
+// 🔥 Registrar CSS del modal de edición con caché busting
+$cssPath = Yii::getAlias('@webroot/css/quote-edit-modal.css');
+$cssVersion = file_exists($cssPath) ? filemtime($cssPath) : time();
+
+$this->registerCssFile('@web/css/quote-edit-modal.css?v=' . $cssVersion, [
     'depends' => [\yii\bootstrap5\BootstrapAsset::class],
     'position' => \yii\web\View::POS_HEAD,
 ]);
@@ -132,17 +135,9 @@ if ($success) {
                 <?= $form->field($model, 'comments')->textarea([
                     'rows' => 3,
                     'class' => 'form-control form-control-sm',
-                    'placeholder' => 'Observaciones adicionales...'
+                    'placeholder' => 'Observaciones adicionales...',
+                    'value' => $model->getNotes(),
                 ])->label('Observaciones') ?>
-
-                <div class="form-group mt-3">
-                    <?= Html::submitButton('<i class="fas fa-save"></i> Actualizar', [
-                        'class' => 'btn-submit',
-                        'form' => 'update-quote-form',
-                        'id' => 'submit-update',
-                        'onclick' => 'submitForm(); return false;',
-                    ]) ?>
-                </div>
 
                 <?php ActiveForm::end(); ?>
             </div>
@@ -303,7 +298,8 @@ if ($success) {
         <?= $form->field($model, 'comments')->textarea([
             'rows' => 3,
             'class' => 'form-control form-control-sm',
-            'placeholder' => 'Observaciones adicionales...'
+            'placeholder' => 'Observaciones adicionales...',
+            'value' => $model->getNotes(),
         ])->label('Observaciones') ?>
 
         <div class="form-group mt-3">

@@ -152,19 +152,9 @@ $statusIcons = [
     </div>
 
     <div class="slide-panel-footer">
-        <a href="<?= Url::to(['sales-tracking/details', 'id' => $model->id_sales_tracking]) ?>" target="_blank" class="btn-footer btn-footer-primary">
-            <i class="fas fa-external-link-alt"></i> Abrir
+        <a href="<?= Url::to(['lead/details', 'id' => $model->id_sales_tracking]) ?>" target="_blank" class="btn-footer btn-footer-primary">
+            <i class="fas fa-external-link-alt"></i> ver más
         </a>
-        <?php if ($isAdmin || $isSuperAdmin): ?>
-            <a href="#" class="btn-footer btn-footer-success" onclick="event.preventDefault(); closePanel(); setTimeout(function() { openEditPanel(<?= $model->id_sales_tracking ?>); }, 300);">
-                <i class="fas fa-edit"></i> Editar
-            </a>
-        <?php endif; ?>
-        <?php if ($model->lead): ?>
-            <a href="<?= Url::to(['lead/details', 'id' => $model->id_lead]) ?>" target="_blank" class="btn-footer btn-footer-info">
-                <i class="fas fa-user"></i> Ver Lead
-            </a>
-        <?php endif; ?>
         <button class="btn-footer btn-footer-secondary" onclick="closePanel()">
             <i class="fas fa-times"></i> Cerrar
         </button>

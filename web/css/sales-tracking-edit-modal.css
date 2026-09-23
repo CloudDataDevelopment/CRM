@@ -1,5 +1,5 @@
 /* ============================================ */
-/* ESTILOS PARA MODAL DE EDICIÓN DE LEADS      */
+/* ESTILOS PARA MODAL DE EDICIÓN DE SEGUIMIENTOS */
 /* ============================================ */
 
 /* ============================================ */
@@ -7,13 +7,12 @@
 /* ============================================ */
 
 .edit-panel-content {
+    height: 100%;
     display: flex;
     flex-direction: column;
     background: #f5f7fa;
     font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
     cursor: default !important;
-    /* 🔥 NO usar height: 100% ni flex: 1 en el padre */
-    max-height: 100%;
 }
 
 /* Forzar cursor en todos los elementos del panel */
@@ -68,18 +67,15 @@
 }
 
 /* ============================================ */
-/* CUERPO - 🔥 AHORA SE AJUSTA AL CONTENIDO     */
+/* CUERPO                                       */
 /* ============================================ */
 
 .edit-panel-body {
-    /* 🔥 NO usar flex: 1 ni height fijo */
-    padding: 14px 18px 10px 18px;
+    flex: 1;
+    padding: 16px 18px 12px 18px;
     overflow-y: auto;
-    overflow-x: hidden;
     background: #f5f7fa;
     cursor: default !important;
-    /* 🔥 Altura máxima razonable para no estirarse */
-    max-height: calc(100vh - 180px);
 }
 
 .edit-panel-body::-webkit-scrollbar {
@@ -97,26 +93,24 @@
 }
 
 /* ============================================ */
-/* FORMULARIO - 🔥 ESPACIADO COMPACTO           */
+/* FORMULARIO                                   */
 /* ============================================ */
 
 .edit-panel-body .form-group {
-    margin-bottom: 8px !important;
+    margin-bottom: 12px;
 }
 
-/* INPUTS, TEXTAREAS Y SELECTS */
+/* INPUTS, TEXTAREAS Y SELECTS - CURSOR TEXTO */
 .edit-panel-body .form-control-sm,
 .edit-panel-body .form-select-sm {
-    font-size: 0.82rem;
-    padding: 5px 10px;
+    font-size: 0.85rem;
+    padding: 6px 10px;
     border-radius: 6px;
     border: 1px solid #ced4da;
     transition: all 0.3s ease;
     cursor: text !important;
     color: #212529 !important;
     background: #ffffff !important;
-    height: auto;
-    min-height: 34px;
 }
 
 .edit-panel-body .form-control-sm:focus,
@@ -124,7 +118,6 @@
     border-color: #4e73df;
     box-shadow: 0 0 0 3px rgba(78, 115, 223, 0.15);
     cursor: text !important;
-    outline: none;
 }
 
 .edit-panel-body .form-control-sm[readonly],
@@ -139,24 +132,16 @@
     background: #e9ecef !important;
 }
 
-/* 🔥 TEXTAREA más compacto */
-.edit-panel-body textarea.form-control-sm {
-    min-height: 70px;
-    resize: vertical;
-    line-height: 1.4;
-}
-
 /* ============================================ */
-/* LABELS - 🔥 MÁS COMPACTOS                    */
+/* LABELS                                       */
 /* ============================================ */
 
 .edit-panel-body .control-label {
-    font-size: 0.78rem;
+    font-size: 0.8rem;
     font-weight: 600;
     color: #495057;
-    margin-bottom: 3px;
+    margin-bottom: 4px;
     cursor: default !important;
-    display: block;
 }
 
 .edit-panel-body .control-label .text-danger {
@@ -165,31 +150,20 @@
 }
 
 .edit-panel-body .help-block {
-    font-size: 0.68rem;
+    font-size: 0.7rem;
     color: #dc3545;
-    margin-top: 2px;
+    margin-top: 3px;
     cursor: default !important;
 }
 
 .edit-panel-body .text-muted {
-    font-size: 0.68rem;
+    font-size: 0.7rem;
     color: #6c757d;
     cursor: default !important;
 }
 
 .edit-panel-body .text-muted i {
     margin-right: 3px;
-}
-
-/* 🔥 Row con gap más compacto */
-.edit-panel-body .row {
-    --bs-gutter-x: 0.75rem;
-    --bs-gutter-y: 0;
-}
-
-.edit-panel-body .row > [class*="col-"] {
-    padding-right: calc(var(--bs-gutter-x) * 0.5);
-    padding-left: calc(var(--bs-gutter-x) * 0.5);
 }
 
 /* ============================================ */
@@ -201,8 +175,8 @@
     color: #fff;
     border: none;
     border-radius: 6px;
-    padding: 7px 16px;
-    font-size: 0.82rem;
+    padding: 8px 16px;
+    font-size: 0.85rem;
     font-weight: 500;
     width: 100%;
     transition: all 0.3s ease;
@@ -229,8 +203,9 @@
 /* ============================================ */
 
 .edit-panel-message {
-    padding: 25px 20px;
+    padding: 30px 20px;
     text-align: center;
+    flex: 1;
     display: flex;
     flex-direction: column;
     justify-content: center;
@@ -238,19 +213,19 @@
 }
 
 .edit-panel-message i {
-    font-size: 2.5rem;
-    margin-bottom: 12px;
+    font-size: 3rem;
+    margin-bottom: 15px;
 }
 
 .edit-panel-message p {
-    font-size: 0.9rem;
-    margin-bottom: 12px;
+    font-size: 0.95rem;
+    margin-bottom: 15px;
 }
 
 .edit-panel-message .btn-message {
     padding: 6px 20px;
     border-radius: 6px;
-    font-size: 0.78rem;
+    font-size: 0.8rem;
     font-weight: 500;
     border: none;
     cursor: pointer !important;
@@ -279,8 +254,26 @@
     background: #5a6268;
 }
 
+.edit-panel-message .btn-message-success {
+    background: #1cc88a;
+    color: #fff;
+}
+
+.edit-panel-message .btn-message-success:hover {
+    background: #169b6b;
+}
+
+.edit-panel-message .btn-message-danger {
+    background: #e74a3b;
+    color: #fff;
+}
+
+.edit-panel-message .btn-message-danger:hover {
+    background: #c0392b;
+}
+
 /* ============================================ */
-/* MENSAJE FLOTANTE DE ÉXITO                    */
+/* MENSAJE FLOTANTE                            */
 /* ============================================ */
 
 .alert-success {
@@ -289,20 +282,14 @@
     z-index: 10;
     box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
     cursor: default !important;
-    padding: 8px 12px;
-    font-size: 0.78rem;
-    margin-bottom: 10px;
-    border-radius: 6px;
 }
 
 .alert-success .btn-close {
     cursor: pointer !important;
-    padding: 6px;
-    font-size: 0.7rem;
 }
 
 /* ============================================ */
-/* FOOTER - 🔥 PEGADO AL CONTENIDO              */
+/* FOOTER                                       */
 /* ============================================ */
 
 .edit-panel-footer {
@@ -311,17 +298,17 @@
     border-top: 1px solid #e9ecef;
     flex-shrink: 0;
     display: flex;
-    gap: 8px;
+    gap: 6px;
     flex-wrap: wrap;
 }
 
 .edit-panel-footer .btn-footer {
-    font-size: 0.7rem;
-    padding: 7px 14px;
+    font-size: 0.65rem;
+    padding: 6px 12px;
     border-radius: 6px;
     font-weight: 500;
     flex: 1;
-    min-width: 60px;
+    min-width: 50px;
     text-align: center;
     border: none;
     transition: all 0.2s ease;
@@ -329,12 +316,12 @@
     display: inline-flex;
     align-items: center;
     justify-content: center;
-    gap: 5px;
+    gap: 4px;
     cursor: pointer !important;
 }
 
 .edit-panel-footer .btn-footer i {
-    font-size: 0.7rem;
+    font-size: 0.65rem;
 }
 
 .edit-panel-footer .btn-footer:hover {
@@ -383,14 +370,16 @@
 }
 
 /* ============================================ */
-/* CORRECCIÓN DEL CURSOR                        */
+/* CORRECCIÓN DEL CURSOR - SELECTORES ESPECÍFICOS */
 /* ============================================ */
 
+/* Todo el contenido del panel - cursor por defecto */
 .edit-panel-content,
 .edit-panel-content * {
     cursor: default !important;
 }
 
+/* Inputs, textareas y selects - cursor de texto */
 .edit-panel-content input,
 .edit-panel-content textarea,
 .edit-panel-content select {
@@ -404,6 +393,7 @@
     cursor: text !important;
 }
 
+/* Botones - cursor de puntero */
 .edit-panel-content button,
 .edit-panel-content .btn,
 .edit-panel-content .btn-footer,
@@ -413,72 +403,41 @@
     cursor: pointer !important;
 }
 
+/* Elementos deshabilitados - cursor de no permitido */
 .edit-panel-content .btn-submit:disabled,
 .edit-panel-content button:disabled,
 .edit-panel-content [disabled] {
     cursor: not-allowed !important;
 }
 
+/* Enlaces - cursor de puntero */
 .edit-panel-content a {
     cursor: pointer !important;
 }
 
+/* Labels - cursor por defecto */
 .edit-panel-content label,
 .edit-panel-content .control-label {
     cursor: default !important;
 }
 
 /* ============================================ */
-/* RESPONSIVE                                   */
+/* RESPONSIVE                                  */
 /* ============================================ */
 
 @media (max-width: 768px) {
     .edit-panel-body {
-        padding: 12px 14px 8px 14px;
-        max-height: calc(100vh - 160px);
+        padding: 12px 14px 10px 14px;
     }
     
     .edit-panel-body .form-control-sm,
     .edit-panel-body .form-select-sm {
-        font-size: 0.78rem;
+        font-size: 0.8rem;
         padding: 5px 8px;
-        min-height: 32px;
     }
     
     .edit-panel-body .control-label {
-        font-size: 0.72rem;
-    }
-    
-    .edit-panel-body .form-group {
-        margin-bottom: 6px !important;
-    }
-    
-    .edit-panel-footer .btn-footer {
-        font-size: 0.65rem;
-        padding: 6px 10px;
-        min-width: 50px;
-    }
-    
-    .edit-panel-header .header-title {
-        font-size: 0.85rem;
-    }
-}
-
-@media (max-width: 576px) {
-    .edit-panel-body {
-        padding: 10px 12px 6px 12px;
-        max-height: calc(100vh - 140px);
-    }
-    
-    .edit-panel-body .form-control-sm,
-    .edit-panel-body .form-select-sm {
-        font-size: 0.72rem;
-        padding: 4px 6px;
-        min-height: 30px;
-    }
-    
-    .edit-panel-body .control-label {
-        font-size: 0.68rem;
+        font-size: 0.75rem;
     }
     
     .edit-panel-footer .btn-footer {
@@ -488,55 +447,40 @@
     }
     
     .edit-panel-header .header-title {
+        font-size: 0.85rem;
+    }
+}
+
+@media (max-width: 576px) {
+    .edit-panel-body {
+        padding: 10px 12px 8px 12px;
+    }
+    
+    .edit-panel-body .form-control-sm,
+    .edit-panel-body .form-select-sm {
+        font-size: 0.75rem;
+        padding: 4px 6px;
+    }
+    
+    .edit-panel-body .control-label {
+        font-size: 0.7rem;
+    }
+    
+    .edit-panel-footer .btn-footer {
+        font-size: 0.55rem;
+        padding: 4px 6px;
+        min-width: 30px;
+    }
+    
+    .edit-panel-header .header-title {
         font-size: 0.75rem;
     }
     
     .edit-panel-message i {
-        font-size: 2rem;
+        font-size: 2.5rem;
     }
     
     .edit-panel-message p {
-        font-size: 0.8rem;
+        font-size: 0.85rem;
     }
-}
-/* ============================================ */
-/* 🔥 FIX: Panel de edición se ajusta al contenido */
-/* ============================================ */
-
-/* El contenedor del panel */
-.panel-wrapper {
-    display: flex;
-    flex-direction: column;
-    height: auto !important;
-    max-height: 100vh;
-}
-
-/* La card del panel */
-.slide-panel-card {
-    height: auto !important;
-    max-height: 100vh;
-    display: flex;
-    flex-direction: column;
-    overflow: hidden;
-}
-
-/* El body del panel (donde va el formulario) */
-.slide-panel-card .card-body {
-    height: auto !important;
-    max-height: calc(100vh - 40px);
-    overflow-y: auto;
-    padding: 0 !important;
-}
-
-/* El contenido del formulario de edición */
-.slide-panel-card .edit-panel-content {
-    height: auto !important;
-    min-height: 0;
-}
-
-/* El body del form de edición se ajusta */
-.slide-panel-card .edit-panel-body {
-    height: auto !important;
-    flex: 0 1 auto !important;
-    max-height: calc(100vh - 140px);
 }

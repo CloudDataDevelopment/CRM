@@ -109,10 +109,6 @@ $whatsappLink = $phone ? 'https://wa.me/' . $phone : '#';
             
             <div class="profile-actions">
                 <?php if ($phone): ?>
-                    <a href="tel:<?= Html::encode($phone) ?>" class="action-btn action-btn-phone" title="Llamar">
-                        <i class="fas fa-phone"></i>
-                        <span>Llamar</span>
-                    </a>
                     <a href="<?= $whatsappLink ?>" target="_blank" class="action-btn action-btn-whatsapp" title="WhatsApp">
                         <i class="fab fa-whatsapp"></i>
                         <span>WhatsApp</span>
@@ -172,10 +168,5 @@ $whatsappLink = $phone ? 'https://wa.me/' . $phone : '#';
         <button class="btn-footer btn-footer-primary" onclick="openEditPanel(<?= $model->id_contact ?>);">
             <i class="fas fa-edit"></i> Editar
         </button>
-        <a href="<?= Url::to(['contacts/view', 'id' => $model->id_contact]) ?>" 
-           class="btn-footer btn-footer-secondary"
-           target="_blank">
-            <i class="fas fa-external-link-alt"></i> Abrir
-        </a>
     </div>
 </div>

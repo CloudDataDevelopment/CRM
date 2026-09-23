@@ -25,7 +25,8 @@ class SalesTrackingController extends Controller
             'verbs' => [
                 'class' => VerbFilter::className(),
                 'actions' => [
-                    'delete' => ['POST'],
+                    'delete'  => ['POST', 'GET'],
+                    'restore' => ['POST', 'GET'],
                 ],
             ],
         ];
@@ -74,6 +75,15 @@ class SalesTrackingController extends Controller
     }
 
     // ============================================
+    // HELPER: Obtener ID del estado "Inactivo"
+    // ============================================
+    private function getTrashStatusId()
+    {
+        $status = Status::find()->where(['status' => 'Inactivo'])->one();
+        return $status ? $status->id_status : null;
+    }
+
+    // ============================================
     // LISTA DE SEGUIMIENTOS CON PAGINACIÓN
     // ============================================
     public function actionIndex()
@@ -95,6 +105,12 @@ class SalesTrackingController extends Controller
             ->alias('st')
             ->leftJoin('Lead l', 'st.id_lead = l.id_lead')
             ->leftJoin('Status s', 'st.id_status = s.id_status');
+
+        // 🔥 EXCLUIR PAPELERA (estado "Inactivo")
+        $trashId = $this->getTrashStatusId();
+        if ($trashId) {
+            $query->andWhere(['<>', 'st.id_status', $trashId]);
+        }
 
         // 🔥 FILTRO POR ROL Y EMPRESA
         if ($isSuperAdmin) {
@@ -225,12 +241,44 @@ class SalesTrackingController extends Controller
             ->limit(5)
             ->all();
 
+        // 🔥 CONTAR PAPELERA
+        $trashCount = 0;
+        if ($trashId) {
+            $trashQuery = SalesTracking::find()
+                ->alias('st')
+                ->leftJoin('Lead l', 'st.id_lead = l.id_lead')
+                ->where(['st.id_status' => $trashId]);
+
+            if ($isSuperAdmin) {
+                if (!empty($empresaSeleccionada)) {
+                    $leadIds = Lead::find()->select('id_lead')->where(['id_company' => $empresaSeleccionada])->column();
+                    if (!empty($leadIds)) {
+                        $trashQuery->andWhere(['st.id_lead' => $leadIds]);
+                    } else {
+                        $trashQuery->andWhere(['st.id_sales_tracking' => -1]);
+                    }
+                }
+            } elseif ($isAdmin && !$isSuperAdmin) {
+                $leadIds = Lead::find()->select('id_lead')->where(['id_company' => $companyId])->column();
+                if (!empty($leadIds)) {
+                    $trashQuery->andWhere(['st.id_lead' => $leadIds]);
+                } else {
+                    $trashQuery->andWhere(['st.id_sales_tracking' => -1]);
+                }
+            } elseif ($isAgent) {
+                $trashQuery->andWhere(['st.id_user' => $userId]);
+            }
+
+            $trashCount = $trashQuery->count();
+        }
+
         return $this->render('index', [
             'dataProvider' => $dataProvider,
             'trackings' => $trackings,
             'totalTrackings' => $dataProvider->getTotalCount(),
             'statusCounts' => $statusCounts,
             'ultimosSeguimientos' => $ultimosSeguimientos,
+            'trashCount' => $trashCount,
             'isAdmin' => $isAdmin,
             'isAgent' => $isAgent,
             'isSuperAdmin' => $isSuperAdmin,
@@ -243,7 +291,109 @@ class SalesTrackingController extends Controller
     }
 
     // ============================================
-    // 🔥 VER DETALLES DEL SEGUIMIENTO (Vista completa)
+    // 🔥 PAPELERA DE SEGUIMIENTOS
+    // ============================================
+    public function actionTrash()
+    {
+        $userInfo = $this->getUserInfo();
+        if (!$userInfo) {
+            return $this->redirect(['site/login']);
+        }
+
+        if (!$userInfo['isAdmin'] && !$userInfo['isSuperAdmin']) {
+            Yii::$app->session->setFlash('error', 'No tienes permiso para acceder a la papelera.');
+            return $this->redirect(['index']);
+        }
+
+        $trashId = $this->getTrashStatusId();
+        if (!$trashId) {
+            Yii::$app->session->setFlash('warning', 'No se encontró el estado "Inactivo".');
+            return $this->redirect(['index']);
+        }
+
+        $userId = $userInfo['userId'];
+        $companyId = $userInfo['companyId'];
+        $isAdmin = $userInfo['isAdmin'];
+        $isSuperAdmin = $userInfo['isSuperAdmin'];
+        $empresaSeleccionada = $userInfo['empresaSeleccionada'];
+
+        // 🔥 QUERY BASE - Solo Inactivos
+        $query = SalesTracking::find()
+            ->alias('st')
+            ->leftJoin('Lead l', 'st.id_lead = l.id_lead')
+            ->leftJoin('Status s', 'st.id_status = s.id_status')
+            ->andWhere(['st.id_status' => $trashId]);
+
+        // FILTRO POR ROL Y EMPRESA
+        if ($isSuperAdmin) {
+            if (!empty($empresaSeleccionada)) {
+                $leadIds = Lead::find()
+                    ->select('id_lead')
+                    ->where(['id_company' => $empresaSeleccionada])
+                    ->column();
+                
+                if (!empty($leadIds)) {
+                    $query->andWhere(['st.id_lead' => $leadIds]);
+                } else {
+                    $query->andWhere(['st.id_sales_tracking' => -1]);
+                }
+            }
+        } elseif ($isAdmin && !$isSuperAdmin) {
+            $leadIds = Lead::find()
+                ->select('id_lead')
+                ->where(['id_company' => $companyId])
+                ->column();
+            
+            if (!empty($leadIds)) {
+                $query->andWhere(['st.id_lead' => $leadIds]);
+            } else {
+                $query->andWhere(['st.id_sales_tracking' => -1]);
+            }
+        }
+
+        // Filtros
+        $search = Yii::$app->request->get('search', '');
+        if (!empty($search)) {
+            $query->andWhere([
+                'or',
+                ['like', 'l.name', $search],
+                ['like', 'l.lastname', $search],
+                ['like', 'l.phone', $search],
+                ['like', 'st.comments', $search],
+            ]);
+        }
+
+        // DATAPROVIDER
+        $dataProvider = new ActiveDataProvider([
+            'query' => $query,
+            'pagination' => [
+                'pageSize' => 10,
+                'pageSizeParam' => 'per-page',
+                'pageParam' => 'page',
+            ],
+            'sort' => [
+                'defaultOrder' => [
+                    'date_s' => SORT_DESC,
+                    'hour' => SORT_DESC,
+                ],
+            ],
+        ]);
+
+        $trackings = $dataProvider->getModels();
+        $totalTrackings = $dataProvider->getTotalCount();
+
+        return $this->render('trash', [
+            'dataProvider' => $dataProvider,
+            'trackings' => $trackings,
+            'totalTrackings' => $totalTrackings,
+            'search' => $search,
+            'isAdmin' => $isAdmin,
+            'isSuperAdmin' => $isSuperAdmin,
+        ]);
+    }
+
+    // ============================================
+    // 🔥 VER DETALLES DEL SEGUIMIENTO
     // ============================================
     public function actionDetails($id)
     {
@@ -337,6 +487,15 @@ class SalesTrackingController extends Controller
         $statusOptions = SalesTracking::getStatusOptions();
 
         if (Yii::$app->request->isPost && $model->load(Yii::$app->request->post())) {
+            // 🔥 Forzar id_user si es agente
+            if ($userInfo['isAgent']) {
+                $model->id_user = $userInfo['userId'];
+            }
+            
+            if (empty($model->id_user)) {
+                $model->id_user = $userInfo['userId'];
+            }
+            
             if ($model->save()) {
                 return $this->renderPartial('_update_modal', [
                     'model' => $model,
@@ -347,13 +506,19 @@ class SalesTrackingController extends Controller
                     'success' => '✅ Seguimiento actualizado exitosamente'
                 ]);
             } else {
+                $errors = $model->getErrors();
+                $errorMessages = [];
+                foreach ($errors as $attribute => $errorList) {
+                    $label = $model->getAttributeLabel($attribute);
+                    $errorMessages[] = $label . ': ' . implode(', ', $errorList);
+                }
                 return $this->renderPartial('_update_modal', [
                     'model' => $model,
                     'leadsList' => $leadsList,
                     'statusOptions' => $statusOptions,
                     'isAdmin' => $userInfo['isAdmin'],
                     'isSuperAdmin' => $userInfo['isSuperAdmin'],
-                    'error' => 'Error al guardar: ' . json_encode($model->getErrors())
+                    'error' => 'Error al guardar:<br>' . implode('<br>', $errorMessages)
                 ]);
             }
         }
@@ -410,6 +575,9 @@ class SalesTrackingController extends Controller
         }
 
         $model = new SalesTracking();
+        
+        // 🔥 ASIGNAR USUARIO ACTUAL DESDE EL INICIO
+        $model->id_user = $userInfo['userId'];
 
         if ($leadId) {
             $lead = Lead::findOne($leadId);
@@ -426,6 +594,16 @@ class SalesTrackingController extends Controller
         $statusOptions = SalesTracking::getStatusOptions();
 
         if ($model->load(Yii::$app->request->post())) {
+            
+            // 🔥 FORZAR USUARIO ACTUAL
+            if (empty($model->id_user)) {
+                $model->id_user = $userInfo['userId'];
+            }
+            
+            if ($userInfo['isAgent']) {
+                $model->id_user = $userInfo['userId'];
+            }
+            
             if (empty($model->id_lead)) {
                 Yii::$app->session->setFlash('error', 'Debes seleccionar un lead.');
                 return $this->redirect(['create']);
@@ -437,15 +615,17 @@ class SalesTrackingController extends Controller
                 return $this->redirect(['create']);
             }
 
-            if ($userInfo['isAgent']) {
-                $model->id_user = $userInfo['userId'];
-            }
-
             if ($model->save()) {
                 Yii::$app->session->setFlash('success', 'Seguimiento creado exitosamente.');
                 return $this->redirect(['view', 'id' => $model->id_sales_tracking]);
             } else {
-                Yii::$app->session->setFlash('error', 'Error al guardar: ' . json_encode($model->getErrors()));
+                $errors = $model->getErrors();
+                $errorMessages = [];
+                foreach ($errors as $attribute => $errorList) {
+                    $label = $model->getAttributeLabel($attribute);
+                    $errorMessages[] = $label . ': ' . implode(', ', $errorList);
+                }
+                Yii::$app->session->setFlash('error', 'Error al guardar:<br>' . implode('<br>', $errorMessages));
             }
         }
 
@@ -488,11 +668,26 @@ class SalesTrackingController extends Controller
         $statusOptions = SalesTracking::getStatusOptions();
 
         if ($model->load(Yii::$app->request->post())) {
+            
+            if ($userInfo['isAgent']) {
+                $model->id_user = $userInfo['userId'];
+            }
+            
+            if (empty($model->id_user)) {
+                $model->id_user = $userInfo['userId'];
+            }
+            
             if ($model->save()) {
                 Yii::$app->session->setFlash('success', 'Seguimiento actualizado exitosamente.');
                 return $this->redirect(['view', 'id' => $model->id_sales_tracking]);
             } else {
-                Yii::$app->session->setFlash('error', 'Error al guardar: ' . json_encode($model->getErrors()));
+                $errors = $model->getErrors();
+                $errorMessages = [];
+                foreach ($errors as $attribute => $errorList) {
+                    $label = $model->getAttributeLabel($attribute);
+                    $errorMessages[] = $label . ': ' . implode(', ', $errorList);
+                }
+                Yii::$app->session->setFlash('error', 'Error al guardar:<br>' . implode('<br>', $errorMessages));
             }
         }
 
@@ -507,7 +702,7 @@ class SalesTrackingController extends Controller
     }
 
     // ============================================
-    // ELIMINAR SEGUIMIENTO
+    // 🔥 MOVER A PAPELERA (Cambio a Inactivo)
     // ============================================
     public function actionDelete($id)
     {
@@ -532,13 +727,64 @@ class SalesTrackingController extends Controller
             return $this->redirect(['index']);
         }
 
-        if ($model->delete()) {
-            Yii::$app->session->setFlash('success', 'Seguimiento eliminado exitosamente.');
+        $trashId = $this->getTrashStatusId();
+        if (!$trashId) {
+            Yii::$app->session->setFlash('error', 'No se encontró el estado "Inactivo" en la base de datos.');
+            return $this->redirect(['index']);
+        }
+
+        $model->id_status = $trashId;
+
+        if ($model->save(false)) {
+            Yii::$app->session->setFlash('success', 'Seguimiento movido a la papelera.');
         } else {
-            Yii::$app->session->setFlash('error', 'Error al eliminar el seguimiento.');
+            Yii::$app->session->setFlash('error', 'Error al mover el seguimiento a la papelera.');
         }
 
         return $this->redirect(['index']);
+    }
+
+    // ============================================
+    // 🔥 RESTAURAR SEGUIMIENTO
+    // ============================================
+    public function actionRestore($id)
+    {
+        $userInfo = $this->getUserInfo();
+        if (!$userInfo) {
+            return $this->redirect(['site/login']);
+        }
+
+        if (!$userInfo['isAdmin'] && !$userInfo['isSuperAdmin']) {
+            Yii::$app->session->setFlash('error', 'No tienes permiso para restaurar seguimientos.');
+            return $this->redirect(['trash']);
+        }
+
+        $model = SalesTracking::findOne($id);
+        
+        if (!$model) {
+            throw new NotFoundHttpException('El seguimiento solicitado no existe.');
+        }
+
+        if (!$this->checkPermission($model, $userInfo)) {
+            Yii::$app->session->setFlash('error', 'No tienes permiso para restaurar este seguimiento.');
+            return $this->redirect(['trash']);
+        }
+
+        $statusDefault = Status::find()->where(['status' => 'Pendiente'])->one();
+        if (!$statusDefault) {
+            Yii::$app->session->setFlash('error', 'No se encontró el estado "Pendiente".');
+            return $this->redirect(['trash']);
+        }
+
+        $model->id_status = $statusDefault->id_status;
+
+        if ($model->save(false)) {
+            Yii::$app->session->setFlash('success', 'Seguimiento restaurado exitosamente.');
+        } else {
+            Yii::$app->session->setFlash('error', 'Error al restaurar el seguimiento.');
+        }
+
+        return $this->redirect(['trash']);
     }
 
     // ============================================

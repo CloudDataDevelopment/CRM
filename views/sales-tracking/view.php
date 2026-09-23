@@ -10,6 +10,26 @@ $this->params['breadcrumbs'][] = $this->title;
 
 // Registrar Font Awesome
 $this->registerCssFile('https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css');
+
+// ============================================
+// 🔥 OBTENER EL LEAD ASOCIADO
+// ============================================
+$lead = $model->lead;  // ✅ Acceso a la relación
+
+// ============================================
+// 🔥 DATOS DE ESTADO DEL SEGUIMIENTO
+// ============================================
+$statusName = $model->getStatusName();
+$badgeClass = $model->getStatusBadgeClass();
+
+// Icono según estado del seguimiento
+$icon = 'fa-circle';
+$statusLower = strtolower($statusName);
+if ($statusLower == 'completado') $icon = 'fa-check-circle';
+elseif ($statusLower == 'cancelado') $icon = 'fa-times-circle';
+elseif ($statusLower == 'en progreso' || $statusLower == 'en_progreso') $icon = 'fa-spinner';
+elseif ($statusLower == 'programado') $icon = 'fa-calendar-check';
+elseif ($statusLower == 'pendiente') $icon = 'fa-clock';
 ?>
 
 <div class="sales-tracking-view">
@@ -53,15 +73,6 @@ $this->registerCssFile('https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.
                         <div class="col-12">
                             <div class="p-3 rounded-3 text-center" style="background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);">
                                 <small class="text-muted text-uppercase fw-bold">Estado Actual</small>
-                                <?php
-                                $statusName = $model->getStatusName();
-                                $badgeClass = $model->getStatusBadgeClass();
-                                $icon = 'fa-circle';
-                                if (strtolower($statusName) == 'cliente') $icon = 'fa-check-circle';
-                                elseif (strtolower($statusName) == 'perdido') $icon = 'fa-times-circle';
-                                elseif (strtolower($statusName) == 'interesado') $icon = 'fa-star';
-                                elseif (strtolower($statusName) == 'cotizacion') $icon = 'fa-file-invoice';
-                                ?>
                                 <span class="badge bg-<?= $badgeClass ?> p-3 d-inline-block" style="font-size: 1.5rem; border-radius: 12px;">
                                     <i class="fas <?= $icon ?> me-2"></i>
                                     <?= $statusName ?>
@@ -277,7 +288,9 @@ $this->registerCssFile('https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.
             </div>
             <?php endif; ?>
 
-
+        </div>
+    </div>
+</div>
 
 <!-- ============================================ -->
 <!-- JAVASCRIPT                                   -->
@@ -294,34 +307,6 @@ $(document).ready(function() {
             $('#comments-group').slideDown();
         } else {
             $('#comments-group').slideUp();
-        }
-    });
-
-    // Botones de estado rápido
-    $('.quick-status').on('click', function() {
-        var statusName = $(this).data('status');
-        var currentStatus = '<?= $model->id_status ?>';
-        
-        // Buscar el ID del estado
-        var statusSelect = $('#status-select');
-        var options = statusSelect.find('option');
-        var found = false;
-        
-        options.each(function() {
-            if ($(this).text().toLowerCase() == statusName) {
-                statusSelect.val($(this).val());
-                statusSelect.trigger('change');
-                found = true;
-                return false;
-            }
-        });
-        
-        if (found && statusSelect.val() != currentStatus) {
-            $('#btn-update-status').click();
-        } else if (statusSelect.val() == currentStatus) {
-            alert('El lead ya está en estado "' + statusName + '"');
-        } else {
-            alert('No se encontró el estado "' + statusName + '"');
         }
     });
 

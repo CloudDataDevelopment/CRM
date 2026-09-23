@@ -118,14 +118,6 @@ if ($success) {
                     'class' => 'form-control form-control-sm'
                 ])->label('Próximo Seguimiento') ?>
 
-                <div class="form-group mt-3">
-                    <?= Html::submitButton('<i class="fas fa-save"></i> Actualizar', [
-                        'class' => 'btn-submit',
-                        'form' => 'update-tracking-form',
-                        'id' => 'submit-update',
-                        'onclick' => 'submitForm(); return false;',
-                    ]) ?>
-                </div>
 
                 <?php ActiveForm::end(); ?>
             </div>
@@ -209,14 +201,6 @@ if ($success) {
             'class' => 'form-control form-control-sm'
         ])->label('Próximo Seguimiento') ?>
 
-        <div class="form-group mt-3">
-            <?= Html::submitButton('<i class="fas fa-save"></i> Actualizar', [
-                'class' => 'btn-submit',
-                'form' => 'update-tracking-form',
-                'id' => 'submit-update',
-                'onclick' => 'submitForm(); return false;',
-            ]) ?>
-        </div>
 
         <?php ActiveForm::end(); ?>
     </div>

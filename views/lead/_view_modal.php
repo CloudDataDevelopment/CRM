@@ -397,15 +397,6 @@ function getActivityColor($statusSales) {
     <!-- FOOTER                                     -->
     <!-- ========================================== -->
     <div class="slide-panel-footer">
-        <a href="<?= Url::to(['lead/update', 'id' => $model->id_lead, 'return' => 'index']) ?>" target="_blank" class="btn-footer btn-footer-primary" onclick="closePanel();">
-            <i class="fas fa-edit"></i> Editar
-        </a>
-        <a href="<?= Url::to(['sales-tracking/create', 'leadId' => $model->id_lead]) ?>" target="_blank" class="btn-footer btn-footer-success" onclick="closePanel();">
-            <i class="fas fa-calendar-plus"></i> Seguimiento
-        </a>
-        <a href="<?= Url::to(['quote/create', 'leadId' => $model->id_lead]) ?>" target="_blank" class="btn-footer btn-footer-info" onclick="closePanel();">
-            <i class="fas fa-file-invoice"></i> Cotización
-        </a>
         <a href="<?= Url::to(['lead/details', 'id' => $model->id_lead]) ?>" target="_blank" class="btn-footer btn-footer-secondary" onclick="closePanel();">
             <i class="fas fa-external-link-alt"></i> Abrir
         </a>

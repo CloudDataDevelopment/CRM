@@ -11,13 +11,12 @@ use yii\helpers\Url;
 
 $this->title = $title;
 
-// 🔥 Leer el CSS directamente del archivo (Opción A: embebido)
+// 🔥 Leer el CSS directamente del archivo (CSS embebido)
 $cssPath = Yii::getAlias('@webroot/css/export-pdf.css');
 $cssContent = '';
 if (file_exists($cssPath)) {
     $cssContent = file_get_contents($cssPath);
 } else {
-    // Si no se encuentra en web/css/, buscar en la raíz del proyecto
     $cssPathAlt = Yii::getAlias('@app/../css/export-pdf.css');
     if (file_exists($cssPathAlt)) {
         $cssContent = file_get_contents($cssPathAlt);
@@ -54,13 +53,17 @@ try {
         $userRole = $auth->role->role_type ?? $auth->role->name ?? 'Usuario';
     }
 } catch (\Exception $e) {}
+
+// 🔥 Nombre sugerido para el PDF
+$moduleTitle = ucfirst(str_replace('-', ' ', $module));
+$pdfFileName = 'Reporte_' . $moduleTitle . '_' . date('Y-m-d_His');
 ?>
 <!DOCTYPE html>
 <html lang="es">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title><?= Html::encode($title) ?></title>
+    <title><?= Html::encode($pdfFileName) ?></title>
 
     <!-- 🔥 FontAwesome para los iconos -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
@@ -76,12 +79,12 @@ try {
 <!-- BARRA DE ACCIONES FLOTANTE                    -->
 <!-- ============================================ -->
 <div class="action-bar">
-    <button type="button" class="btn-action btn-download" title="Descargar PDF" onclick="descargarPDF()">
+    <button type="button" class="btn-action btn-download" title="Guardar como PDF" onclick="abrirDialogoImpresion()">
         <svg width="16" height="16" fill="currentColor" viewBox="0 0 16 16">
             <path d="M.5 9.9a.5.5 0 0 1 .5.5v2.5a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1v-2.5a.5.5 0 0 1 1 0v2.5a2 2 0 0 1-2 2H2a2 2 0 0 1-2-2v-2.5a.5.5 0 0 1 .5-.5z"/>
             <path d="M7.646 11.854a.5.5 0 0 0 .708 0l3-3a.5.5 0 0 0-.708-.708L8.5 10.293V1.5a.5.5 0 0 0-1 0v8.793L5.354 8.146a.5.5 0 1 0-.708.708l3 3z"/>
         </svg>
-        <span>Descargar PDF</span>
+        <span>Guardar como PDF</span>
     </button>
 
     <button class="btn-action btn-print" onclick="window.print();">
@@ -215,28 +218,26 @@ try {
 <!-- SCRIPTS                                        -->
 <!-- ============================================ -->
 <script>
-function descargarPDF() {
-    var iframe = document.createElement('iframe');
-    iframe.style.display = 'none';
-    iframe.style.position = 'absolute';
-    iframe.style.width = '0';
-    iframe.style.height = '0';
-    iframe.style.border = 'none';
-    iframe.src = '<?= $downloadUrl ?>';
-    document.body.appendChild(iframe);
-
+// 🔥 Abrir diálogo de impresión para guardar como PDF
+function abrirDialogoImpresion() {
+    // Pequeño delay para asegurar que todo esté renderizado
     setTimeout(function() {
-        if (iframe.parentNode) {
-            document.body.removeChild(iframe);
-        }
-    }, 8000);
+        window.print();
+    }, 100);
 }
 
+// 🔥 Atajo Ctrl+P / Cmd+P
 window.addEventListener('keydown', function(e) {
     if ((e.ctrlKey || e.metaKey) && e.key === 'p') {
         e.preventDefault();
         window.print();
     }
+});
+
+// 🔥 Al cargar, asegurar que el título esté bien para el nombre del PDF
+document.addEventListener('DOMContentLoaded', function() {
+    // El navegador usará document.title como nombre sugerido del PDF
+    console.log('📄 Reporte listo para guardar como PDF');
 });
 </script>
 

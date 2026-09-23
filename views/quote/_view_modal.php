@@ -65,6 +65,9 @@ $total = $model->total_amount ?? 0;
 $downPayment = $model->down_payment ?? 0;
 $pending = $total - $downPayment;
 
+// 🔥 Obtener notas en texto plano (sin JSON)
+$notas = $model->getNotes();
+
 $statusColors = [
     'success' => '#1cc88a',
     'warning' => '#f6c23e',
@@ -175,14 +178,14 @@ $statusIcons = [
             </div>
         </div>
 
-        <?php if (!empty($model->comments)): ?>
+        <?php if (!empty($notas)): ?>
         <hr class="section-divider">
         <div class="info-section">
             <div class="info-title">
                 <i class="fas fa-sticky-note"></i> Observaciones
             </div>
             <div class="info-row info-row-comments">
-                <span class="info-value"><?= nl2br(Html::encode($model->comments)) ?></span>
+                <span class="info-value"><?= nl2br(Html::encode($notas)) ?></span>
             </div>
         </div>
         <?php endif; ?>
@@ -192,17 +195,12 @@ $statusIcons = [
     <!-- FOOTER -->
     <div class="slide-panel-footer">
         <a href="<?= Url::to(['quote/details', 'id' => $model->id_quote]) ?>" target="_blank" class="btn-footer btn-footer-primary">
-            <i class="fas fa-external-link-alt"></i> Abrir
+            <i class="fas fa-external-link-alt"></i> Ver más
         </a>
         <?php if ($isAdmin || $isSuperAdmin || ($isAgent && $model->lead && $model->lead->id_user == Yii::$app->user->id)): ?>
-            <a href="#" class="btn-footer btn-footer-success" onclick="event.preventDefault(); closePanel(); setTimeout(function() { openEditPanel(<?= $model->id_quote ?>); }, 300);">
-                <i class="fas fa-edit"></i> Editar
-            </a>
+
         <?php endif; ?>
         <?php if ($model->lead): ?>
-            <a href="<?= Url::to(['lead/view', 'id' => $model->id_lead]) ?>" target="_blank" class="btn-footer btn-footer-info">
-                <i class="fas fa-user"></i> Lead
-            </a>
         <?php endif; ?>
         <button class="btn-footer btn-footer-secondary" onclick="closePanel()">
             <i class="fas fa-times"></i> Cerrar

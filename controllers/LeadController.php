@@ -47,7 +47,7 @@ class LeadController extends Controller
             $user = Yii::$app->user->identity;
             
             // 🔥 ESTADOS PERMITIDOS (UNIFICADOS)
-            $estadosPermitidos = ['Nuevo', 'Contactado', 'Procesando', 'Cancelado'];
+            $estadosPermitidos = ['Nuevo', 'Contactado', 'Procesando', 'Completado', 'Cancelado'];
             
             // 🔥 OBTENER LA EMPRESA SELECCIONADA EN SESIÓN
             $empresaId = Yii::$app->session->get('empresa_id');
@@ -475,7 +475,7 @@ class LeadController extends Controller
                 'isAdmin' => false,
                 'isAgent' => false,
                 'statusList' => [],
-                'estadosPermitidos' => ['Nuevo', 'Contactado', 'Procesando', 'Cancelado'],
+                'estadosPermitidos' => ['Nuevo', 'Contactado', 'Procesando', 'Completado', 'Cancelado'],
                 'totalLeads' => 0,
                 'nuevosMes' => 0,
                 'contactados' => 0,
@@ -537,7 +537,7 @@ class LeadController extends Controller
             $isModal = Yii::$app->request->get('modal', false);
             $isAjax = Yii::$app->request->isAjax;
             
-            $estadosPermitidos = ['Nuevo', 'Contactado', 'Procesando', 'Cancelado'];
+            $estadosPermitidos = ['Nuevo', 'Contactado', 'Procesando', 'Completado', 'Cancelado'];
             
             $model = Lead::find()
                 ->where(['id_lead' => $id])
@@ -758,7 +758,7 @@ class LeadController extends Controller
                 Yii::$app->session->setFlash('warning', 'Este lead está en la papelera.');
             }
 
-            $estadosPermitidos = ['Nuevo', 'Contactado', 'Procesando', 'Cancelado'];
+            $estadosPermitidos = ['Nuevo', 'Contactado', 'Procesando', 'Completado', 'Cancelado'];
             $statusList = Status::find()
                 ->where(['in', 'status', $estadosPermitidos])
                 ->select(['status', 'id_status'])
@@ -950,7 +950,7 @@ class LeadController extends Controller
     {
         $model = new Lead();
 
-        $estadosPermitidos = ['Nuevo', 'Contactado', 'Procesando', 'Cancelado'];
+        $estadosPermitidos = ['Nuevo', 'Contactado', 'Procesando', 'Completado', 'Cancelado'];
         $idStatusNuevo = $this->getStatusNuevoId();
 
         $model->created_at = date('Y-m-d');
@@ -1071,7 +1071,7 @@ class LeadController extends Controller
             }
 
             $statusList = Status::find()
-                ->where(['in', 'status', ['Nuevo', 'Contactado', 'Procesando', 'Cancelado']])
+                ->where(['in', 'status', ['Nuevo', 'Contactado', 'Procesando', 'Completado', 'Cancelado']])
                 ->select(['status', 'id_status'])
                 ->indexBy('id_status')
                 ->column();

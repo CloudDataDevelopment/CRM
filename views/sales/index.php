@@ -34,12 +34,6 @@ $ultimasVentas = isset($ultimasVentas) ? $ultimasVentas : [];
 // ============================================
 // MÉTRICAS ADICIONALES
 // ============================================
-$totalPendientesPago = 0;
-foreach ($sales as $sale) {
-    if ($sale->pending_payment > 0) {
-        $totalPendientesPago++;
-    }
-}
 $montoPromedio = $totalVendidos > 0 ? $montoVendidos / $totalVendidos : 0;
 
 // ============================================
@@ -86,29 +80,25 @@ $filtrandoCancelado = (strtolower(trim($status)) === 'cancelado');
                         'class' => 'btn btn-outline-info btn-sm btn-header-action'
                     ]) ?>
                 <?php endif; ?>
-                <?= Html::a('<i class="fas fa-chart-line"></i> Dashboard', ['dashboard/index'], [
-                    'class' => 'btn btn-primary btn-sm btn-header-action'
-                ]) ?>
             </div>
         </div>
 
         <!-- ============================================ -->
-        <!-- MÉTRICAS PRINCIPALES -->
+        <!-- MÉTRICAS PRINCIPALES (CANTIDAD, PERDIDOS Y VENTAS MES) -->
         <!-- ============================================ -->
-        <div class="row g-2 mb-2">
-            <div class="col-xl-3 col-md-4 col-6">
+        <div class="row g-2 mb-3">
+            <div class="col-xl-4 col-md-6 col-6">
                 <div class="card stat-card stat-card-success dashboard-card">
                     <div class="card-body d-flex align-items-center">
                         <div class="stat-icon me-2"><i class="fas fa-shopping-cart"></i></div>
                         <div>
                             <div class="stat-number"><?= $totalVendidos ?></div>
-                            <div class="stat-label">Vendidos</div>
-                            <div class="stat-label text-success">$<?= number_format($montoVendidos, 0, '.', ',') ?></div>
+                            <div class="stat-label">Total vendidos</div>
                         </div>
                     </div>
                 </div>
             </div>
-            <div class="col-xl-3 col-md-4 col-6">
+            <div class="col-xl-4 col-md-6 col-6">
                 <div class="card stat-card stat-card-danger dashboard-card">
                     <div class="card-body d-flex align-items-center">
                         <div class="stat-icon me-2"><i class="fas fa-times-circle"></i></div>
@@ -120,18 +110,7 @@ $filtrandoCancelado = (strtolower(trim($status)) === 'cancelado');
                     </div>
                 </div>
             </div>
-            <div class="col-xl-3 col-md-4 col-6">
-                <div class="card stat-card stat-card-warning dashboard-card">
-                    <div class="card-body d-flex align-items-center">
-                        <div class="stat-icon me-2"><i class="fas fa-clock"></i></div>
-                        <div>
-                            <div class="stat-number">$<?= number_format($totalPending, 0, '.', ',') ?></div>
-                            <div class="stat-label">Pendiente de Pago</div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-            <div class="col-xl-3 col-md-4 col-6">
+            <div class="col-xl-4 col-md-6 col-6">
                 <div class="card stat-card stat-card-info dashboard-card">
                     <div class="card-body d-flex align-items-center">
                         <div class="stat-icon me-2"><i class="fas fa-calendar-alt"></i></div>
@@ -145,10 +124,10 @@ $filtrandoCancelado = (strtolower(trim($status)) === 'cancelado');
         </div>
 
         <!-- ============================================ -->
-        <!-- MÉTRICAS SECUNDARIAS -->
+        <!-- MÉTRICAS SECUNDARIAS (PROMEDIO, TOTAL VENDIDO, CANCELADOS) -->
         <!-- ============================================ -->
         <div class="row g-2 mb-3">
-            <div class="col-xl-3 col-md-4 col-6">
+            <div class="col-xl-4 col-md-6 col-6">
                 <div class="card stat-card stat-card-secondary dashboard-card">
                     <div class="card-body d-flex align-items-center">
                         <div class="stat-icon me-2"><i class="fas fa-calculator"></i></div>
@@ -159,29 +138,18 @@ $filtrandoCancelado = (strtolower(trim($status)) === 'cancelado');
                     </div>
                 </div>
             </div>
-            <div class="col-xl-3 col-md-4 col-6">
-                <div class="card stat-card stat-card-danger dashboard-card">
-                    <div class="card-body d-flex align-items-center">
-                        <div class="stat-icon me-2"><i class="fas fa-exclamation-triangle"></i></div>
-                        <div>
-                            <div class="stat-number"><?= $totalPendientesPago ?></div>
-                            <div class="stat-label">Con Deuda</div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-            <div class="col-xl-3 col-md-4 col-6">
+            <div class="col-xl-4 col-md-6 col-6">
                 <div class="card stat-card stat-card-success dashboard-card">
                     <div class="card-body d-flex align-items-center">
-                        <div class="stat-icon me-2"><i class="fas fa-check-circle"></i></div>
+                        <div class="stat-icon me-2"><i class="fas fa-dollar-sign"></i></div>
                         <div>
-                            <div class="stat-number"><?= $totalVendidos ?></div>
-                            <div class="stat-label">Total Vendidos</div>
+                            <div class="stat-number">$<?= number_format($montoVendidos, 0, '.', ',') ?></div>
+                            <div class="stat-label">Total Vendido</div>
                         </div>
                     </div>
                 </div>
             </div>
-            <div class="col-xl-3 col-md-4 col-6">
+            <div class="col-xl-4 col-md-6 col-6">
                 <div class="card stat-card stat-card-danger dashboard-card">
                     <div class="card-body d-flex align-items-center">
                         <div class="stat-icon me-2"><i class="fas fa-times-circle"></i></div>
@@ -274,11 +242,9 @@ $filtrandoCancelado = (strtolower(trim($status)) === 'cancelado');
                                 <th>Cliente</th>
                                 <th>Teléfono</th>
                                 <th>Monto Total</th>
-                                <th>Pendiente</th>
                                 <th>Estado</th>
                                 <th>Estatus Venta</th>
                                 <th>Fecha</th>
-                                <th class="text-center">Acciones</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -324,15 +290,6 @@ $filtrandoCancelado = (strtolower(trim($status)) === 'cancelado');
                                             <?php endif; ?>
                                         </td>
                                         <td>
-                                            <?php if ($isCancelado): ?>
-                                                <span class="text-muted">N/A</span>
-                                            <?php elseif ($sale->pending_payment > 0): ?>
-                                                <span class="text-danger">$<?= number_format($sale->pending_payment, 0, '.', ',') ?></span>
-                                            <?php else: ?>
-                                                <span class="text-success"><i class="fas fa-check-circle"></i> $0</span>
-                                            <?php endif; ?>
-                                        </td>
-                                        <td>
                                             <?php
                                             $statusClass = 'secondary';
                                             if ($isCancelado) {
@@ -357,30 +314,11 @@ $filtrandoCancelado = (strtolower(trim($status)) === 'cancelado');
                                             <?php endif; ?>
                                         </td>
                                         <td><?= date('d/m/Y', strtotime($sale->date_quote)) ?></td>
-                                        <td class="text-center">
-                                            <div class="d-flex gap-1 justify-content-center">
-                                                <?= Html::a('<i class="fas fa-eye"></i>', ['view', 'id' => $sale->id_quote], [
-                                                    'class' => 'btn btn-info btn-sm btn-action',
-                                                    'title' => 'Ver'
-                                                ]) ?>
-                                                <?php if (($isAdmin || $isSuperAdmin) && !$isCancelado): ?>
-                                                    <?= Html::a('<i class="fas fa-edit"></i>', ['update', 'id' => $sale->id_quote], [
-                                                        'class' => 'btn btn-primary btn-sm btn-action',
-                                                        'title' => 'Editar'
-                                                    ]) ?>
-                                                <?php endif; ?>
-                                                <?= Html::a('<i class="fas fa-print"></i>', ['print', 'id' => $sale->id_quote], [
-                                                    'class' => 'btn btn-secondary btn-sm btn-action',
-                                                    'title' => 'Imprimir',
-                                                    'target' => '_blank'
-                                                ]) ?>
-                                            </div>
-                                        </td>
                                     </tr>
                                 <?php endforeach; ?>
                             <?php else: ?>
                                 <tr>
-                                    <td colspan="10" class="text-center text-muted py-4">
+                                    <td colspan="8" class="text-center text-muted py-4">
                                         <i class="fas fa-inbox fa-2x d-block mb-2"></i>
                                         <?php if ($filtrandoCancelado): ?>
                                             No hay cotizaciones canceladas
@@ -469,9 +407,6 @@ $filtrandoCancelado = (strtolower(trim($status)) === 'cancelado');
                                                 <?php if ($isCancelado): ?>
                                                     <span class="badge bg-danger">Perdido</span>
                                                 <?php else: ?>
-                                                    <span class="badge bg-<?= $sale->pending_payment > 0 ? 'warning' : 'success' ?>">
-                                                        <?= $sale->pending_payment > 0 ? 'Con Deuda' : 'Pagado' ?>
-                                                    </span>
                                                     <span class="badge bg-<?= $isVendido ? 'success' : 'warning' ?>">
                                                         <?= $isVendido ? 'Vendido' : 'Pendiente' ?>
                                                     </span>
@@ -480,9 +415,6 @@ $filtrandoCancelado = (strtolower(trim($status)) === 'cancelado');
                                             <div class="activity-description">
                                                 Folio #<?= str_pad($sale->id_quote, 6, '0', STR_PAD_LEFT) ?> - 
                                                 $<?= number_format($sale->total_amount, 0, '.', ',') ?>
-                                                <?php if (!$isCancelado && $sale->pending_payment > 0): ?>
-                                                    <span class="text-danger">(Pendiente: $<?= number_format($sale->pending_payment, 0, '.', ',') ?>)</span>
-                                                <?php endif; ?>
                                             </div>
                                             <div class="activity-meta">
                                                 <span class="activity-date">
@@ -533,15 +465,6 @@ $filtrandoCancelado = (strtolower(trim($status)) === 'cancelado');
                             </div>
                             <div class="progress mb-2" style="height: 6px;">
                                 <div class="progress-bar bg-danger" style="width: <?= ($totalVendidos + $totalPerdidos) > 0 ? ($totalPerdidos / ($totalVendidos + $totalPerdidos)) * 100 : 0 ?>%;"></div>
-                            </div>
-                            
-                            <!-- Con Deuda -->
-                            <div class="d-flex justify-content-between align-items-center mb-1" style="font-size: 0.75rem;">
-                                <span><span class="badge bg-warning">Con Deuda</span></span>
-                                <span><strong><?= $totalPendientesPago ?></strong></span>
-                            </div>
-                            <div class="progress mb-2" style="height: 6px;">
-                                <div class="progress-bar bg-warning" style="width: <?= $totalVendidos > 0 ? ($totalPendientesPago / $totalVendidos) * 100 : 0 ?>%;"></div>
                             </div>
                             
                             <!-- Monto Vendido -->
