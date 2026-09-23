@@ -8,11 +8,10 @@ use yii\widgets\LinkPager;
 $this->title = 'Cotizaciones';
 $this->params['breadcrumbs'][] = $this->title;
 
-// Registrar CSS
+// CSS
 $this->registerCssFile('@web/css/quote.css', ['depends' => [\yii\bootstrap5\BootstrapAsset::class]]);
 $this->registerCssFile('@web/css/quote-panel.css', ['depends' => [\yii\bootstrap5\BootstrapAsset::class], 'position' => \yii\web\View::POS_HEAD]);
 
-// 🔥 CSS del modal de edición (necesario para el panel lateral AJAX)
 $editModalCssPath = Yii::getAlias('@webroot/css/quote-edit-modal.css');
 $editModalCssVersion = file_exists($editModalCssPath) ? filemtime($editModalCssPath) : time();
 $this->registerCssFile('@web/css/quote-edit-modal.css?v=' . $editModalCssVersion, [
@@ -20,10 +19,9 @@ $this->registerCssFile('@web/css/quote-edit-modal.css?v=' . $editModalCssVersion
     'position' => \yii\web\View::POS_HEAD,
 ]);
 
-// Registrar JS
 $this->registerJsFile('https://code.jquery.com/jquery-3.6.0.min.js', ['position' => \yii\web\View::POS_HEAD]);
 
-// Variables del controlador
+// Variables
 $quotes = isset($quotes) ? $quotes : [];
 $dataProvider = isset($dataProvider) ? $dataProvider : null;
 $totalQuotes = isset($totalQuotes) ? $totalQuotes : 0;
@@ -67,18 +65,14 @@ $currentPage = $dataProvider ? $dataProvider->getPagination()->getPage() + 1 : 1
                 <?= $this->render('/layouts/_report_button') ?>
                 
                 <?php if ($isAdmin || $isSuperAdmin): ?>
-                    <?= Html::a(
-                        '<i class="fas fa-trash"></i> Papelera',
-                        ['trash'],
-                        ['class' => 'btn btn-outline-danger btn-sm']
-                    ) ?>
+                    <?= Html::a('<i class="fas fa-trash"></i> Papelera', ['trash'], ['class' => 'btn btn-outline-danger btn-sm']) ?>
                 <?php endif; ?>
                 
                 <?= Html::a('<i class="fas fa-plus"></i> Nueva Cotización', ['create'], ['class' => 'btn btn-primary btn-sm']) ?>
             </div>
         </div>
 
-        <!-- 🔥 MÉTRICAS -->
+        <!-- MÉTRICAS -->
         <div class="row g-2 mb-2">
             <div class="col-xl-3 col-md-4 col-6">
                 <div class="card stat-card stat-card-primary dashboard-card">
@@ -152,9 +146,8 @@ $currentPage = $dataProvider ? $dataProvider->getPagination()->getPage() + 1 : 1
             </div>
         </div>
 
-        <!-- CONTENEDOR PRINCIPAL: TABLA + PANEL -->
+        <!-- CONTENEDOR PRINCIPAL -->
         <div class="panel-container">
-            <!-- Tabla -->
             <div class="table-wrapper" id="tableWrapper">
                 <div class="card table-card">
                     <div class="card-header">
@@ -169,9 +162,7 @@ $currentPage = $dataProvider ? $dataProvider->getPagination()->getPage() + 1 : 1
                             <?php endif; ?>
                         </div>
                         <div class="header-right">
-                            <span class="badge bg-secondary">
-                                Página <?= $currentPage ?> de <?= $pageCount ?>
-                            </span>
+                            <span class="badge bg-secondary">Página <?= $currentPage ?> de <?= $pageCount ?></span>
                         </div>
                     </div>
                     <div class="card-body p-0">
@@ -179,7 +170,6 @@ $currentPage = $dataProvider ? $dataProvider->getPagination()->getPage() + 1 : 1
                             <table class="table table-hover mb-0" id="quotes-table">
                                 <thead class="table-light">
                                     <tr>
-                                        <th>#</th>
                                         <th>Cliente</th>
                                         <th>Fecha</th>
                                         <th>Total</th>
@@ -189,15 +179,12 @@ $currentPage = $dataProvider ? $dataProvider->getPagination()->getPage() + 1 : 1
                                 </thead>
                                 <tbody>
                                     <?php if ($hasData): ?>
-                                        <?php 
-                                        $counter = 0;
-                                        foreach ($quotes as $quote): 
-                                            $counter++;
+                                        <?php foreach ($quotes as $quote): ?>
+                                            <?php 
                                             $statusName = $quote->getStatusName();
                                             $badgeClass = $quote->getStatusBadgeClass();
-                                        ?>
+                                            ?>
                                             <tr class="quote-row" data-id="<?= $quote->id_quote ?>">
-                                                <td><?= $counter ?></td>
                                                 <td>
                                                     <strong><?= $quote->lead ? Html::encode($quote->lead->name . ' ' . $quote->lead->lastname) : 'Lead no disponible' ?></strong>
                                                     <?php if ($quote->lead): ?>
@@ -219,10 +206,7 @@ $currentPage = $dataProvider ? $dataProvider->getPagination()->getPage() + 1 : 1
                                                             <?= Html::a('<i class="fas fa-trash"></i>', ['delete', 'id' => $quote->id_quote], [
                                                                 'class' => 'btn btn-danger btn-sm btn-action',
                                                                 'title' => 'Mover a papelera',
-                                                                'data' => [
-                                                                    'confirm' => '¿Mover esta cotización a la papelera?',
-                                                                    'method' => 'post',
-                                                                ],
+                                                                'data' => ['confirm' => '¿Mover esta cotización a la papelera?', 'method' => 'post'],
                                                             ]) ?>
                                                         <?php endif; ?>
                                                     </div>
@@ -230,7 +214,7 @@ $currentPage = $dataProvider ? $dataProvider->getPagination()->getPage() + 1 : 1
                                             </tr>
                                         <?php endforeach; ?>
                                     <?php else: ?>
-                                        <tr><td colspan="6" class="text-center text-muted py-4"><i class="fas fa-inbox fa-2x d-block mb-2"></i>No hay cotizaciones registradas</td></tr>
+                                        <tr><td colspan="5" class="text-center text-muted py-4"><i class="fas fa-inbox fa-2x d-block mb-2"></i>No hay cotizaciones registradas</td></tr>
                                     <?php endif; ?>
                                 </tbody>
                             </table>
@@ -239,9 +223,7 @@ $currentPage = $dataProvider ? $dataProvider->getPagination()->getPage() + 1 : 1
                     <div class="card-footer">
                         <div class="row align-items-center">
                             <div class="col-md-6">
-                                <small class="text-muted">
-                                    Mostrando <?= $currentCount ?> de <?= $totalCount ?> cotizaciones
-                                </small>
+                                <small class="text-muted">Mostrando <?= $currentCount ?> de <?= $totalCount ?> cotizaciones</small>
                             </div>
                             <div class="col-md-6">
                                 <?php if ($dataProvider && $dataProvider->getTotalCount() > 0): ?>
@@ -260,7 +242,7 @@ $currentPage = $dataProvider ? $dataProvider->getPagination()->getPage() + 1 : 1
                     </div>
                 </div>
                 
-                <!-- ACTIVIDADES + RESUMEN -->
+                <!-- ÚLTIMAS COTIZACIONES + RESUMEN -->
                 <div class="row g-2 mt-3 bottom-cards">
                     <div class="col-md-6">
                         <div class="card activities-card">
@@ -278,7 +260,10 @@ $currentPage = $dataProvider ? $dataProvider->getPagination()->getPage() + 1 : 1
                                             <div class="activity-item">
                                                 <div class="activity-icon"><i class="fas fa-file-invoice text-primary"></i></div>
                                                 <div class="activity-content">
-                                                    <div class="activity-title"><strong><?= $quote->lead ? Html::encode($quote->lead->name . ' ' . $quote->lead->lastname) : 'Lead no disponible' ?></strong> <span class="badge bg-<?= $quote->getStatusBadgeClass() ?>"><?= $quote->getStatusName() ?></span></div>
+                                                    <div class="activity-title">
+                                                        <strong><?= $quote->lead ? Html::encode($quote->lead->name . ' ' . $quote->lead->lastname) : 'Lead no disponible' ?></strong> 
+                                                        <span class="badge bg-<?= $quote->getStatusBadgeClass() ?>"><?= $quote->getStatusName() ?></span>
+                                                    </div>
                                                     <div class="activity-description">$<?= number_format($quote->total_amount ?? 0, 0, '.', ',') ?> - <?= StringHelper::truncate(Html::encode($quote->getNotes() ?? 'Sin observaciones'), 40, '...') ?></div>
                                                     <div class="activity-meta"><span class="activity-date"><i class="far fa-calendar-alt"></i> <?= date('d/m/Y H:i', strtotime($quote->date_quote)) ?></span></div>
                                                 </div>
@@ -345,251 +330,196 @@ $updateModalUrl = Url::to(['quote/update-modal']);
 
 <script>
 // ============================================
-// ESPERAR A QUE JQUERY ESTÉ CARGADO
+// 🔥 ACTUALIZACIÓN EN TIEMPO REAL
+// ============================================
+window.onQuoteUpdated = function(q) {
+    var row = document.querySelector('.quote-row[data-id="' + q.id_quote + '"]');
+    if (!row) return;
+
+    var cells = row.querySelectorAll('td');
+    // cells[0] = Cliente, cells[1] = Fecha, cells[2] = Total, cells[3] = Estado
+    if (cells[2] && q.total_amount) {
+        // 🔥 Se mantiene el signo $ en la actualización en tiempo real
+        cells[2].innerHTML = '<strong>$' + parseInt(q.total_amount).toLocaleString('es-MX') + '</strong>';
+    }
+    if (cells[3] && q.status_name) {
+        var badge = cells[3].querySelector('.badge');
+        if (badge) badge.textContent = q.status_name;
+    }
+
+    // Efecto verde
+    row.style.transition = 'background-color 0.5s';
+    row.style.backgroundColor = '#d4edda';
+    setTimeout(function() { row.style.backgroundColor = ''; }, 1000);
+};
+
+// ============================================
+// EJECUTAR SCRIPTS DE CONTENIDO AJAX
+// ============================================
+function executeScripts(container) {
+    if (!container) return 0;
+    var scripts = container.querySelectorAll('script');
+    scripts.forEach(function(oldScript) {
+        var newScript = document.createElement('script');
+        if (oldScript.src) newScript.src = oldScript.src;
+        else newScript.textContent = oldScript.textContent;
+        document.body.appendChild(newScript);
+        oldScript.remove();
+    });
+    return scripts.length;
+}
+
+// ============================================
+// INICIALIZAR
 // ============================================
 (function() {
     if (typeof jQuery === 'undefined') {
-        console.error('❌ jQuery no está cargado. Intentando cargar...');
         var script = document.createElement('script');
         script.src = 'https://code.jquery.com/jquery-3.6.0.min.js';
-        script.onload = function() {
-            console.log('✅ jQuery cargado manualmente');
-            inicializar();
-        };
+        script.onload = function() { inicializar(); };
         document.head.appendChild(script);
     } else {
-        console.log('✅ jQuery ya está cargado');
         inicializar();
     }
 })();
 
 function inicializar() {
     var $ = jQuery;
-    
-    console.log('🚀 Inicializando panel lateral de cotizaciones...');
-    
-    // ============================================
-    // VARIABLES
-    // ============================================
     var viewModalUrl = '<?= $viewModalUrl ?>';
     var updateModalUrl = '<?= $updateModalUrl ?>';
     var isOpen = false;
     var currentId = null;
-    
-    // ============================================
-    // FUNCIONES
-    // ============================================
+
     function closePanel(callback) {
         var panel = document.getElementById('panelWrapper');
         var tableWrapper = document.getElementById('tableWrapper');
-        
-        if (!panel || !tableWrapper) {
-            if (callback) callback();
-            return;
-        }
-        
+        if (!panel || !tableWrapper) { if (callback) callback(); return; }
+
         isOpen = false;
-        
-        document.querySelectorAll('.quote-row').forEach(function(row) {
-            row.classList.remove('quote-row-selected');
-        });
-        
+        document.querySelectorAll('.quote-row').forEach(function(row) { row.classList.remove('quote-row-selected'); });
+
         panel.classList.remove('visible');
         panel.classList.add('closing');
         tableWrapper.classList.remove('with-panel');
-        
+
         setTimeout(function() {
             panel.style.display = 'none';
             panel.classList.remove('closing');
             var contenido = document.getElementById('slidePanelContent');
-            if (contenido) {
-                contenido.innerHTML = '';
-            }
+            if (contenido) contenido.innerHTML = '';
             currentId = null;
             if (callback) callback();
         }, 300);
     }
-    
+
     function openPanel(id) {
-        if (id === currentId && isOpen) {
-            closePanel();
-            return;
-        }
-        
-        if (isOpen) {
-            closePanel(function() {
-                setTimeout(function() {
-                    openPanel(id);
-                }, 300);
-            });
-            return;
-        }
-        
+        if (id === currentId && isOpen) { closePanel(); return; }
+        if (isOpen) { closePanel(function() { setTimeout(function() { openPanel(id); }, 300); }); return; }
+
         currentId = id;
         isOpen = true;
-        
+
         var panel = document.getElementById('panelWrapper');
         var panelContent = document.getElementById('slidePanelContent');
         var tableWrapper = document.getElementById('tableWrapper');
         var filaSeleccionada = document.querySelector('.quote-row[data-id="' + id + '"]');
-        
-        if (!panel || !tableWrapper || !panelContent) {
-            console.error('❌ Elementos no encontrados');
-            return;
-        }
-        
-        document.querySelectorAll('.quote-row').forEach(function(row) {
-            row.classList.remove('quote-row-selected');
-        });
-        if (filaSeleccionada) {
-            filaSeleccionada.classList.add('quote-row-selected');
-        }
-        
+
+        if (!panel || !tableWrapper || !panelContent) return;
+
+        document.querySelectorAll('.quote-row').forEach(function(row) { row.classList.remove('quote-row-selected'); });
+        if (filaSeleccionada) filaSeleccionada.classList.add('quote-row-selected');
+
         tableWrapper.classList.add('with-panel');
-        
         panel.style.display = 'block';
         panel.classList.add('visible');
-        
+
         panelContent.innerHTML = '<div class="text-center text-muted py-4"><div class="spinner-border text-primary" role="status"></div><p class="mt-2">Cargando...</p></div>';
-        
+
         fetch(viewModalUrl + '?id=' + id)
-            .then(function(response) {
-                if (!response.ok) throw new Error('HTTP ' + response.status);
-                return response.text();
-            })
+            .then(function(r) { if (!r.ok) throw new Error('HTTP ' + r.status); return r.text(); })
             .then(function(data) {
                 panelContent.innerHTML = data;
-                console.log('✅ Contenido cargado');
+                executeScripts(panelContent);
             })
             .catch(function(error) {
-                console.error('❌ Error:', error);
                 panelContent.innerHTML = '<div class="text-center text-danger py-4"><i class="fas fa-exclamation-triangle fa-2x d-block mb-2"></i><p>Error al cargar</p><button class="btn btn-secondary btn-sm mt-2" onclick="closePanel()">Cerrar</button></div>';
             });
     }
-    
+
     function openEditPanel(id) {
-        if (isOpen) {
-            closePanel(function() {
-                setTimeout(function() {
-                    openEditPanel(id);
-                }, 300);
-            });
-            return;
-        }
-        
+        if (isOpen) { closePanel(function() { setTimeout(function() { openEditPanel(id); }, 300); }); return; }
+
         currentId = id;
         isOpen = true;
-        
+
         var panel = document.getElementById('panelWrapper');
         var panelContent = document.getElementById('slidePanelContent');
         var tableWrapper = document.getElementById('tableWrapper');
         var filaSeleccionada = document.querySelector('.quote-row[data-id="' + id + '"]');
-        
-        if (!panel || !tableWrapper || !panelContent) {
-            console.error('❌ Elementos no encontrados');
-            return;
-        }
-        
-        document.querySelectorAll('.quote-row').forEach(function(row) {
-            row.classList.remove('quote-row-selected');
-        });
-        if (filaSeleccionada) {
-            filaSeleccionada.classList.add('quote-row-selected');
-        }
-        
+
+        if (!panel || !tableWrapper || !panelContent) return;
+
+        document.querySelectorAll('.quote-row').forEach(function(row) { row.classList.remove('quote-row-selected'); });
+        if (filaSeleccionada) filaSeleccionada.classList.add('quote-row-selected');
+
         tableWrapper.classList.add('with-panel');
-        
         panel.style.display = 'block';
         panel.classList.add('visible');
-        
+
         panelContent.innerHTML = '<div class="text-center text-muted py-4"><div class="spinner-border text-primary" role="status"></div><p class="mt-2">Cargando formulario...</p></div>';
-        
+
         fetch(updateModalUrl + '?id=' + id)
-            .then(function(response) {
-                if (!response.ok) throw new Error('HTTP ' + response.status);
-                return response.text();
-            })
+            .then(function(r) { if (!r.ok) throw new Error('HTTP ' + r.status); return r.text(); })
             .then(function(data) {
                 panelContent.innerHTML = data;
-                console.log('✅ Formulario cargado');
+                executeScripts(panelContent);
             })
             .catch(function(error) {
-                console.error('❌ Error:', error);
                 panelContent.innerHTML = '<div class="text-center text-danger py-4"><i class="fas fa-exclamation-triangle fa-2x d-block mb-2"></i><p>Error al cargar</p><button class="btn btn-secondary btn-sm mt-2" onclick="closePanel()">Cerrar</button></div>';
             });
     }
-    
+
     window.openPanel = openPanel;
     window.openEditPanel = openEditPanel;
     window.closePanel = closePanel;
-    
-    // ============================================
-    // EVENTOS
-    // ============================================
+
+    // Eventos
     $(document).on('click', '.view-quote-btn', function(e) {
         e.stopPropagation();
         var id = $(this).data('id');
         if (id) openPanel(id);
     });
-    
+
     $(document).on('click', '.edit-quote-btn', function(e) {
         e.stopPropagation();
         var id = $(this).data('id');
         if (id) openEditPanel(id);
     });
-    
+
     $(document).on('click', '.quote-row', function(e) {
         if ($(e.target).closest('a, button').length > 0) return;
         var id = $(this).data('id');
         if (id) openPanel(id);
     });
-    
-    // Tecla ESC
+
     document.addEventListener('keydown', function(e) {
-        if (e.key === 'Escape' && isOpen) {
-            closePanel();
-        }
+        if (e.key === 'Escape' && isOpen) closePanel();
     });
-    
-    // ============================================
-    // FILTROS AUTOMÁTICOS
-    // ============================================
+
+    // Filtros
     var searchInput = document.getElementById('search-input');
-    if (searchInput) {
-        searchInput.addEventListener('keypress', function(e) {
-            if (e.key === 'Enter') document.getElementById('form-filtros').submit();
-        });
-    }
-    
+    if (searchInput) searchInput.addEventListener('keypress', function(e) { if (e.key === 'Enter') document.getElementById('form-filtros').submit(); });
+
     var statusSelect = document.getElementById('status-select');
-    if (statusSelect) {
-        statusSelect.addEventListener('change', function() {
-            document.getElementById('form-filtros').submit();
-        });
-    }
-    
+    if (statusSelect) statusSelect.addEventListener('change', function() { document.getElementById('form-filtros').submit(); });
+
     var fechaInicio = document.getElementById('fecha-inicio');
-    if (fechaInicio) {
-        fechaInicio.addEventListener('change', function() {
-            document.getElementById('form-filtros').submit();
-        });
-    }
-    
+    if (fechaInicio) fechaInicio.addEventListener('change', function() { document.getElementById('form-filtros').submit(); });
+
     var fechaFin = document.getElementById('fecha-fin');
-    if (fechaFin) {
-        fechaFin.addEventListener('change', function() {
-            document.getElementById('form-filtros').submit();
-        });
-    }
-    
+    if (fechaFin) fechaFin.addEventListener('change', function() { document.getElementById('form-filtros').submit(); });
+
     var btnFiltrar = document.getElementById('btn-filtrar');
-    if (btnFiltrar) {
-        btnFiltrar.addEventListener('click', function(e) {
-            e.preventDefault();
-            document.getElementById('form-filtros').submit();
-        });
-    }
-    
-    console.log('✅ Panel lateral de cotizaciones inicializado');
+    if (btnFiltrar) btnFiltrar.addEventListener('click', function(e) { e.preventDefault(); document.getElementById('form-filtros').submit(); });
 }
 </script>

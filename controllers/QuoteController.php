@@ -37,66 +37,41 @@ class QuoteController extends Controller
     }
 
     // ============================================
-    // 🔥 HELPER: Obtener el ID del estado "Cancelado"
+    // HELPERS
     // ============================================
     private function getCancelledStatusId()
     {
-        // 🔥 Buscar "Cancelado" (nombre oficial)
         $status = Status::find()->where(['status' => 'Cancelado'])->one();
-        
-        if ($status) {
-            return $status->id_status;
-        }
-        
-        // Fallback: buscar variantes por si acaso
-        $statusNames = ['cancelado', 'Cancelada', 'cancelada'];
-        
-        foreach ($statusNames as $name) {
+        if ($status) return $status->id_status;
+
+        foreach (['cancelado', 'Cancelada', 'cancelada'] as $name) {
             $status = Status::find()->where(['status' => $name])->one();
-            if ($status) {
-                return $status->id_status;
-            }
+            if ($status) return $status->id_status;
         }
-        
         return null;
     }
 
-    // ============================================
-    // 🔥 HELPER: Obtener el ID del estado "Pendiente"
-    // ============================================
     private function getPendingStatusId()
     {
-        // 🔥 Buscar "Pendiente" (nombre oficial)
         $status = Status::find()->where(['status' => 'Pendiente'])->one();
-        
-        if ($status) {
-            return $status->id_status;
-        }
-        
-        // Fallback
-        $statusNames = ['pendiente', 'pending'];
-        
-        foreach ($statusNames as $name) {
+        if ($status) return $status->id_status;
+
+        foreach (['pendiente', 'pending'] as $name) {
             $status = Status::find()->where(['status' => $name])->one();
-            if ($status) {
-                return $status->id_status;
-            }
+            if ($status) return $status->id_status;
         }
-        
         return null;
     }
 
     // ============================================
-    // LISTA DE COTIZACIONES CON PAGINACIÓN
+    // LISTA DE COTIZACIONES
     // ============================================
     public function actionIndex()
     {
         try {
             $user = Yii::$app->user->identity;
             
-            if (!$user) {
-                return $this->redirect(['site/login']);
-            }
+            if (!$user) return $this->redirect(['site/login']);
 
             $empresaId = Yii::$app->session->get('empresa_id');
 
@@ -105,10 +80,8 @@ class QuoteController extends Controller
                 return $this->redirect(['empresa/index']);
             }
 
-            // 🔥 ID del estado "Cancelado"
             $idCancelado = $this->getCancelledStatusId();
 
-            // 🔥 QUERY BASE - EXCLUIR LAS CANCELADAS
             $query = Quote::find()
                 ->alias('q')
                 ->leftJoin('Lead l', 'q.id_lead = l.id_lead')
@@ -118,18 +91,14 @@ class QuoteController extends Controller
                 $query->andWhere(['<>', 'q.id_status', $idCancelado]);
             }
 
-            // FILTROS POR ROL Y EMPRESA
             if ($user->isSuperAdmin()) {
-                if (!empty($empresaId)) {
-                    $query->andWhere(['l.id_company' => $empresaId]);
-                }
+                if (!empty($empresaId)) $query->andWhere(['l.id_company' => $empresaId]);
             } elseif ($user->isAdmin() && !$user->isSuperAdmin()) {
                 $query->andWhere(['l.id_company' => $user->id_company]);
             } elseif ($user->isAgent()) {
                 $query->andWhere(['l.id_user' => $user->id_user]);
             }
 
-            // FILTROS DE BÚSQUEDA
             $search = Yii::$app->request->get('search', '');
             $status = Yii::$app->request->get('status', '');
             $fecha_inicio = Yii::$app->request->get('fecha_inicio', '');
@@ -147,19 +116,12 @@ class QuoteController extends Controller
 
             if (!empty($status)) {
                 $statusModel = Status::find()->where(['status' => $status])->one();
-                if ($statusModel) {
-                    $query->andWhere(['q.id_status' => $statusModel->id_status]);
-                }
+                if ($statusModel) $query->andWhere(['q.id_status' => $statusModel->id_status]);
             }
 
-            if (!empty($fecha_inicio)) {
-                $query->andWhere(['>=', 'q.date_quote', $fecha_inicio . ' 00:00:00']);
-            }
-            if (!empty($fecha_fin)) {
-                $query->andWhere(['<=', 'q.date_quote', $fecha_fin . ' 23:59:59']);
-            }
+            if (!empty($fecha_inicio)) $query->andWhere(['>=', 'q.date_quote', $fecha_inicio . ' 00:00:00']);
+            if (!empty($fecha_fin)) $query->andWhere(['<=', 'q.date_quote', $fecha_fin . ' 23:59:59']);
 
-            // DATAPROVIDER CON PAGINACIÓN
             $dataProvider = new ActiveDataProvider([
                 'query' => $query,
                 'pagination' => [
@@ -168,29 +130,16 @@ class QuoteController extends Controller
                     'pageParam' => 'page',
                 ],
                 'sort' => [
-                    'defaultOrder' => [
-                        'date_quote' => SORT_DESC,
-                    ],
+                    'defaultOrder' => ['date_quote' => SORT_DESC],
                     'attributes' => [
-                        'date_quote' => [
-                            'asc' => ['q.date_quote' => SORT_ASC],
-                            'desc' => ['q.date_quote' => SORT_DESC],
-                        ],
-                        'total_amount' => [
-                            'asc' => ['q.total_amount' => SORT_ASC],
-                            'desc' => ['q.total_amount' => SORT_DESC],
-                        ],
-                        'id_status' => [
-                            'asc' => ['q.id_status' => SORT_ASC],
-                            'desc' => ['q.id_status' => SORT_DESC],
-                        ],
+                        'date_quote' => ['asc' => ['q.date_quote' => SORT_ASC], 'desc' => ['q.date_quote' => SORT_DESC]],
+                        'total_amount' => ['asc' => ['q.total_amount' => SORT_ASC], 'desc' => ['q.total_amount' => SORT_DESC]],
+                        'id_status' => ['asc' => ['q.id_status' => SORT_ASC], 'desc' => ['q.id_status' => SORT_DESC]],
                     ],
                 ],
             ]);
 
             $quotes = $dataProvider->getModels();
-
-            // CALCULAR TOTALES
             $totalReal = $query->count();
 
             $statusPendiente = Status::find()->where(['status' => 'Pendiente'])->one();
@@ -219,7 +168,6 @@ class QuoteController extends Controller
                 }
             }
 
-            // 🔥 CONTAR CANCELADAS
             if ($idCancelado) {
                 $canceladasQuery = Quote::find()
                     ->alias('q')
@@ -227,9 +175,7 @@ class QuoteController extends Controller
                     ->where(['q.id_status' => $idCancelado]);
 
                 if ($user->isSuperAdmin()) {
-                    if (!empty($empresaId)) {
-                        $canceladasQuery->andWhere(['l.id_company' => $empresaId]);
-                    }
+                    if (!empty($empresaId)) $canceladasQuery->andWhere(['l.id_company' => $empresaId]);
                 } elseif ($user->isAdmin() && !$user->isSuperAdmin()) {
                     $canceladasQuery->andWhere(['l.id_company' => $user->id_company]);
                 } elseif ($user->isAgent()) {
@@ -254,9 +200,7 @@ class QuoteController extends Controller
                 $statusModel = Status::findOne($q->id_status);
                 if ($statusModel) {
                     $name = $statusModel->status;
-                    if (!isset($statusCounts[$name])) {
-                        $statusCounts[$name] = 0;
-                    }
+                    if (!isset($statusCounts[$name])) $statusCounts[$name] = 0;
                     $statusCounts[$name]++;
                 }
             }
@@ -286,10 +230,8 @@ class QuoteController extends Controller
             Yii::error('Error en actionIndex: ' . $e->getMessage(), 'quote-controller');
             Yii::$app->session->setFlash('error', 'Error al cargar las cotizaciones: ' . $e->getMessage());
             
-            $emptyQuery = Quote::find()->where(['1' => '0']);
-            
             return $this->render('index', [
-                'dataProvider' => new ActiveDataProvider(['query' => $emptyQuery]),
+                'dataProvider' => new ActiveDataProvider(['query' => Quote::find()->where(['1' => '0'])]),
                 'quotes' => [],
                 'totalQuotes' => 0,
                 'totalPendientes' => 0,
@@ -312,16 +254,14 @@ class QuoteController extends Controller
     }
 
     // ============================================
-    // 🔥 PAPELERA DE COTIZACIONES
+    // PAPELERA
     // ============================================
     public function actionTrash()
     {
         try {
             $user = Yii::$app->user->identity;
             
-            if (!$user) {
-                return $this->redirect(['site/login']);
-            }
+            if (!$user) return $this->redirect(['site/login']);
 
             if (!$user->isAdmin() && !$user->isSuperAdmin()) {
                 Yii::$app->session->setFlash('error', 'No tienes permiso para acceder a la papelera.');
@@ -329,34 +269,25 @@ class QuoteController extends Controller
             }
 
             $empresaId = Yii::$app->session->get('empresa_id');
-
-            // 🔥 Buscar ID del estado "Cancelado"
             $idCancelado = $this->getCancelledStatusId();
 
-            // 🔥 CONSTRUIR QUERY - Si no existe el estado, mostrar vacío
             $query = Quote::find()
                 ->alias('q')
                 ->leftJoin('Lead l', 'q.id_lead = l.id_lead')
                 ->with(['lead', 'status']);
 
             if ($idCancelado) {
-                // Si existe el estado, filtrar por él
                 $query->andWhere(['q.id_status' => $idCancelado]);
             } else {
-                // Si no existe, mostrar query vacía (0 resultados)
                 $query->andWhere(['0' => '1']);
             }
 
-            // FILTROS POR ROL Y EMPRESA
             if ($user->isSuperAdmin()) {
-                if (!empty($empresaId)) {
-                    $query->andWhere(['l.id_company' => $empresaId]);
-                }
+                if (!empty($empresaId)) $query->andWhere(['l.id_company' => $empresaId]);
             } elseif ($user->isAdmin() && !$user->isSuperAdmin()) {
                 $query->andWhere(['l.id_company' => $user->id_company]);
             }
 
-            // FILTROS DE BÚSQUEDA
             $search = Yii::$app->request->get('search', '');
             if (!empty($search)) {
                 $query->andWhere([
@@ -368,7 +299,6 @@ class QuoteController extends Controller
                 ]);
             }
 
-            // DATAPROVIDER CON PAGINACIÓN
             $dataProvider = new ActiveDataProvider([
                 'query' => $query,
                 'pagination' => [
@@ -376,11 +306,7 @@ class QuoteController extends Controller
                     'pageSizeParam' => 'per-page',
                     'pageParam' => 'page',
                 ],
-                'sort' => [
-                    'defaultOrder' => [
-                        'date_quote' => SORT_DESC,
-                    ],
-                ],
+                'sort' => ['defaultOrder' => ['date_quote' => SORT_DESC]],
             ]);
 
             $quotes = $dataProvider->getModels();
@@ -410,7 +336,7 @@ class QuoteController extends Controller
     }
 
     // ============================================
-    // 🔥 RESTAURAR COTIZACIÓN
+    // RESTAURAR
     // ============================================
     public function actionRestore($id)
     {
@@ -423,10 +349,7 @@ class QuoteController extends Controller
                 return $this->redirect(['trash']);
             }
 
-            $model = Quote::find()
-                ->with(['lead'])
-                ->where(['id_quote' => $id])
-                ->one();
+            $model = Quote::find()->with(['lead'])->where(['id_quote' => $id])->one();
 
             if (!$model) {
                 Yii::$app->session->setFlash('error', 'Cotización no encontrada.');
@@ -443,7 +366,6 @@ class QuoteController extends Controller
                 return $this->redirect(['trash']);
             }
 
-            // 🔥 Buscar estado "Pendiente"
             $idPendiente = $this->getPendingStatusId();
             
             if (!$idPendiente) {
@@ -468,7 +390,7 @@ class QuoteController extends Controller
     }
 
     // ============================================
-    // 🔥 MOVER A PAPELERA
+    // MOVER A PAPELERA
     // ============================================
     public function actionDelete($id)
     {
@@ -481,10 +403,7 @@ class QuoteController extends Controller
                 return $this->redirect(['index']);
             }
 
-            $model = Quote::find()
-                ->with(['lead'])
-                ->where(['id_quote' => $id])
-                ->one();
+            $model = Quote::find()->with(['lead'])->where(['id_quote' => $id])->one();
 
             if (!$model) {
                 Yii::$app->session->setFlash('error', 'Cotización no encontrada.');
@@ -501,7 +420,6 @@ class QuoteController extends Controller
                 return $this->redirect(['index']);
             }
 
-            // 🔥 Buscar ID del estado "Cancelado"
             $idCancelado = $this->getCancelledStatusId();
             
             if (!$idCancelado) {
@@ -526,7 +444,7 @@ class QuoteController extends Controller
     }
 
     // ============================================
-    // 🔥 HISTORIAL DE PAGOS
+    // HISTORIAL DE PAGOS
     // ============================================
     public function actionPayments($id)
     {
@@ -534,10 +452,7 @@ class QuoteController extends Controller
             $user = Yii::$app->user->identity;
             $empresaId = Yii::$app->session->get('empresa_id');
 
-            $model = Quote::find()
-                ->with(['lead', 'status'])
-                ->where(['id_quote' => $id])
-                ->one();
+            $model = Quote::find()->with(['lead', 'status'])->where(['id_quote' => $id])->one();
 
             if (!$model) {
                 Yii::$app->session->setFlash('error', 'Cotización no encontrada.');
@@ -564,9 +479,7 @@ class QuoteController extends Controller
                 return $this->redirect(['index']);
             }
 
-            return $this->render('payments', [
-                'model' => $model,
-            ]);
+            return $this->render('payments', ['model' => $model]);
 
         } catch (\Exception $e) {
             Yii::error('Error en actionPayments: ' . $e->getMessage(), 'quote-controller');
@@ -576,7 +489,7 @@ class QuoteController extends Controller
     }
 
     // ============================================
-    // 🔥 REGISTRAR PAGO PARCIAL (AJAX)
+    // REGISTRAR PAGO PARCIAL (AJAX - JSON)
     // ============================================
     public function actionAddPayment($id)
     {
@@ -586,27 +499,17 @@ class QuoteController extends Controller
             $user = Yii::$app->user->identity;
             $empresaId = Yii::$app->session->get('empresa_id');
 
-            $model = Quote::find()
-                ->with(['lead'])
-                ->where(['id_quote' => $id])
-                ->one();
+            $model = Quote::find()->with(['lead'])->where(['id_quote' => $id])->one();
 
-            if (!$model) {
-                return ['success' => false, 'message' => 'Cotización no encontrada.'];
-            }
-
-            if (!$model->lead) {
-                return ['success' => false, 'message' => 'La cotización no tiene un lead asociado.'];
-            }
+            if (!$model) return ['success' => false, 'message' => 'Cotización no encontrada.'];
+            if (!$model->lead) return ['success' => false, 'message' => 'La cotización no tiene un lead asociado.'];
 
             if ($user->isAgent() && $model->lead->id_user != $user->id_user) {
                 return ['success' => false, 'message' => 'No tienes permiso.'];
             }
-
             if ($user->isSuperAdmin() && !empty($empresaId) && $model->lead->id_company != $empresaId) {
                 return ['success' => false, 'message' => 'No tienes permiso.'];
             }
-
             if ($user->isAdmin() && !$user->isSuperAdmin() && $model->lead->id_company != $user->id_company) {
                 return ['success' => false, 'message' => 'No tienes permiso.'];
             }
@@ -617,9 +520,7 @@ class QuoteController extends Controller
             $fecha = Yii::$app->request->post('fecha', date('Y-m-d'));
             $comentarios = Yii::$app->request->post('comentarios', '');
 
-            if ($monto <= 0) {
-                return ['success' => false, 'message' => 'El monto debe ser mayor a 0.'];
-            }
+            if ($monto <= 0) return ['success' => false, 'message' => 'El monto debe ser mayor a 0.'];
 
             if ($model->isFullyPaid()) {
                 return ['success' => false, 'message' => 'Esta cotización ya está pagada en su totalidad.'];
@@ -646,9 +547,9 @@ class QuoteController extends Controller
                     'nuevo_pendiente' => $nuevoPendiente,
                     'completado' => $nuevoPendiente <= 0,
                 ];
-            } else {
-                return ['success' => false, 'message' => 'Error al guardar el pago.'];
             }
+
+            return ['success' => false, 'message' => 'Error al guardar el pago.'];
 
         } catch (\Exception $e) {
             Yii::error('Error al registrar pago: ' . $e->getMessage(), 'quote');
@@ -657,7 +558,7 @@ class QuoteController extends Controller
     }
 
     // ============================================
-    // 🔥 ELIMINAR PAGO PARCIAL
+    // ELIMINAR PAGO PARCIAL
     // ============================================
     public function actionRemovePayment($id, $index)
     {
@@ -665,10 +566,7 @@ class QuoteController extends Controller
             $user = Yii::$app->user->identity;
             $empresaId = Yii::$app->session->get('empresa_id');
 
-            $model = Quote::find()
-                ->with(['lead'])
-                ->where(['id_quote' => $id])
-                ->one();
+            $model = Quote::find()->with(['lead'])->where(['id_quote' => $id])->one();
 
             if (!$model) {
                 Yii::$app->session->setFlash('error', 'Cotización no encontrada.');
@@ -723,7 +621,7 @@ class QuoteController extends Controller
     }
 
     // ============================================
-    // VER COTIZACIÓN - MODAL (AJAX)
+    // VER COTIZACIÓN - MODAL
     // ============================================
     public function actionViewModal($id)
     {
@@ -733,39 +631,19 @@ class QuoteController extends Controller
             $user = Yii::$app->user->identity;
             $empresaId = Yii::$app->session->get('empresa_id');
 
-            $model = Quote::find()
-                ->with(['lead', 'status'])
-                ->where(['id_quote' => $id])
-                ->one();
+            $model = Quote::find()->with(['lead', 'status'])->where(['id_quote' => $id])->one();
             
-            if (!$model) {
-                return $this->renderPartial('_view_modal', [
-                    'error' => 'La cotización solicitada no existe.'
-                ]);
-            }
-            
-            if (!$model->lead) {
-                return $this->renderPartial('_view_modal', [
-                    'error' => 'La cotización no tiene un lead asociado.'
-                ]);
-            }
+            if (!$model) return $this->renderPartial('_view_modal', ['error' => 'La cotización solicitada no existe.']);
+            if (!$model->lead) return $this->renderPartial('_view_modal', ['error' => 'La cotización no tiene un lead asociado.']);
             
             if ($user->isAgent() && $model->lead->id_user != $user->id_user) {
-                return $this->renderPartial('_view_modal', [
-                    'error' => 'No tienes permiso para ver esta cotización.'
-                ]);
+                return $this->renderPartial('_view_modal', ['error' => 'No tienes permiso para ver esta cotización.']);
             }
-            
             if ($user->isSuperAdmin() && !empty($empresaId) && $model->lead->id_company != $empresaId) {
-                return $this->renderPartial('_view_modal', [
-                    'error' => 'No tienes permiso para ver esta cotización.'
-                ]);
+                return $this->renderPartial('_view_modal', ['error' => 'No tienes permiso para ver esta cotización.']);
             }
-            
             if ($user->isAdmin() && !$user->isSuperAdmin() && $model->lead->id_company != $user->id_company) {
-                return $this->renderPartial('_view_modal', [
-                    'error' => 'No tienes permiso para ver esta cotización.'
-                ]);
+                return $this->renderPartial('_view_modal', ['error' => 'No tienes permiso para ver esta cotización.']);
             }
 
             return $this->renderPartial('_view_modal', [
@@ -777,14 +655,12 @@ class QuoteController extends Controller
             
         } catch (\Exception $e) {
             Yii::error('Error en actionViewModal: ' . $e->getMessage(), 'quote-controller');
-            return $this->renderPartial('_view_modal', [
-                'error' => 'Error al cargar la cotización: ' . $e->getMessage()
-            ]);
+            return $this->renderPartial('_view_modal', ['error' => 'Error al cargar la cotización: ' . $e->getMessage()]);
         }
     }
 
     // ============================================
-    // ACTUALIZAR COTIZACIÓN - MODAL (AJAX)
+    // ACTUALIZAR COTIZACIÓN - MODAL (HTML)
     // ============================================
     public function actionUpdateModal($id)
     {
@@ -794,50 +670,28 @@ class QuoteController extends Controller
             $user = Yii::$app->user->identity;
             $empresaId = Yii::$app->session->get('empresa_id');
 
-            $model = Quote::find()
-                ->with(['lead', 'status'])
-                ->where(['id_quote' => $id])
-                ->one();
+            $model = Quote::find()->with(['lead', 'status'])->where(['id_quote' => $id])->one();
             
-            if (!$model) {
-                return $this->renderPartial('_update_modal', [
-                    'error' => 'La cotización solicitada no existe.'
-                ]);
-            }
-            
-            if (!$model->lead) {
-                return $this->renderPartial('_update_modal', [
-                    'error' => 'La cotización no tiene un lead asociado.'
-                ]);
-            }
+            if (!$model) return $this->renderPartial('_update_modal', ['error' => 'La cotización solicitada no existe.']);
+            if (!$model->lead) return $this->renderPartial('_update_modal', ['error' => 'La cotización no tiene un lead asociado.']);
 
             if ($user->isAgent() && $model->lead->id_user != $user->id_user) {
-                return $this->renderPartial('_update_modal', [
-                    'error' => 'No tienes permiso para editar esta cotización.'
-                ]);
+                return $this->renderPartial('_update_modal', ['error' => 'No tienes permiso para editar esta cotización.']);
             }
-            
             if ($user->isSuperAdmin() && !empty($empresaId) && $model->lead->id_company != $empresaId) {
-                return $this->renderPartial('_update_modal', [
-                    'error' => 'No tienes permiso para editar esta cotización.'
-                ]);
+                return $this->renderPartial('_update_modal', ['error' => 'No tienes permiso para editar esta cotización.']);
             }
-            
             if ($user->isAdmin() && !$user->isSuperAdmin() && $model->lead->id_company != $user->id_company) {
-                return $this->renderPartial('_update_modal', [
-                    'error' => 'No tienes permiso para editar esta cotización.'
-                ]);
+                return $this->renderPartial('_update_modal', ['error' => 'No tienes permiso para editar esta cotización.']);
             }
 
-            $leadsList = [];
+            // Listas para selects
             $leadsQuery = Lead::find();
             
             if ($user->isAgent()) {
                 $leadsQuery->andWhere(['id_user' => $user->id_user]);
             } elseif ($user->isSuperAdmin()) {
-                if (!empty($empresaId)) {
-                    $leadsQuery->andWhere(['id_company' => $empresaId]);
-                }
+                if (!empty($empresaId)) $leadsQuery->andWhere(['id_company' => $empresaId]);
             } elseif ($user->isAdmin() && !$user->isSuperAdmin()) {
                 $leadsQuery->andWhere(['id_company' => $user->id_company]);
             }
@@ -853,6 +707,7 @@ class QuoteController extends Controller
                 ->indexBy('id_status')
                 ->column();
 
+            // 🔥 GUARDAR
             if (Yii::$app->request->isPost && $model->load(Yii::$app->request->post())) {
                 try {
                     $model->total_amount = (int)$model->total_amount;
@@ -905,9 +760,7 @@ class QuoteController extends Controller
             
         } catch (\Exception $e) {
             Yii::error('Error en actionUpdateModal: ' . $e->getMessage(), 'quote-controller');
-            return $this->renderPartial('_update_modal', [
-                'error' => 'Error al cargar el formulario: ' . $e->getMessage()
-            ]);
+            return $this->renderPartial('_update_modal', ['error' => 'Error al cargar el formulario: ' . $e->getMessage()]);
         }
     }
 
@@ -920,15 +773,9 @@ class QuoteController extends Controller
             $user = Yii::$app->user->identity;
             $empresaId = Yii::$app->session->get('empresa_id');
 
-            $model = Quote::find()
-                ->with(['lead', 'status'])
-                ->where(['id_quote' => $id])
-                ->one();
+            $model = Quote::find()->with(['lead', 'status'])->where(['id_quote' => $id])->one();
             
-            if (!$model) {
-                throw new NotFoundHttpException('La cotización solicitada no existe.');
-            }
-            
+            if (!$model) throw new NotFoundHttpException('La cotización solicitada no existe.');
             if (!$model->lead) {
                 Yii::$app->session->setFlash('error', 'La cotización no tiene un lead asociado.');
                 return $this->redirect(['index']);
@@ -938,12 +785,10 @@ class QuoteController extends Controller
                 Yii::$app->session->setFlash('error', 'No tienes permiso para ver esta cotización.');
                 return $this->redirect(['index']);
             }
-            
             if ($user->isSuperAdmin() && !empty($empresaId) && $model->lead->id_company != $empresaId) {
                 Yii::$app->session->setFlash('error', 'No tienes permiso para ver esta cotización.');
                 return $this->redirect(['index']);
             }
-            
             if ($user->isAdmin() && !$user->isSuperAdmin() && $model->lead->id_company != $user->id_company) {
                 Yii::$app->session->setFlash('error', 'No tienes permiso para ver esta cotización.');
                 return $this->redirect(['index']);
@@ -971,7 +816,7 @@ class QuoteController extends Controller
     }
 
     // ============================================
-    // DETALLES DE COTIZACIÓN
+    // DETALLES
     // ============================================
     public function actionDetails($id)
     {
@@ -979,15 +824,9 @@ class QuoteController extends Controller
             $user = Yii::$app->user->identity;
             $empresaId = Yii::$app->session->get('empresa_id');
 
-            $model = Quote::find()
-                ->with(['lead', 'status'])
-                ->where(['id_quote' => $id])
-                ->one();
+            $model = Quote::find()->with(['lead', 'status'])->where(['id_quote' => $id])->one();
             
-            if (!$model) {
-                throw new NotFoundHttpException('La cotización solicitada no existe.');
-            }
-            
+            if (!$model) throw new NotFoundHttpException('La cotización solicitada no existe.');
             if (!$model->lead) {
                 Yii::$app->session->setFlash('error', 'La cotización no tiene un lead asociado.');
                 return $this->redirect(['index']);
@@ -997,12 +836,10 @@ class QuoteController extends Controller
                 Yii::$app->session->setFlash('error', 'No tienes permiso para ver esta cotización.');
                 return $this->redirect(['index']);
             }
-            
             if ($user->isSuperAdmin() && !empty($empresaId) && $model->lead->id_company != $empresaId) {
                 Yii::$app->session->setFlash('error', 'No tienes permiso para ver esta cotización.');
                 return $this->redirect(['index']);
             }
-            
             if ($user->isAdmin() && !$user->isSuperAdmin() && $model->lead->id_company != $user->id_company) {
                 Yii::$app->session->setFlash('error', 'No tienes permiso para ver esta cotización.');
                 return $this->redirect(['index']);
@@ -1046,11 +883,8 @@ class QuoteController extends Controller
             $model->pending_payment = 0;
             $model->total_amount = 0;
 
-            // 🔥 ESTADO POR DEFECTO: Pendiente
             $idPendiente = $this->getPendingStatusId();
-            if ($idPendiente) {
-                $model->id_status = $idPendiente;
-            }
+            if ($idPendiente) $model->id_status = $idPendiente;
 
             if ($leadId) {
                 $lead = Lead::findOne($leadId);
@@ -1095,13 +929,9 @@ class QuoteController extends Controller
                         return $this->redirect(['create']);
                     }
 
-                    if ($model->down_payment < 0) {
-                        $model->down_payment = 0;
-                    }
+                    if ($model->down_payment < 0) $model->down_payment = 0;
 
-                    if (empty($model->id_status) && $idPendiente) {
-                        $model->id_status = $idPendiente;
-                    }
+                    if (empty($model->id_status) && $idPendiente) $model->id_status = $idPendiente;
 
                     if (!empty($model->comments)) {
                         $decoded = json_decode($model->comments, true);
@@ -1114,9 +944,7 @@ class QuoteController extends Controller
                         $lead = Lead::findOne($model->id_lead);
                         if ($lead) {
                             $statusInteresado = Status::find()->where(['status' => 'Interesado'])->one();
-                            if (!$statusInteresado) {
-                                $statusInteresado = Status::find()->where(['status' => 'Contactado'])->one();
-                            }
+                            if (!$statusInteresado) $statusInteresado = Status::find()->where(['status' => 'Contactado'])->one();
                             if ($statusInteresado) {
                                 $lead->id_status = $statusInteresado->id_status;
                                 $lead->save(false);
@@ -1144,18 +972,13 @@ class QuoteController extends Controller
                 }
             }
 
-            $leadsList = [];
-            $leadsQuery = Lead::find()
-                ->where(['not in', 'id_status', [1, 10]]);
+            $leadsQuery = Lead::find()->where(['not in', 'id_status', [1, 10]]);
             
             if ($user->isAgent()) {
                 $leadsQuery->andWhere(['id_user' => $user->id_user]);
             } elseif ($user->isSuperAdmin()) {
-                if (!empty($empresaId)) {
-                    $leadsQuery->andWhere(['id_company' => $empresaId]);
-                } else {
-                    $leadsQuery->andWhere(['0' => '1']);
-                }
+                if (!empty($empresaId)) $leadsQuery->andWhere(['id_company' => $empresaId]);
+                else $leadsQuery->andWhere(['0' => '1']);
             } elseif ($user->isAdmin() && !$user->isSuperAdmin()) {
                 $leadsQuery->andWhere(['id_company' => $user->id_company]);
             }
@@ -1190,15 +1013,9 @@ class QuoteController extends Controller
             $user = Yii::$app->user->identity;
             $empresaId = Yii::$app->session->get('empresa_id');
 
-            $model = Quote::find()
-                ->with(['lead', 'status'])
-                ->where(['id_quote' => $id])
-                ->one();
+            $model = Quote::find()->with(['lead', 'status'])->where(['id_quote' => $id])->one();
             
-            if (!$model) {
-                throw new NotFoundHttpException('La cotización solicitada no existe.');
-            }
-            
+            if (!$model) throw new NotFoundHttpException('La cotización solicitada no existe.');
             if (!$model->lead) {
                 Yii::$app->session->setFlash('error', 'La cotización no tiene un lead asociado.');
                 return $this->redirect(['index']);
@@ -1208,12 +1025,10 @@ class QuoteController extends Controller
                 Yii::$app->session->setFlash('error', 'No tienes permiso para editar esta cotización.');
                 return $this->redirect(['index']);
             }
-            
             if ($user->isSuperAdmin() && !empty($empresaId) && $model->lead->id_company != $empresaId) {
                 Yii::$app->session->setFlash('error', 'No tienes permiso para editar esta cotización.');
                 return $this->redirect(['index']);
             }
-            
             if ($user->isAdmin() && !$user->isSuperAdmin() && $model->lead->id_company != $user->id_company) {
                 Yii::$app->session->setFlash('error', 'No tienes permiso para editar esta cotización.');
                 return $this->redirect(['index']);
@@ -1248,15 +1063,12 @@ class QuoteController extends Controller
                 }
             }
 
-            $leadsList = [];
             $leadsQuery = Lead::find();
             
             if ($user->isAgent()) {
                 $leadsQuery->andWhere(['id_user' => $user->id_user]);
             } elseif ($user->isSuperAdmin()) {
-                if (!empty($empresaId)) {
-                    $leadsQuery->andWhere(['id_company' => $empresaId]);
-                }
+                if (!empty($empresaId)) $leadsQuery->andWhere(['id_company' => $empresaId]);
             } elseif ($user->isAdmin() && !$user->isSuperAdmin()) {
                 $leadsQuery->andWhere(['id_company' => $user->id_company]);
             }
@@ -1283,7 +1095,7 @@ class QuoteController extends Controller
     }
 
     // ============================================
-    // ACTUALIZAR ESTADO DE COTIZACIÓN
+    // ACTUALIZAR ESTADO
     // ============================================
     public function actionUpdateStatus()
     {
@@ -1294,9 +1106,7 @@ class QuoteController extends Controller
 
             $model = Quote::findOne($id);
             
-            if (!$model) {
-                throw new NotFoundHttpException('La cotización solicitada no existe.');
-            }
+            if (!$model) throw new NotFoundHttpException('La cotización solicitada no existe.');
             
             $user = Yii::$app->user->identity;
 

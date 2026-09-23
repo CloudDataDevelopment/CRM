@@ -16,7 +16,6 @@ $this->registerCssFile('@web/css/sales-tracking-panel.css', ['depends' => [\yii\
 $this->registerCssFile('@web/css/sales-tracking-edit-modal.css', ['depends' => [\yii\bootstrap5\BootstrapAsset::class], 'position' => \yii\web\View::POS_HEAD]);
 
 // Registrar JS
-$this->registerJsFile('https://code.jquery.com/3.6.0/jquery.min.js', ['position' => \yii\web\View::POS_HEAD]);
 $this->registerJsFile('https://code.jquery.com/jquery-3.6.0.min.js', ['position' => \yii\web\View::POS_HEAD]);
 
 // ============================================
@@ -54,9 +53,7 @@ $metricas = [
 <div class="sales-tracking-index">
     <div class="sales-tracking-wrapper">
         
-        <!-- ============================================ -->
         <!-- HEADER -->
-        <!-- ============================================ -->
         <div class="sales-tracking-header">
             <div>
                 <div class="breadcrumb-custom">
@@ -89,9 +86,7 @@ $metricas = [
             </div>
         </div>
 
-        <!-- ============================================ -->
         <!-- MÉTRICAS -->
-        <!-- ============================================ -->
         <div class="row g-2 mb-2">
             <?php foreach ($metricas as $metrica): ?>
                 <div class="col-xl-2 col-md-4 col-6">
@@ -110,9 +105,7 @@ $metricas = [
             <?php endforeach; ?>
         </div>
 
-        <!-- ============================================ -->
         <!-- FILTROS -->
-        <!-- ============================================ -->
         <div class="card tracking-filtros-card mb-3">
             <div class="card-body">
                 <form method="get" action="<?= Url::to(['sales-tracking/index']) ?>" id="form-filtros">
@@ -146,9 +139,7 @@ $metricas = [
             </div>
         </div>
 
-        <!-- ============================================ -->
         <!-- CONTENEDOR PRINCIPAL -->
-        <!-- ============================================ -->
         <div class="tracking-panel-container">
             <!-- Tabla -->
             <div class="tracking-table-wrapper" id="tableWrapper">
@@ -364,28 +355,63 @@ $updateModalUrl = Url::to(['sales-tracking/update-modal']);
 
 <script>
 // ============================================
+// ACTUALIZACIÓN EN TIEMPO REAL
+// ============================================
+window.onTrackingUpdated = function(t) {
+    var row = document.querySelector('.tracking-row[data-id="' + t.id + '"]');
+    if (!row) return;
+
+    var cells = row.querySelectorAll('td');
+    if (cells[2] && t.status_name) {
+        var badge = cells[2].querySelector('.badge');
+        if (badge) {
+            badge.textContent = t.status_name;
+            if (t.status_badge) badge.className = 'badge bg-' + t.status_badge;
+        }
+    }
+    if (cells[4] && t.comments !== undefined) {
+        cells[4].textContent = t.comments.substring(0, 50);
+    }
+
+    row.style.transition = 'background-color 0.5s';
+    row.style.backgroundColor = '#d4edda';
+    setTimeout(function() { row.style.backgroundColor = ''; }, 1000);
+};
+
+// ============================================
+// EJECUTAR SCRIPTS DE CONTENIDO AJAX
+// ============================================
+function executeScripts(container) {
+    if (!container) return 0;
+    var scripts = container.querySelectorAll('script');
+    scripts.forEach(function(oldScript) {
+        var newScript = document.createElement('script');
+        if (oldScript.src) newScript.src = oldScript.src;
+        else newScript.textContent = oldScript.textContent;
+        document.body.appendChild(newScript);
+        oldScript.remove();
+    });
+    return scripts.length;
+}
+
+// ============================================
 // ESPERAR A QUE JQUERY ESTÉ CARGADO
 // ============================================
 (function() {
     if (typeof jQuery === 'undefined') {
-        console.error('❌ jQuery no está cargado. Intentando cargar...');
         var script = document.createElement('script');
         script.src = 'https://code.jquery.com/jquery-3.6.0.min.js';
         script.onload = function() {
-            console.log('✅ jQuery cargado manualmente');
             inicializar();
         };
         document.head.appendChild(script);
     } else {
-        console.log('✅ jQuery ya está cargado');
         inicializar();
     }
 })();
 
 function inicializar() {
     var $ = jQuery;
-    
-    console.log('🚀 Inicializando panel lateral de seguimientos...');
     
     var viewModalUrl = '<?= $viewModalUrl ?>';
     var updateModalUrl = '<?= $updateModalUrl ?>';
@@ -447,7 +473,6 @@ function inicializar() {
         var filaSeleccionada = document.querySelector('.tracking-row[data-id="' + id + '"]');
         
         if (!panel || !tableWrapper || !panelContent) {
-            console.error('❌ Elementos no encontrados');
             return;
         }
         
@@ -459,7 +484,6 @@ function inicializar() {
         }
         
         tableWrapper.classList.add('with-panel');
-        
         panel.style.display = 'block';
         panel.classList.add('visible');
         
@@ -472,10 +496,9 @@ function inicializar() {
             })
             .then(function(data) {
                 panelContent.innerHTML = data;
-                console.log('✅ Contenido cargado');
+                executeScripts(panelContent);
             })
             .catch(function(error) {
-                console.error('❌ Error:', error);
                 panelContent.innerHTML = '<div class="text-center text-danger py-4"><i class="fas fa-exclamation-triangle fa-2x d-block mb-2"></i><p>Error al cargar</p><button class="btn btn-secondary btn-sm mt-2" onclick="closePanel()">Cerrar</button></div>';
             });
     }
@@ -499,7 +522,6 @@ function inicializar() {
         var filaSeleccionada = document.querySelector('.tracking-row[data-id="' + id + '"]');
         
         if (!panel || !tableWrapper || !panelContent) {
-            console.error('❌ Elementos no encontrados');
             return;
         }
         
@@ -511,7 +533,6 @@ function inicializar() {
         }
         
         tableWrapper.classList.add('with-panel');
-        
         panel.style.display = 'block';
         panel.classList.add('visible');
         
@@ -524,10 +545,9 @@ function inicializar() {
             })
             .then(function(data) {
                 panelContent.innerHTML = data;
-                console.log('✅ Formulario cargado');
+                executeScripts(panelContent);
             })
             .catch(function(error) {
-                console.error('❌ Error:', error);
                 panelContent.innerHTML = '<div class="text-center text-danger py-4"><i class="fas fa-exclamation-triangle fa-2x d-block mb-2"></i><p>Error al cargar</p><button class="btn btn-secondary btn-sm mt-2" onclick="closePanel()">Cerrar</button></div>';
             });
     }
@@ -595,7 +615,5 @@ function inicializar() {
             document.getElementById('form-filtros').submit();
         });
     }
-    
-    console.log('✅ Panel lateral de seguimientos inicializado');
 }
 </script>

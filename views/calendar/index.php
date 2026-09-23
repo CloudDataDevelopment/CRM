@@ -215,11 +215,6 @@ $mesActualNombre = $mesesEspanol[$month] ?? date('F', $firstDayTimestamp);
                         <?php endforeach; ?>
                     </select>
                 </div>
-                <div class="col-md-2">
-                    <button class="btn btn-primary w-100" id="btn-go-to-month">
-                        <i class="fas fa-arrow-right"></i> Ir
-                    </button>
-                </div>
                 <div class="col-md-3 text-end">
                     <span class="badge bg-info text-white">
                         <i class="fas fa-info-circle"></i> Rango: 2026 - 2030

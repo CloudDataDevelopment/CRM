@@ -150,7 +150,6 @@ $fecha_fin = isset($fecha_fin) ? $fecha_fin : '';
                             <table class="table table-hover mb-0" id="evaluaciones-table">
                                 <thead class="table-light">
                                     <tr>
-                                        <th>#</th>
                                         <th>Nombre</th>
                                         <th>Lead</th>
                                         <th>Tipo</th>
@@ -163,7 +162,6 @@ $fecha_fin = isset($fecha_fin) ? $fecha_fin : '';
                                     <?php if (!empty($reports)): ?>
                                         <?php foreach ($reports as $index => $report): ?>
                                             <tr class="quote-row" data-id="<?= $report->id_report ?>">
-                                                <td><?= $dataProvider ? $dataProvider->getPagination()->getOffset() + $index + 1 : $index + 1 ?></td>
                                                 <td><strong><?= Html::encode($report->report_name) ?></strong></td>
                                                 <td>
                                                     <?php if ($report->lead): ?>
@@ -177,9 +175,6 @@ $fecha_fin = isset($fecha_fin) ? $fecha_fin : '';
                                                 </td>
                                                 <td><?= Html::encode($report->report_type ?? '-') ?></td>
                                                 <td><?= $report->date_report ? date('d/m/Y', strtotime($report->date_report)) : '-' ?></td>
-                                                <?php if ($isSuperAdmin): ?>
-                                                    <td><?= $report->company ? Html::encode($report->company->name) : '-' ?></td>
-                                                <?php endif; ?>
                                                 <td>
                                                     <span class="badge bg-<?= $report->getStatusBadgeClass() ?>">
                                                         <?= $report->getStatusName() ?>
@@ -213,7 +208,7 @@ $fecha_fin = isset($fecha_fin) ? $fecha_fin : '';
                                         <?php endforeach; ?>
                                     <?php else: ?>
                                         <tr>
-                                            <td colspan="<?= $isSuperAdmin ? 8 : 7 ?>" class="text-center text-muted py-4">
+                                            <td colspan="6" class="text-center text-muted py-4">
                                                 <i class="fas fa-inbox fa-2x d-block mb-2"></i>
                                                 No hay evaluaciones registradas
                                             </td>
@@ -224,7 +219,7 @@ $fecha_fin = isset($fecha_fin) ? $fecha_fin : '';
                         </div>
                     </div>
 
-                    <!-- 🔥 PAGINACIÓN -->
+                    <!-- PAGINACIÓN -->
                     <?php if ($dataProvider && $dataProvider->pagination->pageCount > 1): ?>
                         <div class="card-footer">
                             <div class="row align-items-center">
