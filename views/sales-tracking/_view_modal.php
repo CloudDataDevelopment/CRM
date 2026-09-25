@@ -9,10 +9,13 @@ $isAdmin = isset($isAdmin) ? $isAdmin : false;
 $isAgent = isset($isAgent) ? $isAgent : false;
 $isSuperAdmin = isset($isSuperAdmin) ? $isSuperAdmin : false;
 
+// ============================================
+// ESTADO DE ERROR
+// ============================================
 if ($error) {
     echo '<div class="slide-panel-content">
             <div class="slide-panel-header">
-                <button type="button" class="btn-close-panel" onclick="closePanel()">
+                <button type="button" class="btn-close-panel" data-panel-close>
                     <i class="fas fa-times"></i>
                 </button>
             </div>
@@ -20,11 +23,11 @@ if ($error) {
                 <div class="text-center text-danger py-5">
                     <i class="fas fa-exclamation-triangle fa-3x d-block mb-3"></i>
                     <p>' . Html::encode($error) . '</p>
-                    <button class="btn btn-secondary btn-sm mt-3" onclick="closePanel()">Cerrar</button>
+                    <button class="btn btn-secondary btn-sm mt-3" data-panel-close>Cerrar</button>
                 </div>
             </div>
             <div class="slide-panel-footer">
-                <button class="btn-footer btn-footer-secondary" onclick="closePanel()">
+                <button class="btn-footer btn-footer-secondary" data-panel-close>
                     <i class="fas fa-times"></i> Cerrar
                 </button>
             </div>
@@ -32,10 +35,13 @@ if ($error) {
     return;
 }
 
+// ============================================
+// MODELO NO ENCONTRADO
+// ============================================
 if (!$model) {
     echo '<div class="slide-panel-content">
             <div class="slide-panel-header">
-                <button type="button" class="btn-close-panel" onclick="closePanel()">
+                <button type="button" class="btn-close-panel" data-panel-close>
                     <i class="fas fa-times"></i>
                 </button>
             </div>
@@ -43,11 +49,11 @@ if (!$model) {
                 <div class="text-center text-muted py-5">
                     <i class="fas fa-inbox fa-3x d-block mb-3"></i>
                     <p>Seguimiento no encontrado</p>
-                    <button class="btn btn-secondary btn-sm mt-3" onclick="closePanel()">Cerrar</button>
+                    <button class="btn btn-secondary btn-sm mt-3" data-panel-close>Cerrar</button>
                 </div>
             </div>
             <div class="slide-panel-footer">
-                <button class="btn-footer btn-footer-secondary" onclick="closePanel()">
+                <button class="btn-footer btn-footer-secondary" data-panel-close>
                     <i class="fas fa-times"></i> Cerrar
                 </button>
             </div>
@@ -55,8 +61,14 @@ if (!$model) {
     return;
 }
 
-$leadName = $model->lead ? $model->lead->name . ' ' . $model->lead->lastname : 'Lead no disponible';
-$leadPhone = $model->lead ? $model->lead->phone : 'Sin teléfono';
+// ============================================
+// DATOS DEL LEAD ASOCIADO
+// ============================================
+$lead = $model->lead;
+$leadName = $lead ? $lead->name . ' ' . $lead->lastname : 'Lead no disponible';
+$leadPhone = $lead ? $lead->phone : 'Sin teléfono';
+$leadId = $lead ? $lead->id_lead : null;
+
 $statusName = $model->getStatusName();
 $badgeClass = $model->getStatusBadgeClass();
 
@@ -81,23 +93,26 @@ $statusIcons = [
 
 <div class="slide-panel-content">
 
+    <!-- HEADER -->
     <div class="slide-panel-header">
-        <button type="button" class="btn-close-panel" onclick="closePanel()">
+        <button type="button" class="btn-close-panel" data-panel-close>
             <i class="fas fa-times"></i>
         </button>
     </div>
 
+    <!-- CUERPO -->
     <div class="slide-panel-body">
 
+        <!-- PERFIL -->
         <div class="profile-section">
             <div class="profile-avatar">
                 <i class="fas fa-phone"></i>
             </div>
-            
+
             <div class="profile-name">
                 Seguimiento #<?= $model->id_sales_tracking ?>
             </div>
-            
+
             <div class="profile-status">
                 <span class="status-badge" style="background-color: <?= $statusColors[$badgeClass] ?? '#6c757d' ?>;">
                     <i class="fas <?= $statusIcons[$badgeClass] ?? 'fa-circle' ?>"></i>
@@ -108,11 +123,12 @@ $statusIcons = [
 
         <hr class="section-divider">
 
+        <!-- INFORMACIÓN DEL SEGUIMIENTO -->
         <div class="info-section">
             <div class="info-title">
                 <i class="fas fa-info-circle"></i> Información del Seguimiento
             </div>
-            
+
             <div class="info-row">
                 <span class="info-label"><i class="fas fa-user"></i> Lead</span>
                 <span class="info-value"><?= Html::encode($leadName) ?></span>
@@ -151,11 +167,23 @@ $statusIcons = [
 
     </div>
 
+    <!-- FOOTER -->
     <div class="slide-panel-footer">
-        <a href="<?= Url::to(['lead/details', 'id' => $model->id_sales_tracking]) ?>" target="_blank" class="btn-footer btn-footer-primary">
-            <i class="fas fa-external-link-alt"></i> ver más
-        </a>
-        <button class="btn-footer btn-footer-secondary" onclick="closePanel()">
+        <?php if ($leadId): ?>
+            <!-- 🔥 BOTÓN "VER LEAD" - Cierra panel y navega -->
+            <a href="<?= Url::to(['lead/details', 'id' => $leadId]) ?>"
+               class="btn-footer btn-footer-primary"
+               data-panel-close-go="<?= Url::to(['lead/details', 'id' => $leadId]) ?>">
+                <i class="fas fa-external-link-alt"></i> Ver Lead
+            </a>
+        <?php else: ?>
+            <!-- Sin lead: botón deshabilitado -->
+            <button class="btn-footer btn-footer-primary" disabled style="opacity: 0.5; cursor: not-allowed;">
+                <i class="fas fa-external-link-alt"></i> Sin Lead
+            </button>
+        <?php endif; ?>
+
+        <button class="btn-footer btn-footer-secondary" data-panel-close>
             <i class="fas fa-times"></i> Cerrar
         </button>
     </div>

@@ -1,8 +1,10 @@
 /* ============================================
-   DASHBOARD - Estilos compactos
+   DASHBOARD - Estilos optimizados
    ============================================ */
 
-/* --- Estilos unificados para todos los cards --- */
+/* ============================================
+   1. BASE - Cards y headers unificados
+   ============================================ */
 .dashboard-card {
     border: 2px solid #000000 !important;
     border-radius: 10px;
@@ -10,13 +12,21 @@
     transition: all 0.3s ease;
     overflow: hidden;
     background: #fff;
+    animation: fadeInUp 0.4s ease forwards;
+    opacity: 0;
 }
 
 .dashboard-card:hover {
     box-shadow: 0 3px 15px rgba(0, 0, 0, 0.08);
 }
 
-/* --- Headers unificados para todos los cards --- */
+.dashboard-card:nth-child(1) { animation-delay: 0.05s; }
+.dashboard-card:nth-child(2) { animation-delay: 0.10s; }
+.dashboard-card:nth-child(3) { animation-delay: 0.15s; }
+.dashboard-card:nth-child(4) { animation-delay: 0.20s; }
+.dashboard-card:nth-child(5) { animation-delay: 0.25s; }
+.dashboard-card:nth-child(6) { animation-delay: 0.30s; }
+
 .dashboard-card .card-header {
     background: transparent;
     border-bottom: 2px solid #000000 !important;
@@ -48,8 +58,21 @@
     flex-shrink: 0;
 }
 
+.dashboard-card.h-100 {
+    height: 100%;
+    min-height: 200px;
+}
+
+.dashboard-card.h-100 .card-body {
+    min-height: 200px;
+    padding: 0.5rem !important;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
 /* ============================================
-   TARJETAS DE ESTADÍSTICAS (MÉTRICAS) - PEQUEÑAS
+   2. STAT CARDS (métricas principales)
    ============================================ */
 .stat-card {
     border: 2px solid #4a4a4a !important;
@@ -93,7 +116,7 @@
     font-size: 1rem;
     font-weight: 700;
     line-height: 1.1;
-    margin-bottom: 0px;
+    margin-bottom: 0;
 }
 
 .stat-card .stat-label {
@@ -101,103 +124,43 @@
     text-transform: uppercase;
     letter-spacing: 0.3px;
     font-weight: 600;
-    margin-bottom: 0px;
+    margin-bottom: 0;
 }
 
 .stat-card .stat-sub {
     font-size: 0.4rem;
-    margin-top: 0px;
+    margin-top: 0;
     line-height: 1.2;
 }
 
-/* Colores sólidos de las tarjetas - Fondo blanco */
-.stat-card-primary {
-    background: #ffffff !important;
-    border-left-color: #4e73df;
-}
-.stat-card-primary .stat-icon {
-    background: rgba(78, 115, 223, 0.12);
-    color: #4e73df;
-}
-.stat-card-primary .stat-number {
-    color: #4e73df;
-}
+/* Variantes de color */
+.stat-card-primary { border-left-color: #4e73df; }
+.stat-card-primary .stat-icon { background: rgba(78, 115, 223, 0.12); color: #4e73df; }
+.stat-card-primary .stat-number { color: #4e73df; }
 
-.stat-card-success {
-    background: #ffffff !important;
-    border-left-color: #1cc88a;
-}
-.stat-card-success .stat-icon {
-    background: rgba(28, 200, 138, 0.12);
-    color: #1cc88a;
-}
-.stat-card-success .stat-number {
-    color: #1cc88a;
-}
+.stat-card-success { border-left-color: #1cc88a; }
+.stat-card-success .stat-icon { background: rgba(28, 200, 138, 0.12); color: #1cc88a; }
+.stat-card-success .stat-number { color: #1cc88a; }
 
-.stat-card-warning {
-    background: #ffffff !important;
-    border-left-color: #f6c23e;
-}
-.stat-card-warning .stat-icon {
-    background: rgba(246, 194, 62, 0.12);
-    color: #f6c23e;
-}
-.stat-card-warning .stat-number {
-    color: #f6c23e;
-}
+.stat-card-warning { border-left-color: #f6c23e; }
+.stat-card-warning .stat-icon { background: rgba(246, 194, 62, 0.12); color: #f6c23e; }
+.stat-card-warning .stat-number { color: #f6c23e; }
 
-.stat-card-info {
-    background: #ffffff !important;
-    border-left-color: #36b9cc;
-}
-.stat-card-info .stat-icon {
-    background: rgba(54, 185, 204, 0.12);
-    color: #36b9cc;
-}
-.stat-card-info .stat-number {
-    color: #36b9cc;
-}
+.stat-card-info { border-left-color: #36b9cc; }
+.stat-card-info .stat-icon { background: rgba(54, 185, 204, 0.12); color: #36b9cc; }
+.stat-card-info .stat-number { color: #36b9cc; }
 
-.stat-card-purple {
-    background: #ffffff !important;
-    border-left-color: #8B5CF6;
-}
-.stat-card-purple .stat-icon {
-    background: rgba(139, 92, 246, 0.12);
-    color: #8B5CF6;
-}
-.stat-card-purple .stat-number {
-    color: #8B5CF6;
-}
+.stat-card-purple { border-left-color: #8B5CF6; }
+.stat-card-purple .stat-icon { background: rgba(139, 92, 246, 0.12); color: #8B5CF6; }
+.stat-card-purple .stat-number { color: #8B5CF6; }
 
-.stat-card-danger {
-    background: #ffffff !important;
-    border-left-color: #dc3545;
-}
-.stat-card-danger .stat-icon {
-    background: rgba(220, 53, 69, 0.12);
-    color: #dc3545;
-}
-.stat-card-danger .stat-number {
-    color: #dc3545;
-}
+.stat-card-danger { border-left-color: #dc3545; }
+.stat-card-danger .stat-icon { background: rgba(220, 53, 69, 0.12); color: #dc3545; }
+.stat-card-danger .stat-number { color: #dc3545; }
 
-/* --- Cards con altura completa --- */
-.dashboard-card.h-100 {
-    height: 100%;
-    min-height: 200px;
-}
-
-.dashboard-card.h-100 .card-body {
-    min-height: 200px;
-    padding: 0.5rem !important;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-}
-
-/* --- Tarjetas de gráficos --- */
+/* ============================================
+   3. CHARTS Y GRÁFICAS
+   ============================================ */
 .chart-card .card-body {
     padding: 0.3rem 0.2rem 0.2rem !important;
 }
@@ -214,29 +177,31 @@
     height: auto !important;
     max-height: 220px;
     display: block;
-    image-rendering: auto;
-    image-rendering: crisp-edges;
 }
 
 .chart-container-sm {
     position: relative;
     width: 100%;
-    max-width: 220px;
+    max-width: 100%;
     margin: 0 auto;
+    display: flex;
+    align-items: center;
+    justify-content: center;
 }
 
 .chart-container-sm canvas {
     width: 100% !important;
     height: auto !important;
-    max-height: 140px;
+    max-height: 170px;
     display: block;
-    image-rendering: auto;
-    image-rendering: crisp-edges;
 }
 
-/* ============================================
-   ESTILOS PARA GRÁFICA DE LEADS CON LEYENDA AL LADO
-   ============================================ */
+.chart-container-utilidad {
+    position: relative;
+    width: 100%;
+    min-height: 220px;
+}
+
 .chart-with-legend {
     display: flex;
     align-items: center;
@@ -320,10 +285,9 @@
     margin-left: 1px;
 }
 
-/* ============================================ */
-/* 🔥 TARJETA DE LEADS - GRÁFICA PROTAGONISTA */
-/* ============================================ */
-
+/* ============================================
+   4. LEADS CARD
+   ============================================ */
 .leads-card-body {
     display: flex !important;
     flex-direction: column !important;
@@ -346,20 +310,14 @@
     padding: 0;
 }
 
-/* ============================================ */
-/* 🔥 CONTADOR DE LEADS NUEVOS POR MES (compacto) */
-/* ============================================ */
-
 .leads-monthly-counter {
     display: flex;
     flex-direction: column;
     gap: 5px;
-    margin-top: 0;
     padding: 6px 8px;
     border-top: 1px solid #e9ecef;
     background: #f8f9fa;
     border-radius: 8px;
-    flex: 0 0 auto;
     width: 100%;
 }
 
@@ -370,8 +328,6 @@
     font-size: 0.62rem;
     font-weight: 600;
     color: #2c3e50;
-    padding: 0;
-    margin-bottom: 0;
 }
 
 .leads-monthly-header i {
@@ -390,7 +346,6 @@
     display: grid;
     grid-template-columns: repeat(12, 1fr);
     gap: 2px;
-    padding: 0;
     width: 100%;
 }
 
@@ -446,9 +401,8 @@
 }
 
 /* ============================================
-   🔥 ACTIVIDADES RECIENTES - STACK LIST
+   5. ACTIVIDADES
    ============================================ */
-
 .activities-stack-list {
     max-height: 320px;
     overflow-y: auto;
@@ -473,7 +427,6 @@
     background: #a8b0b8;
 }
 
-/* Item de actividad en pila */
 .activity-stack-item {
     display: flex;
     align-items: flex-start;
@@ -504,7 +457,6 @@
     border-left-color: #17a673;
 }
 
-/* Icono */
 .activity-stack-icon {
     width: 36px;
     height: 36px;
@@ -522,7 +474,6 @@
     font-size: 0.85rem;
 }
 
-/* Contenido */
 .activity-stack-content {
     flex: 1;
     min-width: 0;
@@ -573,17 +524,12 @@
     font-size: 0.55rem;
 }
 
-.activity-stack-date {
-    display: inline-flex;
-    align-items: center;
-}
-
+.activity-stack-date,
 .activity-stack-user {
     display: inline-flex;
     align-items: center;
 }
 
-/* Estado vacío */
 .activity-stack-empty {
     text-align: center;
     padding: 30px 15px;
@@ -603,8 +549,12 @@
     color: #2c3e50;
 }
 
+.activity-stack-empty-hint {
+    font-size: 0.7rem;
+}
+
 /* ============================================
-   TARJETA DE TAREAS - CONTENIDO ALINEADO ARRIBA
+   6. TAREAS
    ============================================ */
 .task-preview-card .card-body {
     padding: 0 !important;
@@ -618,6 +568,24 @@
     max-height: 220px;
     overflow-y: auto;
     padding: 0.2rem 0.3rem;
+}
+
+.task-list::-webkit-scrollbar {
+    width: 3px;
+}
+
+.task-list::-webkit-scrollbar-track {
+    background: #f1f1f1;
+    border-radius: 10px;
+}
+
+.task-list::-webkit-scrollbar-thumb {
+    background: #c1c7cd;
+    border-radius: 10px;
+}
+
+.task-list::-webkit-scrollbar-thumb:hover {
+    background: #a8b0b8;
 }
 
 .task-item {
@@ -701,56 +669,6 @@
     margin: 0;
 }
 
-/* Badges de prioridad - Colores sólidos */
-.badge-priority-high {
-    background: #fbe9e7 !important;
-    color: #d32f2f !important;
-    font-size: 0.5rem !important;
-    padding: 0.05rem 0.4rem !important;
-    border-radius: 8px;
-}
-
-.badge-priority-medium {
-    background: #fff3e0 !important;
-    color: #f57c00 !important;
-    font-size: 0.5rem !important;
-    padding: 0.05rem 0.4rem !important;
-    border-radius: 8px;
-}
-
-.badge-priority-low {
-    background: #e8f5e9 !important;
-    color: #388e3c !important;
-    font-size: 0.5rem !important;
-    padding: 0.05rem 0.4rem !important;
-    border-radius: 8px;
-}
-
-.badge-status-overdue {
-    background: #fbe9e7 !important;
-    color: #d32f2f !important;
-    font-size: 0.5rem !important;
-    padding: 0.05rem 0.4rem !important;
-    border-radius: 8px;
-}
-
-.badge-status-upcoming {
-    background: #e8f5e9 !important;
-    color: #388e3c !important;
-    font-size: 0.5rem !important;
-    padding: 0.05rem 0.4rem !important;
-    border-radius: 8px;
-}
-
-.badge-status {
-    padding: 0.1rem 0.4rem !important;
-    border-radius: 10px;
-    font-weight: 600;
-    font-size: 0.55rem !important;
-    text-transform: capitalize;
-    display: inline-block;
-}
-
 .task-item-overdue {
     border-left: 3px solid #dc3545;
     background: #fff5f5;
@@ -779,75 +697,130 @@
     font-size: 0.5rem;
 }
 
-.task-list::-webkit-scrollbar {
-    width: 3px;
+/* ============================================
+   7. BADGES
+   ============================================ */
+.badge-priority-high,
+.badge-status-overdue {
+    background: #fbe9e7 !important;
+    color: #d32f2f !important;
+    font-size: 0.5rem !important;
+    padding: 0.05rem 0.4rem !important;
+    border-radius: 8px;
 }
 
-.task-list::-webkit-scrollbar-track {
-    background: #f1f1f1;
+.badge-priority-medium {
+    background: #fff3e0 !important;
+    color: #f57c00 !important;
+    font-size: 0.5rem !important;
+    padding: 0.05rem 0.4rem !important;
+    border-radius: 8px;
+}
+
+.badge-priority-low,
+.badge-status-upcoming {
+    background: #e8f5e9 !important;
+    color: #388e3c !important;
+    font-size: 0.5rem !important;
+    padding: 0.05rem 0.4rem !important;
+    border-radius: 8px;
+}
+
+.badge-status {
+    padding: 0.1rem 0.4rem !important;
     border-radius: 10px;
-}
-
-.task-list::-webkit-scrollbar-thumb {
-    background: #c1c7cd;
-    border-radius: 10px;
-}
-
-.task-list::-webkit-scrollbar-thumb:hover {
-    background: #a8b0b8;
-}
-
-/* --- Botones de acción --- */
-.btn-action {
-    padding: 0.1rem 0.35rem !important;
-    font-size: 0.55rem !important;
-    border-radius: 4px;
-    transition: all 0.2s ease;
-}
-
-.btn-action:hover {
-    transform: scale(1.05);
-}
-
-/* --- Progress bar --- */
-.progress-custom {
-    height: 10px !important;
-    border-radius: 5px;
-    background: #f0f0f0;
-    overflow: hidden;
-    position: relative;
-}
-
-.progress-custom .progress-bar {
-    border-radius: 5px;
-    transition: width 1.2s ease;
-    font-size: 0.45rem !important;
     font-weight: 600;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-}
-
-/* --- Objetivos --- */
-.goal-card .card-body {
-    display: block;
-    min-height: 80px;
-    padding: 0.4rem !important;
-}
-
-.goal-card .card-header {
-    padding: 0.25rem 0.5rem !important;
+    font-size: 0.55rem !important;
+    text-transform: capitalize;
+    display: inline-block;
 }
 
 /* ============================================
-   EMBUDO DE VENTAS - TRAPECIO VISUAL
+   8. OBJETIVOS Y PROGRESS
+   (Barra horizontal larga y delgada)
    ============================================ */
+.goal-card .card-body {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    min-height: 220px;
+    padding: 1rem 1.1rem !important;
+}
 
+.goal-card .card-header {
+    padding: 0.45rem 0.8rem !important;
+    font-size: 0.72rem !important;
+}
+
+/* 🔥 Header con badges a la derecha */
+.goal-card .card-header .header-right-badges {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+
+/* 🔥 Badge del porcentaje destacado */
+.goal-card .card-header .badge-percent {
+    font-size: 0.75rem !important;
+    font-weight: 800 !important;
+    padding: 0.35rem 0.7rem !important;
+    letter-spacing: 0.3px;
+    background: #2c3e50 !important;
+    color: #fff !important;
+    border-radius: 8px;
+}
+
+/* 🔥 Barra horizontal larga y delgada */
+.progress-custom {
+    height: 18px !important;
+    border-radius: 9px;
+    background: #e9ecef;
+    overflow: hidden;
+    position: relative;
+    margin-bottom: 1rem;
+    box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.08);
+}
+
+.progress-custom .progress-bar {
+    border-radius: 9px;
+    transition: width 1.2s ease;
+    font-size: 0 !important;    /* oculta cualquier texto interno */
+    color: transparent;
+    min-width: 0;
+}
+
+.meta-label {
+    font-size: 0.62rem !important;
+    font-weight: 700;
+    letter-spacing: 0.3px;
+    margin-bottom: 2px;
+}
+
+.meta-value {
+    font-size: 1rem !important;
+    font-weight: 800;
+    letter-spacing: -0.3px;
+}
+
+.meta-footer {
+    font-size: 0.75rem !important;
+    margin-top: 0.8rem;
+    font-weight: 500;
+}
+
+.goal-card .row.g-1 .p-1 {
+    padding: 0.7rem 0.5rem !important;
+    border-radius: 8px !important;
+}
+
+/* ============================================
+   9. EMBUDO DE VENTAS
+   ============================================ */
 .funnel-container-trapezoid {
     display: flex;
     flex-direction: column;
     align-items: center;
-    gap: 0px;
+    gap: 0;
     padding: 5px 0;
     max-width: 100%;
     margin: 0 auto;
@@ -924,7 +897,7 @@
     transition: all 0.3s ease;
     cursor: default;
     box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
-    border-top: 0px solid transparent;
+    border-top: 0 solid transparent;
     clip-path: polygon(2% 0%, 98% 0%, 88% 100%, 12% 100%);
     border-radius: 4px;
 }
@@ -993,9 +966,118 @@
 }
 
 /* ============================================
-   CONTENEDOR PRINCIPAL DEL DASHBOARD
+   10. VENTA TOTAL Y UTILIDAD TOTAL
    ============================================ */
+.total-sale-card {
+    border-left: 4px solid #4e73df !important;
+}
 
+.total-profit-card {
+    border-left: 4px solid #1cc88a !important;
+}
+
+.total-sale-card .card-body,
+.total-profit-card .card-body {
+    padding: 0.8rem 1.5rem 0.8rem 1.5rem !important;
+    min-height: auto !important;
+    max-height: 140px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.total-wrapper {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 5px;
+    text-align: center;
+    width: 100%;
+}
+
+.total-value {
+    font-size: 2.2rem;
+    font-weight: 800;
+    letter-spacing: -0.8px;
+    line-height: 1;
+    margin-bottom: 2px;
+}
+
+.total-value-sale {
+    color: #4e73df;
+    text-shadow: 0 1px 6px rgba(78, 115, 223, 0.15);
+}
+
+.total-value-profit {
+    color: #1cc88a;
+    text-shadow: 0 1px 6px rgba(28, 200, 138, 0.15);
+}
+
+.total-label {
+    font-size: 0.7rem;
+    color: #6c757d;
+    font-weight: 500;
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    margin-top: 0;
+}
+
+.total-label i {
+    font-size: 0.62rem;
+    color: #adb5bd;
+}
+
+.total-mini-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 8px;
+    width: 100%;
+    margin-top: 8px;
+    padding-top: 8px;
+    border-top: 1px dashed #e9ecef;
+}
+
+.total-mini-item {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    padding: 4px 8px;
+    background: #f8f9fa;
+    border-radius: 6px;
+    transition: background 0.2s ease;
+}
+
+.total-mini-item:hover {
+    background: #eef2f7;
+}
+
+.total-mini-label {
+    font-size: 0.58rem;
+    text-transform: uppercase;
+    letter-spacing: 0.3px;
+    font-weight: 700;
+    color: #6c757d;
+    line-height: 1;
+}
+
+.total-mini-value {
+    font-size: 0.78rem;
+    font-weight: 700;
+    color: #2c3e50;
+    line-height: 1;
+}
+
+.total-mini-value-profit {
+    color: #1cc88a;
+}
+
+/* ============================================
+   11. CONTENEDOR Y HEADER DEL DASHBOARD
+   ============================================ */
 .dashboard-wrapper {
     background: #ffffff;
     border-radius: 12px;
@@ -1003,10 +1085,6 @@
     box-shadow: 0 2px 12px rgba(0, 0, 0, 0.08);
     border: none;
 }
-
-/* ============================================
-   HEADER DEL DASHBOARD
-   ============================================ */
 
 .dashboard-header {
     display: flex;
@@ -1047,453 +1125,122 @@
     align-items: center;
 }
 
-/* ============================================
-   ANIMACIONES
-   ============================================ */
-@keyframes fadeInUp {
-    from {
-        opacity: 0;
-        transform: translateY(10px);
-    }
-    to {
-        opacity: 1;
-        transform: translateY(0);
-    }
+.badge-status-active {
+    font-size: 0.7rem;
+    padding: 6px 14px;
 }
 
-.dashboard-card {
-    animation: fadeInUp 0.4s ease forwards;
-    opacity: 0;
+.activity-footer-link {
+    font-size: 0.7rem;
+    text-decoration: none;
 }
-
-.dashboard-card:nth-child(1) { animation-delay: 0.05s; }
-.dashboard-card:nth-child(2) { animation-delay: 0.10s; }
-.dashboard-card:nth-child(3) { animation-delay: 0.15s; }
-.dashboard-card:nth-child(4) { animation-delay: 0.20s; }
-.dashboard-card:nth-child(5) { animation-delay: 0.25s; }
-.dashboard-card:nth-child(6) { animation-delay: 0.30s; }
 
 /* ============================================
-   RESPONSIVE
+   12. UTILIDAD (clases heredadas)
    ============================================ */
-
-@media (max-width: 992px) {
-    .stat-card {
-        min-height: 55px;
-        max-height: 55px;
-    }
-    .stat-card .stat-icon {
-        width: 20px;
-        height: 20px;
-        font-size: 0.6rem;
-    }
-    .stat-card .stat-number {
-        font-size: 0.9rem;
-    }
-
-    .funnel-step-block-col {
-        flex: 0 0 58%;
-        max-width: 58%;
-    }
-    .funnel-step-info-col {
-        flex: 0 0 42%;
-        max-width: 42%;
-        padding-left: 4px;
-    }
-    .funnel-step-label {
-        font-size: 0.65rem;
-        gap: 4px;
-    }
-    .funnel-step-label i {
-        font-size: 0.65rem;
-    }
-    .funnel-step-count {
-        font-size: 0.65rem;
-        height: 20px;
-        min-width: 24px;
-        padding: 0 6px;
-    }
-    .funnel-block-trapezoid {
-        padding: 7px 12px;
-        min-height: 32px;
-    }
-
-    .chart-container canvas {
-        max-height: 200px !important;
-    }
-    .chart-container-sm canvas {
-        max-height: 120px !important;
-    }
-    .dashboard-card.h-100 .card-body {
-        min-height: 160px;
-    }
-    .task-preview-card .card-body {
-        min-height: 160px;
-    }
-    .task-list {
-        max-height: 180px;
-    }
-
-    .chart-with-legend {
-        flex-direction: column;
-        gap: 10px;
-        min-height: auto;
-    }
-    .chart-container-leads {
-        flex: 0 0 100%;
-        max-width: 70%;
-    }
-    .legend-container {
-        flex: 0 0 100%;
-        max-width: 100%;
-        flex-direction: row;
-        flex-wrap: wrap;
-        justify-content: center;
-        gap: 2px;
-    }
-    .legend-item {
-        flex: 0 0 auto;
-        padding: 2px 6px;
-        font-size: 0.6rem;
-        gap: 2px;
-    }
-
-    .leads-card-body {
-        min-height: 200px;
-        padding: 0.5rem !important;
-    }
-    .leads-card-body .chart-with-legend {
-        min-height: 150px;
-    }
-
-    .leads-monthly-grid {
-        grid-template-columns: repeat(12, 1fr);
-        gap: 2px;
-    }
-    .leads-monthly-item {
-        min-height: 30px;
-        padding: 2px 1px;
-    }
-    .leads-monthly-mes {
-        font-size: 0.42rem;
-    }
-    .leads-monthly-count {
-        font-size: 0.65rem;
-    }
-
-    .activities-stack-list {
-        max-height: 280px;
-    }
-    .activity-stack-item {
-        padding: 8px 10px;
-        gap: 10px;
-    }
-    .activity-stack-icon {
-        width: 30px;
-        height: 30px;
-        min-width: 30px;
-        font-size: 0.7rem;
-    }
-    .activity-stack-title {
-        font-size: 0.75rem;
-    }
-    .activity-stack-description {
-        font-size: 0.65rem;
-    }
-    .activity-stack-meta {
-        font-size: 0.55rem;
-        gap: 8px;
-    }
+.utility-total-card {
+    border-left: 4px solid #1cc88a !important;
 }
 
-@media (max-width: 768px) {
-    .stat-card {
-        min-height: 50px;
-        max-height: 50px;
-    }
-    .stat-card .stat-number {
-        font-size: 0.85rem !important;
-    }
-    .stat-card .stat-icon {
-        width: 18px !important;
-        height: 18px !important;
-        font-size: 0.55rem !important;
-    }
-    .stat-card .stat-label {
-        font-size: 0.45rem !important;
-    }
-    .stat-card .stat-sub {
-        font-size: 0.4rem !important;
-    }
-
-    .chart-container canvas {
-        max-height: 170px !important;
-    }
-    .chart-container-sm canvas {
-        max-height: 120px !important;
-    }
-    .dashboard-card.h-100 .card-body {
-        min-height: 140px;
-        padding: 0.3rem !important;
-    }
-    .task-preview-card .card-body {
-        min-height: 140px;
-    }
-    .dashboard-card .card-header {
-        font-size: 0.6rem !important;
-        padding: 0.3rem 0.5rem !important;
-    }
-    .task-list {
-        max-height: 150px;
-    }
-    .task-title {
-        font-size: 0.65rem;
-    }
-
-    .funnel-step-row-wrapper {
-        gap: 6px;
-    }
-    .funnel-step-block-col {
-        flex: 0 0 55%;
-        max-width: 55%;
-    }
-    .funnel-step-info-col {
-        flex: 0 0 45%;
-        max-width: 45%;
-        padding-left: 3px;
-    }
-    .funnel-step-label {
-        font-size: 0.6rem;
-        gap: 3px;
-    }
-    .funnel-step-label i {
-        font-size: 0.6rem;
-    }
-    .funnel-step-count {
-        font-size: 0.6rem;
-        height: 18px;
-        min-width: 22px;
-        padding: 0 5px;
-    }
-    .funnel-block-trapezoid {
-        padding: 6px 10px;
-        min-height: 28px;
-    }
-    .funnel-container-trapezoid {
-        padding: 3px 0;
-    }
-    .funnel-connector-trapezoid {
-        height: 6px;
-    }
-    .funnel-connector-trapezoid span {
-        font-size: 5px;
-        bottom: -3px;
-    }
-
-    .leads-card-body {
-        min-height: auto;
-        padding: 0.4rem !important;
-    }
-    .leads-card-body .chart-with-legend {
-        flex-direction: column;
-        min-height: auto;
-        gap: 8px;
-    }
-    .leads-monthly-grid {
-        grid-template-columns: repeat(6, 1fr);
-        gap: 3px;
-    }
-    .leads-monthly-item {
-        min-height: 32px;
-        padding: 2px 1px;
-    }
-    .leads-monthly-mes {
-        font-size: 0.45rem;
-    }
-    .leads-monthly-count {
-        font-size: 0.68rem;
-    }
-
-    .task-item-overdue,
-    .task-item-upcoming {
-        padding: 0.15rem 0.2rem;
-    }
-    .task-lead {
-        display: block;
-        margin-left: 0;
-        margin-top: 2px;
-    }
-    .goal-card .card-body {
-        min-height: 80px;
-        padding: 0.3rem !important;
-    }
-
-    .chart-container-leads {
-        max-width: 80%;
-    }
-    .legend-item {
-        font-size: 0.55rem;
-        padding: 2px 4px;
-        gap: 2px;
-    }
-    .legend-color {
-        width: 9px;
-        height: 9px;
-    }
-
-    .dashboard-wrapper {
-        padding: 15px;
-        border-radius: 10px;
-    }
-    .dashboard-header {
-        flex-direction: column;
-        align-items: stretch;
-        gap: 10px;
-    }
-    .dashboard-header .page-title {
-        font-size: 1.2rem;
-    }
-
-    .activity-stack-item {
-        flex-wrap: wrap;
-        gap: 6px;
-    }
-    .activity-stack-meta {
-        width: 100%;
-    }
+.utility-total-card .card-body {
+    padding: 1.2rem 1.5rem !important;
 }
 
-@media (max-width: 576px) {
-    .stat-card {
-        min-height: 45px;
-        max-height: 45px;
-    }
-    .stat-card .stat-number {
-        font-size: 0.8rem !important;
-    }
-    .stat-card .stat-icon {
-        width: 16px !important;
-        height: 16px !important;
-        font-size: 0.5rem !important;
-    }
-    .stat-card .stat-label {
-        font-size: 0.4rem !important;
-    }
-    .stat-card .stat-sub {
-        font-size: 0.35rem !important;
-    }
-
-    .chart-container canvas {
-        max-height: 140px !important;
-    }
-    .chart-container-sm canvas {
-        max-height: 100px !important;
-    }
-    .dashboard-card.h-100 .card-body {
-        min-height: 120px;
-        padding: 0.2rem !important;
-    }
-    .task-preview-card .card-body {
-        min-height: 120px;
-    }
-    .dashboard-card .card-header {
-        font-size: 0.55rem !important;
-        padding: 0.2rem 0.4rem !important;
-    }
-    .task-list {
-        max-height: 120px;
-    }
-
-    .funnel-step-row-wrapper {
-        gap: 4px;
-    }
-    .funnel-step-block-col {
-        flex: 0 0 50%;
-        max-width: 50%;
-    }
-    .funnel-step-info-col {
-        flex: 0 0 50%;
-        max-width: 50%;
-        padding-left: 2px;
-    }
-    .funnel-step-label {
-        font-size: 0.55rem;
-        gap: 2px;
-    }
-    .funnel-step-label i {
-        font-size: 0.55rem;
-    }
-    .funnel-step-count {
-        font-size: 0.55rem;
-        height: 16px;
-        min-width: 20px;
-        padding: 0 4px;
-    }
-    .funnel-block-trapezoid {
-        padding: 5px 8px;
-        min-height: 24px;
-    }
-    .funnel-container-trapezoid {
-        padding: 2px 0;
-    }
-    .funnel-connector-trapezoid {
-        height: 5px;
-    }
-    .funnel-connector-trapezoid span {
-        font-size: 4px;
-        bottom: -2px;
-    }
-
-    .leads-monthly-grid {
-        grid-template-columns: repeat(4, 1fr);
-        gap: 3px;
-    }
-    .leads-monthly-item {
-        min-height: 30px;
-        padding: 2px 1px;
-    }
-    .leads-monthly-mes {
-        font-size: 0.42rem;
-    }
-    .leads-monthly-count {
-        font-size: 0.62rem;
-    }
-
-    .chart-container-leads {
-        max-width: 90%;
-    }
-    .legend-item {
-        font-size: 0.5rem;
-        padding: 1px 3px;
-        gap: 1px;
-    }
-    .legend-color {
-        width: 7px;
-        height: 7px;
-    }
-    .legend-value {
-        font-size: 0.5rem;
-    }
-    .legend-percentage {
-        font-size: 0.5rem;
-    }
-    .legend-separator {
-        font-size: 0.4rem;
-    }
-
-    .dashboard-wrapper {
-        padding: 10px;
-        border-radius: 8px;
-    }
-    .dashboard-header .page-title {
-        font-size: 1rem;
-    }
-    .dashboard-header .breadcrumb-custom {
-        font-size: 0.65rem;
-    }
+.utility-total-wrapper {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    text-align: center;
 }
 
-/* --- Scroll en tablas --- */
+.utility-total-value {
+    font-size: 2.8rem;
+    font-weight: 800;
+    color: #1cc88a;
+    letter-spacing: -1px;
+    line-height: 1;
+    text-shadow: 0 2px 8px rgba(28, 200, 138, 0.15);
+}
+
+.utility-total-label {
+    font-size: 0.75rem;
+    color: #6c757d;
+    font-weight: 500;
+    display: flex;
+    align-items: center;
+    gap: 5px;
+}
+
+.utility-total-label i {
+    font-size: 0.7rem;
+    color: #1cc88a;
+}
+
+.utilidad-item {
+    padding: 12px 15px;
+    border-radius: 10px;
+    background: #f8f9fa;
+    border-left: 4px solid #dee2e6;
+    transition: all 0.3s ease;
+}
+
+.utilidad-item:hover {
+    transform: translateX(4px);
+    box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+}
+
+.utilidad-mes {
+    border-left-color: #4e73df;
+    background: linear-gradient(135deg, #f0f4ff 0%, #f8f9fa 100%);
+}
+
+.utilidad-anio {
+    border-left-color: #36b9cc;
+    background: linear-gradient(135deg, #f0fcff 0%, #f8f9fa 100%);
+}
+
+.utilidad-total {
+    border-left-color: #1cc88a;
+    background: linear-gradient(135deg, #f0fff8 0%, #f8f9fa 100%);
+}
+
+.utilidad-label {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 0.8rem;
+    color: #6c757d;
+    font-weight: 600;
+    margin-bottom: 4px;
+}
+
+.utilidad-label small {
+    font-weight: 400;
+    font-size: 0.7rem;
+}
+
+.utilidad-valor {
+    font-size: 1.5rem;
+    font-weight: 700;
+    letter-spacing: -0.5px;
+}
+
+/* ============================================
+   13. BOTONES Y MISCELÁNEA
+   ============================================ */
+.btn-action {
+    padding: 0.1rem 0.35rem !important;
+    font-size: 0.55rem !important;
+    border-radius: 4px;
+    transition: all 0.2s ease;
+}
+
+.btn-action:hover {
+    transform: scale(1.05);
+}
+
 .table-responsive::-webkit-scrollbar {
     height: 4px;
 }
@@ -1512,8 +1259,206 @@
     background: #a8b0b8;
 }
 
-/* --- Margenes generales --- */
 .dashboard-index .row.g-2 {
     --bs-gutter-y: 0.25rem;
     --bs-gutter-x: 0.25rem;
+}
+
+/* ============================================
+   14. ANIMACIONES
+   ============================================ */
+@keyframes fadeInUp {
+    from {
+        opacity: 0;
+        transform: translateY(10px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+/* ============================================
+   15. RESPONSIVE
+   ============================================ */
+
+@media (max-width: 992px) {
+    .stat-card { min-height: 55px; max-height: 55px; }
+    .stat-card .stat-icon { width: 20px; height: 20px; font-size: 0.6rem; }
+    .stat-card .stat-number { font-size: 0.9rem; }
+
+    .funnel-step-block-col { flex: 0 0 58%; max-width: 58%; }
+    .funnel-step-info-col { flex: 0 0 42%; max-width: 42%; padding-left: 4px; }
+    .funnel-step-label { font-size: 0.65rem; gap: 4px; }
+    .funnel-step-label i { font-size: 0.65rem; }
+    .funnel-step-count { font-size: 0.65rem; height: 20px; min-width: 24px; padding: 0 6px; }
+    .funnel-block-trapezoid { padding: 7px 12px; min-height: 32px; }
+
+    .chart-container canvas { max-height: 200px !important; }
+    .chart-container-sm canvas { max-height: 160px !important; }
+
+    .dashboard-card.h-100 .card-body { min-height: 160px; }
+    .task-preview-card .card-body { min-height: 160px; }
+    .task-list { max-height: 180px; }
+
+    .chart-with-legend { flex-direction: column; gap: 10px; min-height: auto; }
+    .chart-container-leads { flex: 0 0 100%; max-width: 70%; }
+    .legend-container {
+        flex: 0 0 100%;
+        max-width: 100%;
+        flex-direction: row;
+        flex-wrap: wrap;
+        justify-content: center;
+        gap: 2px;
+    }
+    .legend-item { flex: 0 0 auto; padding: 2px 6px; font-size: 0.6rem; gap: 2px; }
+
+    .leads-card-body { min-height: 200px; padding: 0.5rem !important; }
+    .leads-card-body .chart-with-legend { min-height: 150px; }
+
+    .leads-monthly-grid { grid-template-columns: repeat(12, 1fr); gap: 2px; }
+    .leads-monthly-item { min-height: 30px; padding: 2px 1px; }
+    .leads-monthly-mes { font-size: 0.42rem; }
+    .leads-monthly-count { font-size: 0.65rem; }
+
+    .activities-stack-list { max-height: 280px; }
+    .activity-stack-item { padding: 8px 10px; gap: 10px; }
+    .activity-stack-icon { width: 30px; height: 30px; min-width: 30px; font-size: 0.7rem; }
+    .activity-stack-title { font-size: 0.75rem; }
+    .activity-stack-description { font-size: 0.65rem; }
+    .activity-stack-meta { font-size: 0.55rem; gap: 8px; }
+
+    .goal-card .card-body { min-height: 210px !important; padding: 0.9rem 0.9rem !important; }
+    .goal-card .meta-value { font-size: 0.92rem !important; }
+    .progress-custom { height: 16px !important; }
+    .goal-card .card-header .badge-percent { font-size: 0.7rem !important; }
+
+    .total-value { font-size: 1.9rem; }
+    .total-sale-card .card-body,
+    .total-profit-card .card-body { max-height: 130px; }
+}
+
+@media (max-width: 768px) {
+    .stat-card { min-height: 50px; max-height: 50px; }
+    .stat-card .stat-number { font-size: 0.85rem !important; }
+    .stat-card .stat-icon { width: 18px !important; height: 18px !important; font-size: 0.55rem !important; }
+    .stat-card .stat-label { font-size: 0.45rem !important; }
+    .stat-card .stat-sub { font-size: 0.4rem !important; }
+
+    .chart-container canvas { max-height: 170px !important; }
+    .chart-container-sm canvas { max-height: 150px !important; }
+
+    .dashboard-card.h-100 .card-body { min-height: 140px; padding: 0.3rem !important; }
+    .task-preview-card .card-body { min-height: 140px; }
+    .dashboard-card .card-header { font-size: 0.6rem !important; padding: 0.3rem 0.5rem !important; }
+    .task-list { max-height: 150px; }
+    .task-title { font-size: 0.65rem; }
+
+    .funnel-step-row-wrapper { gap: 6px; }
+    .funnel-step-block-col { flex: 0 0 55%; max-width: 55%; }
+    .funnel-step-info-col { flex: 0 0 45%; max-width: 45%; padding-left: 3px; }
+    .funnel-step-label { font-size: 0.6rem; gap: 3px; }
+    .funnel-step-label i { font-size: 0.6rem; }
+    .funnel-step-count { font-size: 0.6rem; height: 18px; min-width: 22px; padding: 0 5px; }
+    .funnel-block-trapezoid { padding: 6px 10px; min-height: 28px; }
+    .funnel-container-trapezoid { padding: 3px 0; }
+    .funnel-connector-trapezoid { height: 6px; }
+    .funnel-connector-trapezoid span { font-size: 5px; bottom: -3px; }
+
+    .leads-card-body { min-height: auto; padding: 0.4rem !important; }
+    .leads-card-body .chart-with-legend { flex-direction: column; min-height: auto; gap: 8px; }
+    .leads-monthly-grid { grid-template-columns: repeat(6, 1fr); gap: 3px; }
+    .leads-monthly-item { min-height: 32px; padding: 2px 1px; }
+    .leads-monthly-mes { font-size: 0.45rem; }
+    .leads-monthly-count { font-size: 0.68rem; }
+
+    .task-item-overdue,
+    .task-item-upcoming { padding: 0.15rem 0.2rem; }
+    .task-lead { display: block; margin-left: 0; margin-top: 2px; }
+
+    .goal-card .card-body { min-height: 200px !important; padding: 0.8rem 0.8rem !important; }
+    .goal-card .meta-value { font-size: 0.88rem !important; }
+    .goal-card .meta-label { font-size: 0.58rem !important; }
+    .goal-card .meta-footer { font-size: 0.7rem !important; }
+    .progress-custom { height: 15px !important; }
+    .goal-card .card-header .badge-percent { font-size: 0.65rem !important; }
+
+    .chart-container-leads { max-width: 80%; }
+    .legend-item { font-size: 0.55rem; padding: 2px 4px; gap: 2px; }
+    .legend-color { width: 9px; height: 9px; }
+
+    .dashboard-wrapper { padding: 15px; border-radius: 10px; }
+    .dashboard-header { flex-direction: column; align-items: stretch; gap: 10px; }
+    .dashboard-header .page-title { font-size: 1.2rem; }
+
+    .activity-stack-item { flex-wrap: wrap; gap: 6px; }
+    .activity-stack-meta { width: 100%; }
+
+    .total-value { font-size: 1.7rem; }
+    .total-sale-card .card-body,
+    .total-profit-card .card-body { max-height: 120px; padding: 0.7rem 1.2rem !important; }
+    .total-mini-value { font-size: 0.72rem; }
+    .total-label { font-size: 0.62rem; }
+}
+
+@media (max-width: 576px) {
+    .stat-card { min-height: 45px; max-height: 45px; }
+    .stat-card .stat-number { font-size: 0.8rem !important; }
+    .stat-card .stat-icon { width: 16px !important; height: 16px !important; font-size: 0.5rem !important; }
+    .stat-card .stat-label { font-size: 0.4rem !important; }
+    .stat-card .stat-sub { font-size: 0.35rem !important; }
+
+    .chart-container canvas { max-height: 140px !important; }
+    .chart-container-sm canvas { max-height: 130px !important; }
+
+    .dashboard-card.h-100 .card-body { min-height: 120px; padding: 0.2rem !important; }
+    .task-preview-card .card-body { min-height: 120px; }
+    .dashboard-card .card-header { font-size: 0.55rem !important; padding: 0.2rem 0.4rem !important; }
+    .task-list { max-height: 120px; }
+
+    .funnel-step-row-wrapper { gap: 4px; }
+    .funnel-step-block-col { flex: 0 0 50%; max-width: 50%; }
+    .funnel-step-info-col { flex: 0 0 50%; max-width: 50%; padding-left: 2px; }
+    .funnel-step-label { font-size: 0.55rem; gap: 2px; }
+    .funnel-step-label i { font-size: 0.55rem; }
+    .funnel-step-count { font-size: 0.55rem; height: 16px; min-width: 20px; padding: 0 4px; }
+    .funnel-block-trapezoid { padding: 5px 8px; min-height: 24px; }
+    .funnel-container-trapezoid { padding: 2px 0; }
+    .funnel-connector-trapezoid { height: 5px; }
+    .funnel-connector-trapezoid span { font-size: 4px; bottom: -2px; }
+
+    .leads-monthly-grid { grid-template-columns: repeat(4, 1fr); gap: 3px; }
+    .leads-monthly-item { min-height: 30px; padding: 2px 1px; }
+    .leads-monthly-mes { font-size: 0.42rem; }
+    .leads-monthly-count { font-size: 0.62rem; }
+
+    .chart-container-leads { max-width: 90%; }
+    .legend-item { font-size: 0.5rem; padding: 1px 3px; gap: 1px; }
+    .legend-color { width: 7px; height: 7px; }
+    .legend-value,
+    .legend-percentage { font-size: 0.5rem; }
+    .legend-separator { font-size: 0.4rem; }
+
+    .dashboard-wrapper { padding: 10px; border-radius: 8px; }
+    .dashboard-header .page-title { font-size: 1rem; }
+    .dashboard-header .breadcrumb-custom { font-size: 0.65rem; }
+
+    .goal-card .card-body { min-height: 190px !important; padding: 0.7rem 0.7rem !important; }
+    .goal-card .meta-value { font-size: 0.82rem !important; }
+    .goal-card .meta-label { font-size: 0.55rem !important; }
+    .progress-custom { height: 14px !important; margin-bottom: 0.8rem; }
+    .goal-card .row.g-1 .p-1 { padding: 0.6rem 0.4rem !important; }
+    .goal-card .card-header .badge-percent { font-size: 0.6rem !important; padding: 0.25rem 0.5rem !important; }
+
+    .total-value { font-size: 1.4rem; }
+    .total-sale-card .card-body,
+    .total-profit-card .card-body {
+        max-height: 110px;
+        padding: 0.6rem 1rem !important;
+    }
+    .total-label { font-size: 0.58rem; }
+    .total-mini-item { padding: 3px 5px; gap: 4px; }
+    .total-mini-label { font-size: 0.5rem; }
+    .total-mini-value { font-size: 0.68rem; }
+    .total-mini-grid { gap: 6px; margin-top: 6px; padding-top: 6px; }
 }

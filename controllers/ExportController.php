@@ -6,6 +6,9 @@ use Yii;
 use yii\web\Controller;
 use app\models\Company;
 use app\models\User;
+use app\models\Lead;
+use app\models\Status;
+use app\models\TypeContact;
 
 class ExportController extends Controller
 {
@@ -113,6 +116,162 @@ class ExportController extends Controller
         'company' => ['name' => 'Nombre de la Empresa', 'domain' => 'Dominio Web', 'phone' => 'Teléfono de la Empresa', 'email' => 'Correo de la Empresa'],
     ];
 
+    /**
+     * 🔥 Relaciones que se deben cargar según el módulo
+     */
+    private $relationMappings = [
+        'quote' => [
+            'id_lead' => [
+                'relation' => 'lead',
+                'label' => 'Lead',
+                'formatter' => 'formatLead',
+            ],
+        ],
+        'sales-tracking' => [
+            'id_lead' => [
+                'relation' => 'lead',
+                'label' => 'Lead',
+                'formatter' => 'formatLead',
+            ],
+            'id_user' => [
+                'relation' => 'user',
+                'label' => 'Usuario',
+                'formatter' => 'formatUser',
+            ],
+            'id_status' => [
+                'relation' => 'status',
+                'label' => 'Estado',
+                'formatter' => 'formatStatus',
+            ],
+        ],
+        'lead' => [
+            'id_user' => [
+                'relation' => 'user',
+                'label' => 'Agente Asignado',
+                'formatter' => 'formatUser',
+            ],
+            'id_status' => [
+                'relation' => 'status',
+                'label' => 'Estado',
+                'formatter' => 'formatStatus',
+            ],
+            'id_company' => [
+                'relation' => 'company',
+                'label' => 'Empresa',
+                'formatter' => 'formatCompany',
+            ],
+        ],
+        'task' => [
+            'id_user' => [
+                'relation' => 'user',
+                'label' => 'Usuario Asignado',
+                'formatter' => 'formatUser',
+            ],
+            'id_status' => [
+                'relation' => 'status',
+                'label' => 'Estado',
+                'formatter' => 'formatStatus',
+            ],
+        ],
+        'reservation' => [
+            'id_lead' => [
+                'relation' => 'lead',
+                'label' => 'Lead',
+                'formatter' => 'formatLead',
+            ],
+            'id_user' => [
+                'relation' => 'user',
+                'label' => 'Usuario',
+                'formatter' => 'formatUser',
+            ],
+            'id_company' => [
+                'relation' => 'company',
+                'label' => 'Empresa',
+                'formatter' => 'formatCompany',
+            ],
+        ],
+        'contact' => [
+            'id_company' => [
+                'relation' => 'company',
+                'label' => 'Empresa',
+                'formatter' => 'formatCompany',
+            ],
+            'id_status' => [
+                'relation' => 'status',
+                'label' => 'Estado',
+                'formatter' => 'formatStatus',
+            ],
+            'id_type_contact' => [
+                'relation' => 'typeContact',
+                'label' => 'Tipo de Contacto',
+                'formatter' => 'formatTypeContact',
+            ],
+        ],
+        'contacts' => [
+            'id_company' => [
+                'relation' => 'company',
+                'label' => 'Empresa',
+                'formatter' => 'formatCompany',
+            ],
+            'id_status' => [
+                'relation' => 'status',
+                'label' => 'Estado',
+                'formatter' => 'formatStatus',
+            ],
+            'id_type_contact' => [
+                'relation' => 'typeContact',
+                'label' => 'Tipo de Contacto',
+                'formatter' => 'formatTypeContact',
+            ],
+        ],
+        'report' => [
+            'id_lead' => [
+                'relation' => 'lead',
+                'label' => 'Lead',
+                'formatter' => 'formatLead',
+            ],
+            'id_user' => [
+                'relation' => 'user',
+                'label' => 'Usuario',
+                'formatter' => 'formatUser',
+            ],
+            'id_company' => [
+                'relation' => 'company',
+                'label' => 'Empresa',
+                'formatter' => 'formatCompany',
+            ],
+            'id_status' => [
+                'relation' => 'status',
+                'label' => 'Estado',
+                'formatter' => 'formatStatus',
+            ],
+        ],
+        'campaign' => [
+            'id_company' => [
+                'relation' => 'company',
+                'label' => 'Empresa',
+                'formatter' => 'formatCompany',
+            ],
+            'id_status' => [
+                'relation' => 'status',
+                'label' => 'Estado',
+                'formatter' => 'formatStatus',
+            ],
+        ],
+        'promotion' => [
+            'id_company' => [
+                'relation' => 'company',
+                'label' => 'Empresa',
+                'formatter' => 'formatCompany',
+            ],
+            'id_status' => [
+                'relation' => 'status',
+                'label' => 'Estado',
+                'formatter' => 'formatStatus',
+            ],
+        ],
+    ];
+
     public function beforeAction($action)
     {
         if (!parent::beforeAction($action)) {
@@ -154,7 +313,16 @@ class ExportController extends Controller
             }
 
             $query = $this->buildQuery($modelClass, $config, $user);
+
+            $with = $this->getRelationsToLoad($module);
+            if (!empty($with)) {
+                $query->with($with);
+            }
+
             $rows = $query->limit(5000)->all();
+
+            // 🔥 Convertir modelos a arrays con datos de relaciones
+            $rows = $this->transformRows($rows, $module);
 
             $tableName = $modelClass::tableName();
             $columns = $this->getColumns($tableName, $this->excludeColumns, $module);
@@ -199,7 +367,16 @@ class ExportController extends Controller
             }
 
             $query = $this->buildQuery($modelClass, $config, $user);
+
+            $with = $this->getRelationsToLoad($module);
+            if (!empty($with)) {
+                $query->with($with);
+            }
+
             $rows = $query->limit(5000)->all();
+
+            // 🔥 Convertir modelos a arrays con datos de relaciones
+            $rows = $this->transformRows($rows, $module);
 
             $tableName = $modelClass::tableName();
             $columns = $this->getColumns($tableName, $this->excludeColumns, $module);
@@ -220,27 +397,171 @@ class ExportController extends Controller
     }
 
     // ============================================
+    // 🔥 RELACIONES A PRECARGAR SEGÚN MÓDULO
+    // ============================================
+    private function getRelationsToLoad($module)
+    {
+        $commonRelations = [
+            'quote'          => ['lead'],
+            'sales-tracking' => ['lead', 'user', 'status'],
+            'lead'           => ['user', 'status', 'company'],
+            'task'           => ['user', 'status'],
+            'reservation'    => ['lead', 'user', 'company'],
+            'contact'        => ['company', 'status', 'typeContact'],
+            'contacts'       => ['company', 'status', 'typeContact'],
+            'report'         => ['lead', 'user', 'company', 'status'],
+            'campaign'       => ['company', 'status'],
+            'promotion'      => ['company', 'status'],
+        ];
+
+        return isset($commonRelations[$module]) ? $commonRelations[$module] : [];
+    }
+
+    // ============================================
+    // 🔥 TRANSFORMAR FILAS
+    // Convierte cada ActiveRecord en un array asociativo
+    // con las columnas normales + columnas virtuales de relaciones
+    // ============================================
+    private function transformRows($rows, $module)
+    {
+        // Si el módulo no tiene mapeo, convertir a array simple
+        if (!isset($this->relationMappings[$module])) {
+            $result = [];
+            foreach ($rows as $row) {
+                $result[] = $this->modelToArray($row);
+            }
+            return $result;
+        }
+
+        $mappings = $this->relationMappings[$module];
+
+        $result = [];
+        foreach ($rows as $row) {
+            // 🔥 Convertir el modelo a array con sus atributos
+            $rowArray = $this->modelToArray($row);
+
+            // 🔥 Agregar columnas virtuales con datos de relaciones
+            foreach ($mappings as $fkColumn => $info) {
+                $relationName = $info['relation'];
+                $formatter = $info['formatter'];
+                $virtualColumn = '__' . $relationName . '_display';
+
+                $rowArray[$virtualColumn] = '—';
+
+                try {
+                    if (!empty($row->$relationName)) {
+                        $formatted = $this->$formatter($row->$relationName);
+                        if (!empty($formatted)) {
+                            $rowArray[$virtualColumn] = $formatted;
+                        }
+                    }
+                } catch (\Exception $e) {
+                    Yii::warning("Error formateando relación $relationName: " . $e->getMessage(), 'export');
+                }
+            }
+
+            $result[] = $rowArray;
+        }
+
+        return $result;
+    }
+
+    /**
+     * 🔥 Convertir un ActiveRecord a array asociativo con sus atributos
+     */
+    private function modelToArray($model)
+    {
+        if (is_array($model)) {
+            return $model;
+        }
+
+        if (is_object($model)) {
+            // Usar toArray() si está disponible (ActiveRecord)
+            if (method_exists($model, 'toArray')) {
+                try {
+                    return $model->toArray();
+                } catch (\Exception $e) {
+                    // Fallback: usar getAttributes()
+                }
+            }
+
+            if (method_exists($model, 'getAttributes')) {
+                return $model->getAttributes();
+            }
+
+            // Último fallback: convertir objeto a array
+            return get_object_vars($model);
+        }
+
+        return [];
+    }
+
+    // ============================================
+    // 🔥 FORMATEADORES DE RELACIONES
+    // ============================================
+    private function formatLead($lead)
+    {
+        if (!$lead) return '—';
+
+        $name = trim(($lead->name ?? '') . ' ' . ($lead->lastname ?? ''));
+        $phone = $lead->phone ?? '';
+
+        if (empty($name) && empty($phone)) return '—';
+
+        if (!empty($phone)) {
+            return $name . ' (' . $phone . ')';
+        }
+
+        return $name;
+    }
+
+    private function formatUser($user)
+    {
+        if (!$user) return '—';
+
+        $name = trim(($user->name ?? '') . ' ' . ($user->lastname1 ?? ''));
+
+        if (empty($name)) {
+            return $user->username ?? '—';
+        }
+
+        return $name;
+    }
+
+    private function formatStatus($status)
+    {
+        if (!$status) return '—';
+        return $status->status ?? '—';
+    }
+
+    private function formatCompany($company)
+    {
+        if (!$company) return '—';
+        return $company->name ?? '—';
+    }
+
+    private function formatTypeContact($typeContact)
+    {
+        if (!$typeContact) return '—';
+        return $typeContact->type_contact ?? '—';
+    }
+
+    // ============================================
     // 🔥 CONSTRUIR QUERY CON FILTRO POR EMPRESA
     // ============================================
     private function buildQuery($modelClass, $config, $user)
     {
-        // 🔥 SIEMPRE usar alias 'main' para el modelo principal
         $query = $modelClass::find()->alias('main');
         $empresaId = Yii::$app->session->get('empresa_id');
 
-        // 🔥 Guardia: Super Admin sin empresa = 0 resultados
         if ($user->isSuperAdmin() && empty($empresaId)) {
             return $query->andWhere(['0' => '1']);
         }
 
-        // ============================================
-        // 🔥 FILTRADO POR EMPRESA SEGÚN EL TIPO DE RELACIÓN
-        // ============================================
         if (!empty($config['company'])) {
             $companyType = $config['company'];
 
             if ($companyType === 'id_company') {
-                // Modelos que tienen id_company directo
                 if ($user->isSuperAdmin()) {
                     $query->andWhere(['main.id_company' => $empresaId]);
                 } elseif ($user->isAdmin() && !$user->isSuperAdmin()) {
@@ -248,7 +569,6 @@ class ExportController extends Controller
                 }
 
             } elseif ($companyType === 'via_lead') {
-                // Quote y SalesTracking → filtran vía Lead.id_company
                 $query->leftJoin('Lead l', 'main.id_lead = l.id_lead');
 
                 if ($user->isSuperAdmin()) {
@@ -258,7 +578,6 @@ class ExportController extends Controller
                 }
 
             } elseif ($companyType === 'via_user') {
-                // Task → filtra vía User.id_company
                 $query->leftJoin('User u', 'main.id_user = u.id_user');
 
                 if ($user->isSuperAdmin()) {
@@ -269,9 +588,6 @@ class ExportController extends Controller
             }
         }
 
-        // ============================================
-        // 🔥 FILTROS DE BÚSQUEDA
-        // ============================================
         $search       = Yii::$app->request->get('search', '');
         $status       = Yii::$app->request->get('status', '');
         $type         = Yii::$app->request->get('type', '');
@@ -283,12 +599,10 @@ class ExportController extends Controller
             return $query;
         }
 
-        // Búsqueda
         if (!empty($search)) {
             $orConditions = ['or'];
             foreach ($tableSchema->columns as $col) {
                 if (in_array($col->type, ['string', 'text'])) {
-                    // 🔥 Siempre usar main.
                     $orConditions[] = ['like', 'main.' . $col->name, $search];
                 }
             }
@@ -297,23 +611,20 @@ class ExportController extends Controller
             }
         }
 
-        // Estado
         if (!empty($status) && isset($tableSchema->columns['id_status'])) {
-            $statusModel = \app\models\Status::find()->where(['status' => $status])->one();
+            $statusModel = Status::find()->where(['status' => $status])->one();
             if ($statusModel) {
                 $query->andWhere(['main.id_status' => $statusModel->id_status]);
             }
         }
 
-        // Tipo de contacto
         if (!empty($type) && isset($tableSchema->columns['id_type_contact'])) {
-            $typeModel = \app\models\TypeContact::find()->where(['type_contact' => $type])->one();
+            $typeModel = TypeContact::find()->where(['type_contact' => $type])->one();
             if ($typeModel) {
                 $query->andWhere(['main.id_type_contact' => $typeModel->id_type_contact]);
             }
         }
 
-        // Fechas
         $dateColumns = ['created_at', 'date_s', 'date_quote', 'date_report', 'date_reservation', 'start_date'];
         foreach ($dateColumns as $dateCol) {
             if (isset($tableSchema->columns[$dateCol])) {
@@ -327,7 +638,6 @@ class ExportController extends Controller
             }
         }
 
-        // 🔥 Ordenar (usando siempre main.)
         $primaryKeys = $tableSchema->primaryKey;
         if (!empty($primaryKeys)) {
             $query->orderBy(['main.' . $primaryKeys[0] => SORT_DESC]);
@@ -336,6 +646,9 @@ class ExportController extends Controller
         return $query;
     }
 
+    // ============================================
+    // 🔥 OBTENER COLUMNAS (con columnas virtuales)
+    // ============================================
     private function getColumns($tableName, $exclude = [], $module = null)
     {
         $schema = Yii::$app->db->getTableSchema($tableName, true);
@@ -354,6 +667,23 @@ class ExportController extends Controller
                 'type'  => $column->type,
                 'label' => $this->getFriendlyLabel($name, $module),
             ];
+        }
+
+        // 🔥 Agregar columnas virtuales para las relaciones mapeadas
+        if ($module && isset($this->relationMappings[$module])) {
+            foreach ($this->relationMappings[$module] as $fkColumn => $info) {
+                $virtualColumnName = '__' . $info['relation'] . '_display';
+
+                if (isset($columns[$virtualColumnName])) {
+                    continue;
+                }
+
+                $columns[$virtualColumnName] = [
+                    'name'  => $virtualColumnName,
+                    'type'  => 'string',
+                    'label' => $info['label'],
+                ];
+            }
         }
 
         return $columns;
@@ -557,7 +887,6 @@ class ExportController extends Controller
         $pageW = 180;
         $leftX = 15;
 
-        // HEADER
         $pdf->SetY(15);
         $logoW = 30;
         $logoH = 25;
@@ -610,7 +939,6 @@ class ExportController extends Controller
 
         $pdf->SetY($logoY + $logoH + 3);
 
-        // DOBLE LÍNEA
         $lineY = $pdf->GetY();
         $pdf->SetDrawColor($colorAzulCorporativo[0], $colorAzulCorporativo[1], $colorAzulCorporativo[2]);
         $pdf->SetLineWidth(1.0);
@@ -624,7 +952,6 @@ class ExportController extends Controller
         $pdf->SetDrawColor(0, 0, 0);
         $pdf->SetY($lineY + 5);
 
-        // FILTROS
         if (!empty($filters)) {
             $filterY = $pdf->GetY();
             $filterH = 6 + (count($filters) > 3 ? 5 : 0);
@@ -652,7 +979,6 @@ class ExportController extends Controller
             $pdf->Ln(3);
         }
 
-        // RESUMEN
         $resumenY = $pdf->GetY();
         $resumenH = 8;
 
@@ -671,7 +997,6 @@ class ExportController extends Controller
 
         $pdf->Ln(4);
 
-        // TABLA
         if (empty($rows)) {
             $pdf->SetFont('Arial', 'I', 10);
             $pdf->SetTextColor(150, 150, 150);
@@ -729,10 +1054,7 @@ class ExportController extends Controller
                 $maxLines = 1;
 
                 foreach ($columns as $col) {
-                    $value = is_object($row) && isset($row->{$col['name']})
-                        ? $row->{$col['name']}
-                        : (is_array($row) ? ($row[$col['name']] ?? null) : null);
-
+                    $value = $this->getRowValue($row, $col['name']);
                     $formatted = $this->formatValueForPdf($value, $col['type']);
                     $textWidth = $pdf->GetStringWidth($this->toLatin1($formatted));
 
@@ -752,10 +1074,7 @@ class ExportController extends Controller
                 $pdf->Cell($numColWidth, $rowHeight, $index + 1, 1, 0, 'C', true);
 
                 foreach ($columns as $col) {
-                    $value = is_object($row) && isset($row->{$col['name']})
-                        ? $row->{$col['name']}
-                        : (is_array($row) ? ($row[$col['name']] ?? null) : null);
-
+                    $value = $this->getRowValue($row, $col['name']);
                     $formatted = $this->formatValueForPdf($value, $col['type']);
 
                     $x = $pdf->GetX();
@@ -773,7 +1092,6 @@ class ExportController extends Controller
             }
         }
 
-        // FOOTER
         $footerY = 250;
 
         if ($pdf->GetY() > $footerY - 20) {
@@ -829,7 +1147,6 @@ class ExportController extends Controller
         $pdf->SetXY($rectX, $rectY + 6);
         $pdf->Cell($rectW, 4, date('d/m/Y H:i'), 0, 2, 'C');
 
-        // NOMBRE ÚNICO
         $safeName = preg_replace('/[^a-zA-Z0-9_-]/', '_', $moduleTitle);
 
         $timestamp = date('Ymd_His');
@@ -845,6 +1162,26 @@ class ExportController extends Controller
         header('Expires: 0');
 
         $pdf->Output('D', $filename);
+    }
+
+    /**
+     * 🔥 Obtener el valor de una fila (soporta arrays y objetos)
+     */
+    private function getRowValue($row, $columnName)
+    {
+        // 🔥 Ahora $row es un ARRAY asociativo (gracias a transformRows)
+        if (is_array($row)) {
+            return $row[$columnName] ?? null;
+        }
+
+        if (is_object($row)) {
+            if (isset($row->$columnName)) {
+                return $row->$columnName;
+            }
+            return null;
+        }
+
+        return null;
     }
 
     private function formatValueForPdf($value, $type)

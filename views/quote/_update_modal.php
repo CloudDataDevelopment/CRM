@@ -20,12 +20,36 @@ $this->registerCssFile('@web/css/quote-edit-modal.css?v=' . $cssVersion, [
 ]);
 
 if ($error && !$model) {
-    echo '<div class="edit-panel-content"><div class="edit-panel-header"><div class="header-title"><i class="fas fa-exclamation-triangle text-danger"></i> Error</div><button type="button" class="btn-close-panel" onclick="closePanel()"><i class="fas fa-times"></i></button></div><div class="edit-panel-body"><div class="edit-panel-message"><i class="fas fa-exclamation-triangle text-danger"></i><p>' . Html::encode($error) . '</p><button class="btn-message btn-message-secondary" onclick="closePanel()"><i class="fas fa-times"></i> Cerrar</button></div></div></div>';
+    echo '<div class="edit-panel-content">
+            <div class="edit-panel-header">
+                <div class="header-title"><i class="fas fa-exclamation-triangle text-danger"></i> Error</div>
+                <button type="button" class="btn-close-panel" data-panel-close><i class="fas fa-times"></i></button>
+            </div>
+            <div class="edit-panel-body">
+                <div class="edit-panel-message">
+                    <i class="fas fa-exclamation-triangle text-danger"></i>
+                    <p>' . Html::encode($error) . '</p>
+                    <button class="btn-message btn-message-secondary" data-panel-close><i class="fas fa-times"></i> Cerrar</button>
+                </div>
+            </div>
+        </div>';
     return;
 }
 
 if (!$model) {
-    echo '<div class="edit-panel-content"><div class="edit-panel-header"><div class="header-title"><i class="fas fa-inbox text-muted"></i> Cotización no encontrada</div><button type="button" class="btn-close-panel" onclick="closePanel()"><i class="fas fa-times"></i></button></div><div class="edit-panel-body"><div class="edit-panel-message"><i class="fas fa-inbox text-muted"></i><p>Cotización no encontrada</p><button class="btn-message btn-message-secondary" onclick="closePanel()"><i class="fas fa-times"></i> Cerrar</button></div></div></div>';
+    echo '<div class="edit-panel-content">
+            <div class="edit-panel-header">
+                <div class="header-title"><i class="fas fa-inbox text-muted"></i> Cotización no encontrada</div>
+                <button type="button" class="btn-close-panel" data-panel-close><i class="fas fa-times"></i></button>
+            </div>
+            <div class="edit-panel-body">
+                <div class="edit-panel-message">
+                    <i class="fas fa-inbox text-muted"></i>
+                    <p>Cotización no encontrada</p>
+                    <button class="btn-message btn-message-secondary" data-panel-close><i class="fas fa-times"></i> Cerrar</button>
+                </div>
+            </div>
+        </div>';
     return;
 }
 ?>
@@ -34,13 +58,20 @@ if (!$model) {
 
     <div class="edit-panel-header">
         <div class="header-title"><i class="fas fa-edit text-primary"></i> Editar Cotización</div>
-        <button type="button" class="btn-close-panel" onclick="closePanel()"><i class="fas fa-times"></i></button>
+        <button type="button" class="btn-close-panel" data-panel-close><i class="fas fa-times"></i></button>
     </div>
 
     <div class="edit-panel-body">
         <?php if ($success): ?>
             <div class="alert alert-success alert-dismissible fade show" role="alert" style="position: sticky; top: 0; z-index: 10; border-radius: 8px;">
                 <i class="fas fa-check-circle"></i> <strong>¡Éxito!</strong> <?= Html::encode($success) ?>
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+            </div>
+        <?php endif; ?>
+
+        <?php if ($error): ?>
+            <div class="alert alert-danger alert-dismissible fade show" role="alert" style="border-radius: 8px;">
+                <i class="fas fa-exclamation-triangle"></i> <?= $error ?>
                 <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
             </div>
         <?php endif; ?>
@@ -56,108 +87,117 @@ if (!$model) {
             ],
         ]); ?>
 
-        <?= $form->field($model, 'id_lead')->dropDownList($leadsList, ['prompt' => 'Seleccione un lead...', 'class' => 'form-select form-select-sm'])->label('Lead <span class="text-danger">*</span>') ?>
-        <?= $form->field($model, 'total_amount')->textInput(['type' => 'number', 'step' => '1', 'class' => 'form-control form-control-sm', 'placeholder' => 'Ej: 1500000'])->label('Monto Total <span class="text-danger">*</span>') ?>
-        <?= $form->field($model, 'down_payment')->textInput(['type' => 'number', 'step' => '1', 'class' => 'form-control form-control-sm', 'placeholder' => 'Ej: 500000'])->label('Pago Inicial') ?>
-        <?= $form->field($model, 'id_status')->dropDownList($statusOptions, ['prompt' => 'Seleccione un estado...', 'class' => 'form-select form-select-sm'])->label('Estado <span class="text-danger">*</span>') ?>
-        <?= $form->field($model, 'comments')->textarea(['rows' => 3, 'class' => 'form-control form-control-sm', 'placeholder' => 'Observaciones adicionales...', 'value' => $model->getNotes()])->label('Observaciones') ?>
+        <?= $form->field($model, 'id_lead')->dropDownList($leadsList, ['prompt' => 'Seleccione un lead...', 'class' => 'form-select form-select-sm', 'id' => 'quote-id_lead'])->label('Lead <span class="text-danger">*</span>') ?>
+        <?= $form->field($model, 'total_amount')->textInput(['type' => 'number', 'step' => '1', 'class' => 'form-control form-control-sm', 'placeholder' => 'Ej: 1500000', 'id' => 'quote-total_amount'])->label('Monto Total <span class="text-danger">*</span>') ?>
+        <?= $form->field($model, 'down_payment')->textInput(['type' => 'number', 'step' => '1', 'class' => 'form-control form-control-sm', 'placeholder' => 'Ej: 500000', 'id' => 'quote-down_payment'])->label('Pago Inicial') ?>
+        <?= $form->field($model, 'id_status')->dropDownList($statusOptions, ['prompt' => 'Seleccione un estado...', 'class' => 'form-select form-select-sm', 'id' => 'quote-id_status'])->label('Estado <span class="text-danger">*</span>') ?>
+        <?= $form->field($model, 'comments')->textarea(['rows' => 3, 'class' => 'form-control form-control-sm', 'placeholder' => 'Observaciones adicionales...', 'id' => 'quote-comments', 'value' => $model->getNotes()])->label('Observaciones') ?>
 
         <?php ActiveForm::end(); ?>
     </div>
 
     <div class="edit-panel-footer">
-        <button type="button" class="btn-footer btn-footer-secondary" onclick="closePanel()"><i class="fas fa-times"></i> Cancelar</button>
+        <button type="button" class="btn-footer btn-footer-secondary" data-panel-close><i class="fas fa-times"></i> Cancelar</button>
         <button type="button" class="btn-footer btn-footer-primary" id="btn-save-quote"><i class="fas fa-save"></i> Guardar</button>
     </div>
 </div>
 
 <script>
-function closePanel() {
-    if (window.parent && typeof window.parent.closePanel === 'function') window.parent.closePanel();
-    else if (window.opener && typeof window.opener.closePanel === 'function') window.opener.closePanel();
-}
-window.closePanel = closePanel;
+// ============================================
+// 🔥 SUBMIT FORM - Auto-ejecutable
+// NO redefine window.closePanel (el padre lo maneja)
+// ============================================
+(function() {
+    function bindSaveButton() {
+        var btn = document.getElementById('btn-save-quote');
+        if (!btn) return;
 
-function submitForm() {
-    var form = document.getElementById('update-quote-form');
-    if (!form) return;
-
-    var btn = document.getElementById('btn-save-quote');
-    var originalHTML = btn ? btn.innerHTML : '';
-    if (btn) { btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Guardando...'; btn.disabled = true; }
-
-    fetch(form.getAttribute('action'), {
-        method: 'POST',
-        body: new FormData(form),
-        headers: { 'X-Requested-With': 'XMLHttpRequest' }
-    })
-    .then(function(r) { if (!r.ok) throw new Error('HTTP ' + r.status); return r.text(); })
-    .then(function(data) {
-        var container = document.getElementById('edit-panel-content');
-        var temp = document.createElement('div');
-        temp.innerHTML = data;
-        var newContent = temp.querySelector('.edit-panel-content');
-
-        if (container && newContent) {
-            container.parentNode.replaceChild(newContent, container);
-
-            // Re-ejecutar scripts del nuevo contenido
-            newContent.querySelectorAll('script').forEach(function(s) {
-                var ns = document.createElement('script');
-                ns.textContent = s.textContent;
-                document.body.appendChild(ns);
-            });
-
-            // Auto-ocultar alerta
-            setTimeout(function() {
-                var a = document.querySelector('.alert-success');
-                if (a) {
-                    a.style.transition = 'opacity .5s';
-                    a.style.opacity = '0';
-                    setTimeout(function() { if (a) a.style.display = 'none'; }, 500);
-                }
-            }, 3000);
-
-            // 🔥 Notificar al padre para actualizar la fila
-            var form2 = document.getElementById('update-quote-form');
-            if (form2 && window.parent && typeof window.parent.onQuoteUpdated === 'function') {
-                var idMatch = form2.getAttribute('action').match(/id=(\d+)/);
-                var totalEl = document.querySelector('#quote-total_amount');
-                var statusEl = document.querySelector('#quote-id_status');
-                window.parent.onQuoteUpdated({
-                    id_quote: idMatch ? idMatch[1] : null,
-                    total_amount: totalEl ? totalEl.value : '',
-                    status_name: statusEl ? statusEl.options[statusEl.selectedIndex].text : ''
-                });
-            }
-
-            bindSaveButton();
-        } else {
-            location.reload();
-        }
-    })
-    .catch(function(e) {
-        if (btn) { btn.innerHTML = originalHTML; btn.disabled = false; }
-        alert('Error al guardar: ' + e.message);
-    });
-}
-window.submitForm = submitForm;
-
-function bindSaveButton() {
-    var btn = document.getElementById('btn-save-quote');
-    if (btn) {
+        // Clonar para eliminar listeners previos
         var newBtn = btn.cloneNode(true);
         btn.parentNode.replaceChild(newBtn, btn);
+
         newBtn.addEventListener('click', function(e) {
             e.preventDefault();
-            submitForm();
+
+            var form = document.getElementById('update-quote-form');
+            if (!form) return;
+
+            var originalHTML = newBtn.innerHTML;
+            newBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Guardando...';
+            newBtn.disabled = true;
+
+            fetch(form.getAttribute('action'), {
+                method: 'POST',
+                body: new FormData(form),
+                headers: { 'X-Requested-With': 'XMLHttpRequest' }
+            })
+            .then(function(r) { if (!r.ok) throw new Error('HTTP ' + r.status); return r.text(); })
+            .then(function(data) {
+                var container = document.getElementById('edit-panel-content');
+                var temp = document.createElement('div');
+                temp.innerHTML = data;
+                var newContent = temp.querySelector('.edit-panel-content');
+
+                if (container && newContent) {
+                    // 🔥 CAPTURAR DATOS ANTES DE REEMPLAZAR
+                    var datosActualizados = null;
+                    var form2 = newContent.querySelector('#update-quote-form');
+
+                    if (form2) {
+                        var totalEl = newContent.querySelector('#quote-total_amount');
+                        var statusEl = newContent.querySelector('#quote-id_status');
+                        var idMatch = form2.getAttribute('action').match(/id=(\d+)/);
+
+                        datosActualizados = {
+                            id_quote: idMatch ? idMatch[1] : null,
+                            total_amount: totalEl ? totalEl.value : '',
+                            status_name: statusEl ? (statusEl.options[statusEl.selectedIndex] ? statusEl.options[statusEl.selectedIndex].text : '') : ''
+                        };
+                    }
+
+                    // Reemplazar contenido
+                    container.parentNode.replaceChild(newContent, container);
+
+                    // Re-ejecutar scripts del nuevo contenido
+                    newContent.querySelectorAll('script').forEach(function(s) {
+                        var ns = document.createElement('script');
+                        ns.textContent = s.textContent;
+                        document.body.appendChild(ns);
+                    });
+
+                    // 🔥 NOTIFICAR AL PADRE PARA ACTUALIZACIÓN EN TIEMPO REAL
+                    if (datosActualizados && typeof window.onQuoteUpdated === 'function') {
+                        window.onQuoteUpdated(datosActualizados);
+                    }
+
+                    // Auto-ocultar alerta
+                    setTimeout(function() {
+                        var a = document.querySelector('.alert-success');
+                        if (a) {
+                            a.style.transition = 'opacity .5s';
+                            a.style.opacity = '0';
+                            setTimeout(function() { if (a) a.style.display = 'none'; }, 500);
+                        }
+                    }, 3000);
+
+                    // Re-bind
+                    bindSaveButton();
+                } else {
+                    location.reload();
+                }
+            })
+            .catch(function(e) {
+                newBtn.innerHTML = originalHTML;
+                newBtn.disabled = false;
+                alert('Error al guardar: ' + e.message);
+            });
         });
     }
-}
 
-if (document.readyState === 'loading') {
-    document.addEventListener('DOMContentLoaded', bindSaveButton);
-} else {
-    bindSaveButton();
-}
+    if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', bindSaveButton);
+    } else {
+        bindSaveButton();
+    }
+})();
 </script>

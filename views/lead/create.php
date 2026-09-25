@@ -28,7 +28,7 @@ $estadosPermitidos = isset($estadosPermitidos) ? $estadosPermitidos : ['Nuevo', 
                 <div class="breadcrumb-custom">
                     <span>CRM</span>
                     <span class="separator">›</span>
-                    <span>Contactos</span>
+                    <span>Administracion de leads</span>
                     <span class="separator">›</span>
                     <span class="current">Nuevo lead</span>
                 </div>

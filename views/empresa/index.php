@@ -24,9 +24,6 @@ $this->registerCssFile('@web/css/empresa.css', [
             <?= Html::a('<i class="fas fa-plus-circle"></i> Nueva Empresa', ['create'], ['class' => 'btn btn-success']) ?>
             <?= Html::a('<i class="fas fa-plus-circle"></i> Nuevo Usuario', ['site/register'], ['class' => 'btn btn-success']) ?>
         </div>
-        <div class="header-actions">
-            <?= $this->render('/layouts/_report_button') ?>
-        </div>
     </div>
 
     <div class="row">

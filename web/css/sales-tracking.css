@@ -1,17 +1,31 @@
 /* ============================================ */
-/* SALES TRACKING - Estilos principales         */
+/* SALES TRACKING - Estilos unificados          */
+/* Incluye: index, create, update, trash,       */
+/*          details, seguimiento                */
 /* ============================================ */
 
 /* ============================================ */
-/* CONTENEDOR PRINCIPAL                        */
+/* 🔥 CONTENEDOR PRINCIPAL CON SOMBRA          */
 /* ============================================ */
 
+.sales-tracking-index,
+.sales-tracking-create,
+.sales-tracking-update,
+.sales-tracking-seguimiento,
+.sales-tracking-trash {
+    width: 100%;
+    padding: 0;
+    background: transparent;
+}
+
+/* Contenedor blanco con sombra que encapsula todo */
 .sales-tracking-wrapper {
     background: #ffffff;
     border-radius: 12px;
     padding: 20px 25px 25px 25px;
     box-shadow: 0 2px 12px rgba(0, 0, 0, 0.08);
     border: none;
+    width: 100%;
 }
 
 /* ============================================ */
@@ -25,6 +39,10 @@
     padding-bottom: 15px;
     margin-bottom: 20px;
     border-bottom: 2px solid #e9ecef;
+}
+
+.sales-tracking-header .header-left {
+    flex: 1;
 }
 
 .sales-tracking-header .breadcrumb-custom {
@@ -57,15 +75,26 @@
     margin-left: 10px;
 }
 
+.sales-tracking-header .page-title .badge-role {
+    font-size: 0.6rem;
+    padding: 3px 12px;
+    border-radius: 20px;
+    background: #0a48e2;
+    color: white;
+    font-weight: 500;
+    margin-left: 8px;
+}
+
 .sales-tracking-header .header-actions {
     display: flex;
     gap: 8px;
     flex-wrap: wrap;
     align-items: center;
+    flex-shrink: 0;
 }
 
 /* ============================================ */
-/* BOTONES EN HEADER - MISMO TAMAÑO            */
+/* BOTONES EN HEADER                           */
 /* ============================================ */
 
 .btn-tracking-action {
@@ -81,7 +110,9 @@
     gap: 6px;
 }
 
-.btn-tracking-action i { font-size: 0.85rem; }
+.btn-tracking-action i {
+    font-size: 0.85rem;
+}
 
 .btn-outline-danger.btn-tracking-action {
     background: transparent !important;
@@ -105,8 +136,19 @@
     border-color: #245eff !important;
 }
 
+.btn-secondary.btn-tracking-action {
+    background: #6c757d !important;
+    border-color: #6c757d !important;
+    color: #ffffff !important;
+}
+
+.btn-secondary.btn-tracking-action:hover {
+    background: #5a6268 !important;
+    border-color: #5a6268 !important;
+}
+
 /* ============================================ */
-/* TARJETAS DE ESTADÍSTICAS (MÉTRICAS)        */
+/* MÉTRICAS                                     */
 /* ============================================ */
 
 .tracking-dashboard-card {
@@ -228,8 +270,30 @@
     box-shadow: 0 0 0 3px rgba(11,49,146,0.1);
 }
 
+.tracking-filtros-card .btn-primary {
+    background: #0a48e2 !important;
+    border-color: #0a48e2 !important;
+    color: #ffffff !important;
+}
+
+.tracking-filtros-card .btn-primary:hover {
+    background: #245eff !important;
+    border-color: #245eff !important;
+}
+
+.tracking-filtros-card .btn-secondary {
+    background: #6c757d !important;
+    border-color: #6c757d !important;
+    color: #ffffff !important;
+}
+
+.tracking-filtros-card .btn-secondary:hover {
+    background: #5a6268 !important;
+    border-color: #5a6268 !important;
+}
+
 /* ============================================ */
-/* PANEL CONTAINER                              */
+/* CONTENEDOR PRINCIPAL (Tabla + Panel)        */
 /* ============================================ */
 
 .tracking-panel-container {
@@ -266,18 +330,53 @@
     box-shadow: 0 1px 8px rgba(0,0,0,0.05);
 }
 
+.tracking-table-card .card-header {
+    background: #f8f9fa;
+    padding: 10px 15px;
+    border-bottom: 2px solid #000 !important;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    font-size: 0.75rem;
+    font-weight: 600;
+    color: #2c3e50;
+}
+
+.tracking-table-card .card-header .header-left {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.tracking-table-card .card-header .header-left i {
+    font-size: 0.9rem;
+}
+
+.tracking-table-card .card-header .badge {
+    font-size: 0.65rem;
+    padding: 3px 10px;
+}
+
+.tracking-table-card .card-footer {
+    background: #f8f9fa;
+    padding: 8px 15px;
+    border-top: 1px solid #e9ecef;
+}
+
 .tracking-table-card .table {
     font-size: 0.85rem;
     margin-bottom: 0;
 }
 
 .tracking-table-card .table thead th {
-    font-size: 0.75rem;
+    font-size: 0.7rem;
     text-transform: uppercase;
     letter-spacing: 0.3px;
     padding: 10px 12px;
     border-bottom: 2px solid #e9ecef;
     background: #f8f9fa;
+    font-weight: 600;
+    color: #495057;
 }
 
 .tracking-table-card .table tbody td {
@@ -294,6 +393,120 @@
     font-size: 0.65rem;
     padding: 4px 10px;
     border-radius: 10px;
+}
+
+/* ============================================ */
+/* LEAD BADGE                                   */
+/* ============================================ */
+
+.lead-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    padding: 3px 10px;
+    border-radius: 12px;
+    background: #e3f2fd;
+    color: #0a48e2;
+    font-size: 0.7rem;
+    font-weight: 600;
+}
+
+.lead-badge i {
+    font-size: 0.65rem;
+}
+
+/* ============================================ */
+/* BOTONES DE ACCIÓN                           */
+/* ============================================ */
+
+.btn-action {
+    padding: 0.1rem 0.35rem !important;
+    font-size: 0.55rem !important;
+    border-radius: 4px;
+    transition: all 0.2s ease;
+    width: 28px;
+    height: 28px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    border: none;
+}
+
+.btn-action:hover {
+    transform: scale(1.05);
+}
+
+.tracking-btn-action {
+    padding: 0.1rem 0.35rem !important;
+    font-size: 0.55rem !important;
+    border-radius: 4px;
+    transition: all 0.2s ease;
+}
+
+.tracking-btn-action:hover {
+    transform: scale(1.05);
+}
+
+.btn-action.btn-info,
+.tracking-btn-action.btn-info {
+    background: #ebf5ff;
+    color: #3b82f6;
+}
+
+.btn-action.btn-info:hover,
+.tracking-btn-action.btn-info:hover {
+    background: #3b82f6;
+    color: white;
+}
+
+.btn-action.btn-success,
+.tracking-btn-action.btn-success {
+    width: auto;
+    padding: 0.15rem 0.6rem !important;
+    font-size: 0.6rem !important;
+    background: #d1fae5;
+    color: #065f46;
+    gap: 4px;
+}
+
+.btn-action.btn-success:hover,
+.tracking-btn-action.btn-success:hover {
+    background: #065f46;
+    color: white;
+}
+
+/* ============================================ */
+/* PAGINACIÓN                                   */
+/* ============================================ */
+
+.tracking-table-card .pagination {
+    margin-bottom: 0;
+    justify-content: flex-end;
+}
+
+.tracking-table-card .pagination .page-link {
+    font-size: 0.75rem;
+    padding: 4px 10px;
+    color: #0a48e2;
+    border-color: #dee2e6;
+    background: #fff;
+}
+
+.tracking-table-card .pagination .page-link:hover {
+    background: #e7f1ff;
+    color: #0a48e2;
+    border-color: #0a48e2;
+}
+
+.tracking-table-card .pagination .active .page-link {
+    background: #0a48e2;
+    border-color: #0a48e2;
+    color: #fff;
+}
+
+.tracking-table-card .pagination .disabled .page-link {
+    color: #adb5bd;
+    background: #f8f9fa;
 }
 
 /* ============================================ */
@@ -481,23 +694,101 @@
 }
 
 /* ============================================ */
-/* BOTONES DE ACCIÓN                           */
+/* PANEL LATERAL                               */
 /* ============================================ */
 
-.tracking-btn-action {
-    padding: 0.1rem 0.35rem !important;
-    font-size: 0.55rem !important;
-    border-radius: 4px;
-    transition: all 0.2s ease;
+.panel-wrapper {
+    flex: 0 0 0%;
+    max-width: 0%;
+    display: none;
+    transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+    overflow: hidden;
+    padding-left: 0;
 }
 
-.tracking-btn-action:hover {
-    transform: scale(1.05);
+.panel-wrapper.visible {
+    display: block !important;
+    flex: 0 0 33.33333333%;
+    max-width: 33.33333333%;
+    padding-left: 15px;
+    animation: slideIn 0.4s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+}
+
+.panel-wrapper.closing {
+    animation: slideOut 0.3s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+}
+
+@keyframes slideIn {
+    from { opacity: 0; transform: translateX(30px); }
+    to { opacity: 1; transform: translateX(0); }
+}
+
+@keyframes slideOut {
+    from { opacity: 1; transform: translateX(0); }
+    to { opacity: 0; transform: translateX(30px); }
+}
+
+.panel-wrapper .slide-panel-card {
+    border: 2px solid #000 !important;
+    border-radius: 10px;
+    overflow: hidden;
+    background: #ffffff;
+    box-shadow: 0 1px 8px rgba(0,0,0,0.05);
+    height: 100%;
+    min-height: 400px;
+}
+
+.panel-wrapper .slide-panel-card .card-body {
+    padding: 0;
+    height: 100%;
+    overflow-y: auto;
+}
+
+/* ============================================ */
+/* ANIMACIONES DE FILAS                        */
+/* ============================================ */
+
+.tracking-row {
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.tracking-row:hover {
+    background: #e8f0fe !important;
+    transform: scale(1.01);
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+}
+
+.tracking-row-selected {
+    background: #e3f2fd !important;
+    border-left: 3px solid #0B3192;
+    transform: scale(1.02);
+    box-shadow: 0 2px 12px rgba(11, 49, 146, 0.15);
 }
 
 /* ============================================ */
 /* ALERTAS                                      */
 /* ============================================ */
+
+.alert {
+    border-radius: 8px;
+    font-size: 0.85rem;
+    padding: 12px 20px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.alert i {
+    font-size: 1rem;
+    flex-shrink: 0;
+}
+
+.alert-warning {
+    background: #fff3cd;
+    color: #856404;
+    border: none;
+}
 
 .tracking-alert {
     border-radius: 8px;
@@ -513,24 +804,28 @@
 /* ============================================ */
 
 .tracking-activities-list::-webkit-scrollbar,
-.tracking-table-card .table-responsive::-webkit-scrollbar {
+.tracking-table-card .table-responsive::-webkit-scrollbar,
+.table-responsive::-webkit-scrollbar {
     width: 4px;
     height: 5px;
 }
 
 .tracking-activities-list::-webkit-scrollbar-track,
-.tracking-table-card .table-responsive::-webkit-scrollbar-track {
+.tracking-table-card .table-responsive::-webkit-scrollbar-track,
+.table-responsive::-webkit-scrollbar-track {
     background: #f1f1f1;
 }
 
 .tracking-activities-list::-webkit-scrollbar-thumb,
-.tracking-table-card .table-responsive::-webkit-scrollbar-thumb {
+.tracking-table-card .table-responsive::-webkit-scrollbar-thumb,
+.table-responsive::-webkit-scrollbar-thumb {
     background: #c1c7cd;
     border-radius: 4px;
 }
 
 .tracking-activities-list::-webkit-scrollbar-thumb:hover,
-.tracking-table-card .table-responsive::-webkit-scrollbar-thumb:hover {
+.tracking-table-card .table-responsive::-webkit-scrollbar-thumb:hover,
+.table-responsive::-webkit-scrollbar-thumb:hover {
     background: #a8b0b8;
 }
 
@@ -560,6 +855,11 @@
 /* ============================================ */
 
 @media (max-width: 992px) {
+    .sales-tracking-wrapper {
+        padding: 18px 20px 20px 20px;
+        border-radius: 10px;
+    }
+
     .tracking-stat-card {
         min-height: 55px;
         max-height: 55px;
@@ -572,6 +872,33 @@
     .tracking-stat-card .stat-number {
         font-size: 0.9rem;
     }
+
+    .tracking-table-wrapper.with-panel {
+        flex: 0 0 100% !important;
+        max-width: 100% !important;
+        padding-right: 0 !important;
+    }
+
+    .panel-wrapper.visible {
+        flex: 0 0 100% !important;
+        max-width: 100% !important;
+        padding-left: 0 !important;
+        margin-top: 15px;
+    }
+
+    .panel-wrapper .slide-panel-card {
+        min-height: 300px;
+    }
+
+    @keyframes slideIn {
+        from { opacity: 0; transform: translateY(20px); }
+        to { opacity: 1; transform: translateY(0); }
+    }
+
+    @keyframes slideOut {
+        from { opacity: 1; transform: translateY(0); }
+        to { opacity: 0; transform: translateY(20px); }
+    }
 }
 
 @media (max-width: 768px) {
@@ -579,20 +906,24 @@
         padding: 15px;
         border-radius: 10px;
     }
+
     .sales-tracking-header {
         flex-direction: column;
         align-items: stretch;
         gap: 10px;
     }
+
     .sales-tracking-header .page-title {
         font-size: 1.2rem;
     }
+
     .sales-tracking-header .page-title small {
         display: block;
         margin-left: 0;
         margin-top: 2px;
         font-size: 0.7rem;
     }
+
     .tracking-stat-card {
         min-height: 50px;
         max-height: 50px;
@@ -608,21 +939,38 @@
     .tracking-stat-card .stat-label {
         font-size: 0.45rem !important;
     }
+
     .btn-tracking-action {
         min-width: 100px;
         font-size: 0.7rem;
         padding: 5px 12px;
     }
+
     .tracking-activities-list {
         max-height: 250px;
     }
+
     .tracking-activities-card .card-header,
     .tracking-funnel-card .card-header {
         font-size: 0.6rem !important;
         padding: 0.3rem 0.5rem !important;
     }
+
     .tracking-activities-card .card-body {
         height: calc(100% - 34px);
+    }
+
+    .tracking-table-card .table {
+        font-size: 0.75rem;
+    }
+
+    .tracking-table-card .table thead th {
+        font-size: 0.6rem;
+        padding: 6px 8px;
+    }
+
+    .tracking-table-card .table tbody td {
+        padding: 6px 8px;
     }
 }
 
@@ -631,12 +979,15 @@
         padding: 10px;
         border-radius: 8px;
     }
+
     .sales-tracking-header .page-title {
         font-size: 1rem;
     }
+
     .sales-tracking-header .breadcrumb-custom {
         font-size: 0.65rem;
     }
+
     .tracking-stat-card {
         min-height: 45px;
         max-height: 45px;
@@ -652,27 +1003,655 @@
     .tracking-stat-card .stat-label {
         font-size: 0.4rem !important;
     }
+
     .btn-tracking-action {
         min-width: 80px;
         font-size: 0.65rem;
         padding: 4px 10px;
         gap: 4px;
     }
+
     .btn-tracking-action i {
         font-size: 0.7rem;
     }
+
     .tracking-activities-list {
         max-height: 200px;
     }
+
     .tracking-activity-item {
         padding: 8px 12px;
     }
+
     .tracking-activities-card .card-header,
     .tracking-funnel-card .card-header {
         font-size: 0.55rem !important;
         padding: 0.2rem 0.4rem !important;
     }
+
     .tracking-activities-card .card-body {
         height: calc(100% - 30px);
+    }
+
+    .btn-action {
+        padding: 0.05rem 0.25rem !important;
+        font-size: 0.5rem !important;
+    }
+
+    .tracking-table-card .card-header {
+        font-size: 0.6rem !important;
+        padding: 0.5rem 0.7rem !important;
+    }
+}
+/* ============================================ */
+/* 🔥 ESTILOS PARA VIEW.PHP Y CREATE.PHP        */
+/* (Seguimientos - Detalle y Nuevo)             */
+/* ============================================ */
+
+/* ============================================ */
+/* CONTENEDOR CON SOMBRA                        */
+/* ============================================ */
+
+.sales-tracking-view,
+.sales-tracking-create {
+    width: 100%;
+    padding: 0;
+    background: transparent;
+}
+
+.sales-tracking-view .sales-tracking-wrapper,
+.sales-tracking-create .sales-tracking-wrapper {
+    background: #ffffff;
+    border-radius: 12px;
+    padding: 20px 25px 25px 25px;
+    box-shadow: 0 2px 12px rgba(0, 0, 0, 0.08);
+    border: none;
+    width: 100%;
+}
+
+/* ============================================ */
+/* CARDS DE DETALLE (details-card)              */
+/* ============================================ */
+
+.details-card {
+    border: 2px solid #000 !important;
+    border-radius: 10px;
+    overflow: hidden;
+    background: #ffffff;
+    box-shadow: 0 1px 8px rgba(0, 0, 0, 0.05);
+    transition: all 0.3s ease;
+}
+
+.details-card:hover {
+    box-shadow: 0 3px 15px rgba(0, 0, 0, 0.08);
+}
+
+.details-card .card-header {
+    background: #f8f9fa;
+    border-bottom: 2px solid #000 !important;
+    padding: 10px 15px;
+}
+
+.details-card .card-header h5 {
+    font-size: 0.85rem;
+    font-weight: 600;
+    color: #2c3e50;
+    margin: 0;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.details-card .card-header h5 i {
+    color: #4e73df;
+    font-size: 0.9rem;
+}
+
+.details-card .card-body {
+    padding: 15px;
+}
+
+/* ============================================ */
+/* PERFIL GRANDE (para view)                    */
+/* ============================================ */
+
+.profile-avatar-large {
+    font-size: 60px;
+    color: #4e73df;
+    display: block;
+    line-height: 1;
+    text-align: center;
+}
+
+.profile-avatar-large i {
+    display: block;
+    line-height: 1;
+}
+
+.profile-name-large {
+    font-size: 1.15rem;
+    font-weight: 600;
+    color: #1a2332;
+    margin-top: 8px;
+    margin-bottom: 4px;
+    text-align: center;
+}
+
+.profile-phone-large {
+    font-size: 0.9rem;
+    color: #6c757d;
+    margin-bottom: 10px;
+    text-align: center;
+}
+
+.profile-actions-large {
+    display: flex;
+    justify-content: center;
+    gap: 6px;
+    flex-wrap: wrap;
+    margin-top: 10px;
+}
+
+.profile-actions-large .btn {
+    font-size: 0.72rem;
+    padding: 5px 12px;
+    border-radius: 6px;
+    transition: all 0.2s ease;
+}
+
+.profile-actions-large .btn:hover {
+    transform: translateY(-1px);
+}
+
+/* ============================================ */
+/* TABLA DE DETALLES (details-table)            */
+/* ============================================ */
+
+.details-table {
+    font-size: 0.85rem;
+    margin-bottom: 0;
+}
+
+.details-table thead th {
+    font-size: 0.7rem;
+    text-transform: uppercase;
+    letter-spacing: 0.3px;
+    padding: 10px 12px;
+    background: #f8f9fa;
+    border-bottom: 2px solid #e9ecef;
+    font-weight: 600;
+    color: #495057;
+    white-space: nowrap;
+}
+
+.details-table tbody td {
+    padding: 10px 12px;
+    vertical-align: middle;
+    border-bottom: 1px solid #f0f0f0;
+    color: #2c3e50;
+}
+
+.details-table tbody tr:last-child td {
+    border-bottom: none;
+}
+
+.details-table tbody tr {
+    transition: background 0.2s ease;
+}
+
+.details-table tbody tr:hover {
+    background: #f8f9fa;
+}
+
+.details-table tbody tr.table-info {
+    background: #e7f1ff !important;
+}
+
+.details-table tbody tr.table-info:hover {
+    background: #d4e3fc !important;
+}
+
+.details-table .badge {
+    font-size: 0.65rem;
+    padding: 4px 10px;
+    border-radius: 10px;
+    font-weight: 600;
+}
+
+/* ============================================ */
+/* INFO GRID (view - información detallada)     */
+/* ============================================ */
+
+.info-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 8px 15px;
+}
+
+.info-item {
+    display: flex;
+    flex-direction: column;
+    padding: 6px 0;
+    border-bottom: 1px solid #f5f6f8;
+}
+
+.info-item:last-child {
+    border-bottom: none;
+}
+
+.info-item .info-label {
+    font-size: 0.7rem;
+    color: #8a94a6;
+    font-weight: 500;
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    margin-bottom: 2px;
+}
+
+.info-item .info-label i {
+    width: 14px;
+    font-size: 0.7rem;
+    color: #adb5bd;
+}
+
+.info-item .info-value {
+    font-size: 0.85rem;
+    color: #1a2332;
+    font-weight: 500;
+    word-break: break-word;
+}
+
+.info-item .info-value .badge {
+    font-size: 0.65rem;
+    padding: 3px 10px;
+}
+
+/* ============================================ */
+/* LEAD BLOQUEADO (create.php)                  */
+/* ============================================ */
+
+.lead-locked-box {
+    border: 2px solid #0a48e2;
+    border-radius: 10px;
+    padding: 14px 16px;
+    background: linear-gradient(135deg, #f0f4ff 0%, #e7f1ff 100%);
+    position: relative;
+}
+
+.lead-locked-header {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 10px;
+    padding-bottom: 10px;
+    border-bottom: 1px dashed #b6ccff;
+    flex-wrap: wrap;
+}
+
+.lead-locked-header i {
+    color: #0a48e2;
+    font-size: 1rem;
+}
+
+.lead-locked-header strong {
+    font-size: 0.95rem;
+    color: #1a2332;
+    font-weight: 600;
+}
+
+.lead-locked-header .badge {
+    font-size: 0.6rem;
+    padding: 3px 10px;
+    border-radius: 10px;
+    margin-left: auto;
+}
+
+.lead-locked-info {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 12px;
+    font-size: 0.75rem;
+    color: #495057;
+    margin-bottom: 8px;
+}
+
+.lead-locked-info span {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+}
+
+.lead-locked-info i {
+    color: #6c757d;
+    font-size: 0.7rem;
+}
+
+.lead-locked-box .text-muted {
+    font-size: 0.7rem;
+    display: block;
+}
+
+.lead-locked-box .text-muted i {
+    color: #0a48e2;
+    margin-right: 4px;
+}
+
+/* ============================================ */
+/* TIPS LIST (create.php - consejos)            */
+/* ============================================ */
+
+.tips-list {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+}
+
+.tips-list li {
+    font-size: 0.8rem;
+    color: #495057;
+    padding: 8px 0;
+    display: flex;
+    align-items: flex-start;
+    border-bottom: 1px solid #f5f6f8;
+    line-height: 1.4;
+}
+
+.tips-list li:last-child {
+    border-bottom: none;
+}
+
+.tips-list li i {
+    margin-right: 8px;
+    margin-top: 2px;
+    flex-shrink: 0;
+    font-size: 0.85rem;
+}
+
+.tips-list li strong {
+    color: #2c3e50;
+    margin-right: 4px;
+}
+
+/* ============================================ */
+/* BOTONES DE ACCIÓN (btn-action)               */
+/* ============================================ */
+
+.details-table .btn-action,
+.sales-tracking-view .btn-action,
+.sales-tracking-create .btn-action {
+    padding: 0.2rem 0.5rem !important;
+    font-size: 0.65rem !important;
+    border-radius: 5px;
+    transition: all 0.2s ease;
+    width: 30px;
+    height: 30px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    border: none;
+}
+
+.details-table .btn-action:hover,
+.sales-tracking-view .btn-action:hover,
+.sales-tracking-create .btn-action:hover {
+    transform: scale(1.08);
+}
+
+.details-table .btn-action.btn-info,
+.sales-tracking-view .btn-action.btn-info {
+    background: #ebf5ff;
+    color: #3b82f6;
+}
+
+.details-table .btn-action.btn-info:hover,
+.sales-tracking-view .btn-action.btn-info:hover {
+    background: #3b82f6;
+    color: #ffffff;
+}
+
+/* ============================================ */
+/* BOTONES EN VISTA DE VIEW                     */
+/* ============================================ */
+
+.sales-tracking-view .btn-tracking-action {
+    min-width: 110px;
+    text-align: center;
+    padding: 6px 16px;
+    border-radius: 6px;
+    font-size: 0.8rem;
+    transition: all 0.3s ease;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+}
+
+.sales-tracking-view .btn-tracking-action:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 3px 10px rgba(0, 0, 0, 0.12);
+}
+
+/* ============================================ */
+/* LAYOUT: VIEW (cards en columnas)             */
+/* ============================================ */
+
+.sales-tracking-view .row.g-3 {
+    --bs-gutter-x: 1rem;
+    --bs-gutter-y: 1rem;
+}
+
+/* ============================================ */
+/* RESPONSIVE (view y create)                   */
+/* ============================================ */
+
+@media (max-width: 992px) {
+    .sales-tracking-view .sales-tracking-wrapper,
+    .sales-tracking-create .sales-tracking-wrapper {
+        padding: 18px 20px 20px 20px;
+        border-radius: 10px;
+    }
+
+    .info-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .profile-avatar-large {
+        font-size: 50px;
+    }
+
+    .profile-name-large {
+        font-size: 1.05rem;
+    }
+}
+
+@media (max-width: 768px) {
+    .sales-tracking-view .sales-tracking-wrapper,
+    .sales-tracking-create .sales-tracking-wrapper {
+        padding: 15px;
+        border-radius: 10px;
+    }
+
+    .sales-tracking-view .sales-tracking-header,
+    .sales-tracking-create .sales-tracking-header {
+        flex-direction: column;
+        align-items: stretch;
+        gap: 10px;
+    }
+
+    .sales-tracking-view .sales-tracking-header .page-title,
+    .sales-tracking-create .sales-tracking-header .page-title {
+        font-size: 1.2rem;
+    }
+
+    .sales-tracking-view .sales-tracking-header .page-title small,
+    .sales-tracking-create .sales-tracking-header .page-title small {
+        display: block;
+        margin-left: 0;
+        margin-top: 2px;
+        font-size: 0.7rem;
+    }
+
+    .sales-tracking-view .btn-tracking-action,
+    .sales-tracking-create .btn-tracking-action {
+        min-width: 90px;
+        font-size: 0.7rem;
+        padding: 5px 12px;
+    }
+
+    .profile-avatar-large {
+        font-size: 45px;
+    }
+
+    .profile-name-large {
+        font-size: 1rem;
+    }
+
+    .profile-actions-large .btn {
+        font-size: 0.65rem;
+        padding: 4px 10px;
+    }
+
+    .details-table {
+        font-size: 0.75rem;
+    }
+
+    .details-table thead th {
+        font-size: 0.6rem;
+        padding: 6px 8px;
+    }
+
+    .details-table tbody td {
+        padding: 6px 8px;
+    }
+
+    .lead-locked-header {
+        gap: 6px;
+    }
+
+    .lead-locked-header strong {
+        font-size: 0.88rem;
+    }
+
+    .lead-locked-info {
+        font-size: 0.7rem;
+        gap: 8px;
+    }
+
+    .tips-list li {
+        font-size: 0.75rem;
+    }
+
+    .details-card .card-header h5 {
+        font-size: 0.78rem;
+    }
+
+    .info-item .info-label {
+        font-size: 0.65rem;
+    }
+
+    .info-item .info-value {
+        font-size: 0.8rem;
+    }
+}
+
+@media (max-width: 576px) {
+    .sales-tracking-view .sales-tracking-wrapper,
+    .sales-tracking-create .sales-tracking-wrapper {
+        padding: 10px;
+        border-radius: 8px;
+    }
+
+    .sales-tracking-view .sales-tracking-header .page-title,
+    .sales-tracking-create .sales-tracking-header .page-title {
+        font-size: 1rem;
+    }
+
+    .sales-tracking-view .sales-tracking-header .breadcrumb-custom,
+    .sales-tracking-create .sales-tracking-header .breadcrumb-custom {
+        font-size: 0.65rem;
+    }
+
+    .sales-tracking-view .btn-tracking-action,
+    .sales-tracking-create .btn-tracking-action {
+        min-width: 70px;
+        font-size: 0.65rem;
+        padding: 4px 10px;
+        gap: 4px;
+    }
+
+    .profile-avatar-large {
+        font-size: 38px;
+    }
+
+    .profile-name-large {
+        font-size: 0.9rem;
+    }
+
+    .profile-phone-large {
+        font-size: 0.8rem;
+    }
+
+    .profile-actions-large .btn {
+        font-size: 0.6rem;
+        padding: 3px 8px;
+    }
+
+    .details-card .card-header {
+        padding: 8px 12px;
+    }
+
+    .details-card .card-header h5 {
+        font-size: 0.72rem;
+    }
+
+    .details-card .card-body {
+        padding: 12px;
+    }
+
+    .lead-locked-box {
+        padding: 12px;
+    }
+
+    .lead-locked-header {
+        flex-wrap: wrap;
+    }
+
+    .lead-locked-header .badge {
+        margin-left: 0;
+        margin-top: 4px;
+    }
+
+    .lead-locked-info {
+        flex-direction: column;
+        gap: 5px;
+    }
+
+    .info-item .info-value {
+        font-size: 0.75rem;
+    }
+
+    .details-table {
+        font-size: 0.7rem;
+    }
+
+    .details-table thead th {
+        font-size: 0.55rem;
+        padding: 5px 6px;
+    }
+
+    .details-table tbody td {
+        padding: 5px 6px;
+    }
+
+    .details-table .btn-action {
+        width: 26px;
+        height: 26px;
+        font-size: 0.55rem !important;
+    }
+
+    .tips-list li {
+        font-size: 0.7rem;
+        padding: 6px 0;
     }
 }

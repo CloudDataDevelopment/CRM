@@ -19,11 +19,12 @@ $isSuperAdmin = isset($isSuperAdmin) ? $isSuperAdmin : false;
 $search = isset($search) ? $search : '';
 ?>
 
-<div class="quote-container">
-    <div class="quote-index">
+<!-- 🔥 CONTENEDOR PRINCIPAL CON SOMBRA -->
+<div class="report-trash">
+    <div class="report-wrapper">
 
         <!-- HEADER -->
-        <div class="quote-header">
+        <div class="report-header">
             <div class="header-left">
                 <div class="breadcrumb-custom">
                     <span>CRM</span><span class="separator">›</span>
@@ -37,15 +38,17 @@ $search = isset($search) ? $search : '';
                 </h1>
             </div>
             <div class="header-actions">
-                <?= Html::a('<i class="fas fa-arrow-left"></i> Volver a Evaluaciones', ['index'], ['class' => 'btn btn-secondary btn-sm']) ?>
+                <?= Html::a('<i class="fas fa-arrow-left"></i> Volver a Evaluaciones', ['index'], ['class' => 'btn btn-secondary btn-sm btn-report-action']) ?>
             </div>
         </div>
 
         <!-- ALERTA -->
-        <div class="alert alert-warning" role="alert" style="border-radius: 8px; border-left: 4px solid #f6c23e;">
-            <i class="fas fa-info-circle"></i>
-            <strong>Estas evaluaciones están en la papelera.</strong>
-            Puedes restaurarlas para que vuelvan al listado principal.
+        <div class="alert alert-warning d-flex align-items-center mb-3" role="alert">
+            <i class="fas fa-info-circle me-2" style="font-size: 1.2rem;"></i>
+            <div>
+                <strong>Papelera:</strong> Estas evaluaciones están marcadas como eliminadas.
+                Puedes restaurarlas para que vuelvan al listado principal.
+            </div>
         </div>
 
         <!-- MÉTRICAS -->
@@ -86,12 +89,12 @@ $search = isset($search) ? $search : '';
         <!-- TABLA -->
         <div class="card table-card">
             <div class="card-header">
-                <div style="display: flex; align-items: center; gap: 6px;">
-                    <i class="fas fa-trash"></i>
+                <div class="header-left">
+                    <i class="fas fa-trash text-danger"></i>
                     <span>Evaluaciones Eliminadas</span>
                     <span class="badge bg-danger ms-2"><?= $dataProvider ? $dataProvider->getTotalCount() : 0 ?></span>
                 </div>
-                <div>
+                <div class="header-right">
                     <span class="badge bg-secondary">
                         Página <?= $dataProvider ? $dataProvider->getPagination()->getPage() + 1 : 1 ?> de <?= $dataProvider ? $dataProvider->getPagination()->getPageCount() : 1 ?>
                     </span>
@@ -195,8 +198,8 @@ $search = isset($search) ? $search : '';
             <?php endif; ?>
         </div>
 
-    </div>
-</div>
+    </div><!-- /.report-wrapper -->
+</div><!-- /.report-trash -->
 
 <script>
 document.addEventListener('DOMContentLoaded', function () {

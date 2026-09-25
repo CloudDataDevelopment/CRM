@@ -13,12 +13,12 @@ $this->registerCssFile('@web/css/contacts.css', ['depends' => [\yii\bootstrap5\B
 $isAdmin = isset($isAdmin) ? $isAdmin : false;
 $isAgent = isset($isAgent) ? $isAgent : false;
 $isSuperAdmin = isset($isSuperAdmin) ? $isSuperAdmin : false;
-$createTypeUrl = Url::to(['contacts/create-type-ajax']);
 ?>
 
+<!-- 🔥 CONTENEDOR PRINCIPAL CON SOMBRA -->
 <div class="contacts-create">
     <div class="contacts-wrapper">
-        
+
         <!-- HEADER -->
         <div class="contacts-header">
             <div>
@@ -78,7 +78,6 @@ $createTypeUrl = Url::to(['contacts/create-type-ajax']);
 
                         <div class="row">
                             <div class="col-md-6">
-                                <!-- 🔥 SELECTOR DE TIPO CON OPCIÓN "OTRO" -->
                                 <div class="form-group">
                                     <label class="control-label">Tipo de Contacto</label>
                                     <select name="Contacts[id_type_contact]" id="contact-type-select" class="form-select">
@@ -91,28 +90,21 @@ $createTypeUrl = Url::to(['contacts/create-type-ajax']);
                                         <option value="__new__">➕ Otro (crear nuevo tipo)</option>
                                     </select>
                                 </div>
-                                
-                                <!-- 🔥 CAMPO OCULTO PARA NUEVO TIPO -->
+
                                 <div class="form-group mt-2" id="new-type-container" style="display: none;">
                                     <label class="control-label">
                                         Nuevo Tipo de Contacto <span class="text-danger">*</span>
                                     </label>
-                                    <div class="input-group">
-                                        <input type="text" 
-                                               id="new-type-name" 
-                                               class="form-control" 
-                                               placeholder="Ej: Proveedor, Cliente VIP..."
-                                               maxlength="50">
-                                        <button type="button" 
-                                                class="btn btn-success" 
-                                                id="btn-create-type">
-                                            <i class="fas fa-plus"></i> Crear
-                                        </button>
-                                    </div>
+                                    <input type="text"
+                                           name="new_type_contact"
+                                           id="new-type-name"
+                                           class="form-control"
+                                           placeholder="Ej: Proveedor, Cliente VIP..."
+                                           maxlength="50">
                                     <small class="text-muted">
-                                        <i class="fas fa-info-circle"></i> Escribe el nombre y presiona "Crear"
+                                        <i class="fas fa-info-circle"></i>
+                                        El tipo se creará automáticamente al guardar el contacto
                                     </small>
-                                    <div id="new-type-alert" class="mt-2" style="display: none;"></div>
                                 </div>
                             </div>
                             <div class="col-md-6">
@@ -151,7 +143,7 @@ $createTypeUrl = Url::to(['contacts/create-type-ajax']);
                             <li><i class="fas fa-check-circle text-success"></i> Teléfono de 10 dígitos</li>
                             <li><i class="fas fa-check-circle text-success"></i> Email válido (opcional)</li>
                             <li><i class="fas fa-check-circle text-success"></i> Selecciona un tipo de contacto</li>
-                            <li><i class="fas fa-plus-circle text-primary"></i> Puedes crear un tipo nuevo con "Otro"</li>
+                            <li><i class="fas fa-plus-circle text-primary"></i> Si eliges "Otro", el tipo se creará al guardar</li>
                         </ul>
                     </div>
                 </div>
@@ -164,12 +156,12 @@ $createTypeUrl = Url::to(['contacts/create-type-ajax']);
                     </div>
                     <div class="card-body">
                         <p class="text-muted small">
-                            <i class="fas fa-arrow-right"></i> 
+                            <i class="fas fa-arrow-right"></i>
                             Los contactos te permiten gestionar todas las personas relacionadas con tu negocio.
                         </p>
                         <hr>
                         <p class="text-muted small">
-                            <i class="fas fa-arrow-right"></i> 
+                            <i class="fas fa-arrow-right"></i>
                             Puedes clasificarlos por tipo y estado para mejor organización.
                         </p>
                     </div>
@@ -177,21 +169,16 @@ $createTypeUrl = Url::to(['contacts/create-type-ajax']);
             </div>
         </div>
 
-    </div>
-</div>
+    </div><!-- /.contacts-wrapper -->
+</div><!-- /.contacts-create -->
 
 <script>
 document.addEventListener('DOMContentLoaded', function() {
     var typeSelect = document.getElementById('contact-type-select');
     var newTypeContainer = document.getElementById('new-type-container');
     var newTypeName = document.getElementById('new-type-name');
-    var btnCreateType = document.getElementById('btn-create-type');
-    var newTypeAlert = document.getElementById('new-type-alert');
-    var createTypeUrl = '<?= $createTypeUrl ?>';
-    var csrfToken = '<?= Yii::$app->request->csrfToken ?>';
-    var csrfParam = '<?= Yii::$app->request->csrfParam ?>';
+    var form = document.getElementById('contact-form');
 
-    // 🔥 Mostrar/ocultar campo de nuevo tipo
     typeSelect.addEventListener('change', function() {
         if (this.value === '__new__') {
             newTypeContainer.style.display = 'block';
@@ -199,83 +186,33 @@ document.addEventListener('DOMContentLoaded', function() {
         } else {
             newTypeContainer.style.display = 'none';
             newTypeName.value = '';
-            newTypeAlert.style.display = 'none';
         }
     });
 
-    // 🔥 Crear nuevo tipo vía AJAX
-    btnCreateType.addEventListener('click', function() {
-        var typeName = newTypeName.value.trim();
+    form.addEventListener('submit', function(e) {
+        if (typeSelect.value === '__new__') {
+            var typeName = newTypeName.value.trim();
 
-        if (!typeName) {
-            newTypeAlert.style.display = 'block';
-            newTypeAlert.className = 'alert alert-danger';
-            newTypeAlert.innerHTML = '<i class="fas fa-exclamation-triangle"></i> Ingresa un nombre para el tipo.';
-            return;
-        }
-
-        // Deshabilitar mientras se procesa
-        btnCreateType.disabled = true;
-        var originalText = btnCreateType.innerHTML;
-        btnCreateType.innerHTML = '<i class="fas fa-spinner fa-spin"></i>';
-
-        var formData = new FormData();
-        formData.append('type_contact', typeName);
-        formData.append(csrfParam, csrfToken);
-
-        fetch(createTypeUrl, {
-            method: 'POST',
-            body: formData,
-            headers: { 'X-Requested-With': 'XMLHttpRequest' }
-        })
-        .then(function(res) { return res.json(); })
-        .then(function(data) {
-            btnCreateType.disabled = false;
-            btnCreateType.innerHTML = originalText;
-
-            if (data.success) {
-                // 🔥 Agregar la nueva opción al select
-                var newOption = new Option(data.type_contact, data.id_type_contact, true, true);
-
-                // Insertar antes de la opción "Otro"
-                var otroOption = typeSelect.querySelector('option[value="__new__"]');
-                typeSelect.insertBefore(newOption, otroOption);
-
-                // Seleccionar la nueva opción
-                typeSelect.value = data.id_type_contact;
-
-                // Ocultar campo de nuevo tipo
-                newTypeContainer.style.display = 'none';
-                newTypeName.value = '';
-
-                // Mostrar éxito
-                newTypeAlert.style.display = 'block';
-                newTypeAlert.className = 'alert alert-success';
-                newTypeAlert.innerHTML = '<i class="fas fa-check-circle"></i> ' + data.message;
-
-                setTimeout(function() {
-                    newTypeAlert.style.display = 'none';
-                }, 2500);
-            } else {
-                newTypeAlert.style.display = 'block';
-                newTypeAlert.className = 'alert alert-danger';
-                newTypeAlert.innerHTML = '<i class="fas fa-exclamation-triangle"></i> ' + data.message;
+            if (!typeName) {
+                e.preventDefault();
+                alert('Ingresa un nombre para el nuevo tipo de contacto.');
+                newTypeName.focus();
+                return false;
             }
-        })
-        .catch(function(err) {
-            btnCreateType.disabled = false;
-            btnCreateType.innerHTML = originalText;
-            newTypeAlert.style.display = 'block';
-            newTypeAlert.className = 'alert alert-danger';
-            newTypeAlert.innerHTML = '<i class="fas fa-exclamation-triangle"></i> Error de conexión.';
-        });
+
+            if (typeName.length < 2) {
+                e.preventDefault();
+                alert('El nombre del tipo debe tener al menos 2 caracteres.');
+                newTypeName.focus();
+                return false;
+            }
+        }
     });
 
-    // 🔥 Enter en el campo de nuevo tipo
     newTypeName.addEventListener('keypress', function(e) {
         if (e.key === 'Enter') {
             e.preventDefault();
-            btnCreateType.click();
+            form.querySelector('button[type="submit"]').focus();
         }
     });
 });

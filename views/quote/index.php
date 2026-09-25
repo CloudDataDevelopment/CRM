@@ -339,7 +339,6 @@ window.onQuoteUpdated = function(q) {
     var cells = row.querySelectorAll('td');
     // cells[0] = Cliente, cells[1] = Fecha, cells[2] = Total, cells[3] = Estado
     if (cells[2] && q.total_amount) {
-        // 🔥 Se mantiene el signo $ en la actualización en tiempo real
         cells[2].innerHTML = '<strong>$' + parseInt(q.total_amount).toLocaleString('es-MX') + '</strong>';
     }
     if (cells[3] && q.status_name) {
@@ -351,6 +350,8 @@ window.onQuoteUpdated = function(q) {
     row.style.transition = 'background-color 0.5s';
     row.style.backgroundColor = '#d4edda';
     setTimeout(function() { row.style.backgroundColor = ''; }, 1000);
+
+    console.log('✅ Cotización actualizada en la tabla');
 };
 
 // ============================================
@@ -442,7 +443,7 @@ function inicializar() {
                 executeScripts(panelContent);
             })
             .catch(function(error) {
-                panelContent.innerHTML = '<div class="text-center text-danger py-4"><i class="fas fa-exclamation-triangle fa-2x d-block mb-2"></i><p>Error al cargar</p><button class="btn btn-secondary btn-sm mt-2" onclick="closePanel()">Cerrar</button></div>';
+                panelContent.innerHTML = '<div class="text-center text-danger py-4"><i class="fas fa-exclamation-triangle fa-2x d-block mb-2"></i><p>Error al cargar</p><button class="btn btn-secondary btn-sm mt-2" data-panel-close>Cerrar</button></div>';
             });
     }
 
@@ -475,9 +476,40 @@ function inicializar() {
                 executeScripts(panelContent);
             })
             .catch(function(error) {
-                panelContent.innerHTML = '<div class="text-center text-danger py-4"><i class="fas fa-exclamation-triangle fa-2x d-block mb-2"></i><p>Error al cargar</p><button class="btn btn-secondary btn-sm mt-2" onclick="closePanel()">Cerrar</button></div>';
+                panelContent.innerHTML = '<div class="text-center text-danger py-4"><i class="fas fa-exclamation-triangle fa-2x d-block mb-2"></i><p>Error al cargar</p><button class="btn btn-secondary btn-sm mt-2" data-panel-close>Cerrar</button></div>';
             });
     }
+
+    // ============================================
+    // 🔥 LISTENER GLOBAL PARA CERRAR PANEL
+    // Detecta clics en [data-panel-close]
+    // ============================================
+    document.addEventListener('click', function(e) {
+        var btn = e.target.closest('[data-panel-close]');
+        if (btn) {
+            e.preventDefault();
+            e.stopPropagation();
+            console.log('🔴 Cierre solicitado por [data-panel-close]');
+            closePanel();
+        }
+    }, true);
+
+    // ============================================
+    // 🔥 LISTENER GLOBAL PARA NAVEGAR Y CERRAR
+    // Detecta clics en [data-panel-close-go="url"]
+    // ============================================
+    document.addEventListener('click', function(e) {
+        var btn = e.target.closest('[data-panel-close-go]');
+        if (btn) {
+            e.preventDefault();
+            e.stopPropagation();
+            var url = btn.getAttribute('data-panel-close-go');
+            console.log('🔴 Cierre + navegación solicitada:', url);
+            closePanel(function() {
+                window.location.href = url;
+            });
+        }
+    }, true);
 
     window.openPanel = openPanel;
     window.openEditPanel = openEditPanel;

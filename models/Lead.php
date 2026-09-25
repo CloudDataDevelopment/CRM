@@ -18,7 +18,7 @@ class Lead extends ActiveRecord
             [['name', 'lastname', 'phone'], 'required'],
             [['name', 'lastname'], 'string', 'max' => 255],
             [['phone'], 'string', 'max' => 20],
-            [['comments'], 'string', 'max' =>255],
+            [['comments'], 'string', 'max' => 255],
             [['id_status'], 'integer'],
             [['created_at'], 'safe'],
             [['id_user', 'id_company'], 'integer'],
@@ -51,7 +51,7 @@ class Lead extends ActiveRecord
 
         if ($insert) {
             $this->created_at = date('Y-m-d');
-            
+
             if (empty($this->id_company) || $this->id_company == 0) {
                 $user = Yii::$app->user->identity;
                 if ($user && !empty($user->id_company)) {
@@ -61,9 +61,9 @@ class Lead extends ActiveRecord
                     $this->id_company = $company ? $company->id_company : 1;
                 }
             }
-            
+
             $user = Yii::$app->user->identity;
-            
+
             if ($user) {
                 if ($user->isAgent()) {
                     $this->id_user = $user->id_user;
@@ -73,17 +73,17 @@ class Lead extends ActiveRecord
             } else {
                 $this->id_user = null;
             }
-            
+
             $this->id_status = $this->id_status ?: 19;
         }
-        
+
         return parent::beforeSave($insert);
     }
 
     // ============================================
     // RELACIONES
     // ============================================
-    
+
     public function getUser()
     {
         return $this->hasOne(User::class, ['id_user' => 'id_user']);
@@ -124,9 +124,41 @@ class Lead extends ActiveRecord
     }
 
     // ============================================
+    // 🔥 RELACIÓN CON EVALUACIONES (Report)
+    // La FK id_lead está en la tabla Reports
+    // ============================================
+
+    /**
+     * Evaluaciones del lead
+     * Relación: Un Lead tiene MUCHAS Evaluaciones
+     */
+    public function getReports()
+    {
+        return $this->hasMany(Report::class, ['id_lead' => 'id_lead'])
+            ->orderBy(['id_report' => SORT_DESC]);
+    }
+
+    /**
+     * Última evaluación del lead
+     */
+    public function getLastReport()
+    {
+        return $this->hasOne(Report::class, ['id_lead' => 'id_lead'])
+            ->orderBy(['id_report' => SORT_DESC]);
+    }
+
+    /**
+     * Contar evaluaciones del lead
+     */
+    public function getTotalReports()
+    {
+        return $this->getReports()->count();
+    }
+
+    // ============================================
     // MÉTODOS DE ESTADO
     // ============================================
-    
+
     public function getStatusName()
     {
         if ($this->status && isset($this->status->status)) {
@@ -140,9 +172,9 @@ class Lead extends ActiveRecord
         if (!$this->status || !isset($this->status->status)) {
             return 'secondary';
         }
-        
+
         $statusName = trim($this->status->status);
-        
+
         $badges = [
             'Nuevo' => 'primary',
             'Contactado' => 'info',
@@ -152,19 +184,21 @@ class Lead extends ActiveRecord
             'Cancelado' => 'secondary',
             'Perdido' => 'danger',
         ];
-        
+
         return $badges[$statusName] ?? 'secondary';
     }
 
-    // 🔥 MÉTODO AGREGADO: Obtiene el icono del estado
+    /**
+     * Icono del estado (FontAwesome)
+     */
     public function getStatusIcon()
     {
         if (!$this->status || !isset($this->status->status)) {
             return 'fa-circle';
         }
-        
+
         $statusName = trim($this->status->status);
-        
+
         $icons = [
             'Nuevo' => 'fa-plus-circle',
             'Contactado' => 'fa-phone',
@@ -174,7 +208,7 @@ class Lead extends ActiveRecord
             'Cancelado' => 'fa-ban',
             'Perdido' => 'fa-times-circle',
         ];
-        
+
         return $icons[$statusName] ?? 'fa-circle';
     }
 
@@ -203,24 +237,23 @@ class Lead extends ActiveRecord
     // ============================================
     // MÉTODOS ESTÁTICOS PARA CONSULTAS
     // ============================================
-    
+
     /**
      * Obtiene todos los leads activos (excluye Cancelado y Perdido)
-     * @return \yii\db\ActiveQuery
      */
     public static function findActive()
     {
         $statusCancelado = Status::find()->where(['status' => 'Cancelado'])->one();
         $statusPerdido = Status::find()->where(['status' => 'Perdido'])->one();
-        
+
         $excludeIds = [];
         if ($statusCancelado) $excludeIds[] = $statusCancelado->id_status;
         if ($statusPerdido) $excludeIds[] = $statusPerdido->id_status;
-        
+
         if (empty($excludeIds)) {
             return static::find()->orderBy(['created_at' => SORT_DESC]);
         }
-        
+
         return static::find()
             ->where(['not in', 'id_status', $excludeIds])
             ->orderBy(['created_at' => SORT_DESC]);
@@ -228,7 +261,6 @@ class Lead extends ActiveRecord
 
     /**
      * Obtiene todos los leads cancelados
-     * @return \yii\db\ActiveQuery
      */
     public static function findDeleted()
     {
@@ -243,7 +275,6 @@ class Lead extends ActiveRecord
 
     /**
      * Obtiene leads sin asignar
-     * @return \yii\db\ActiveQuery
      */
     public static function findUnassigned()
     {
@@ -254,8 +285,6 @@ class Lead extends ActiveRecord
 
     /**
      * Obtiene leads asignados a un agente específico
-     * @param int $userId
-     * @return \yii\db\ActiveQuery
      */
     public static function findAssignedToAgent($userId)
     {
@@ -266,7 +295,6 @@ class Lead extends ActiveRecord
 
     /**
      * Obtiene todos los leads asignados
-     * @return \yii\db\ActiveQuery
      */
     public static function findAssigned()
     {
@@ -293,7 +321,7 @@ class Lead extends ActiveRecord
     // ============================================
     // MÉTODOS PARA ASIGNACIÓN DE AGENTES
     // ============================================
-    
+
     public function hasAgent()
     {
         return !empty($this->id_user);
@@ -314,14 +342,14 @@ class Lead extends ActiveRecord
             Yii::error('assignToAgent: Agente no encontrado ID: ' . $agentId, 'lead-assign');
             return false;
         }
-        
+
         if (!$agent->isAgent()) {
             Yii::error('assignToAgent: Usuario no es agente ID: ' . $agentId, 'lead-assign');
             return false;
         }
 
         $this->id_user = $agentId;
-        
+
         if ($this->save(false)) {
             Yii::info('assignToAgent: Asignación exitosa - Lead: ' . $this->id_lead . ' Agente: ' . $agentId, 'lead-assign');
             return true;
@@ -341,7 +369,7 @@ class Lead extends ActiveRecord
     // ============================================
     // MÉTODO DE DEPURACIÓN
     // ============================================
-    
+
     public function debugLead()
     {
         return [

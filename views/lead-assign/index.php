@@ -199,7 +199,6 @@ if ($selectedAgentId !== null && $selectedAgentId !== '') {
                                                 <th width="30">
                                                     <input type="checkbox" id="select-all-unassigned" class="form-check-input">
                                                 </th>
-                                                <th>#</th>
                                                 <th>Nombre</th>
                                                 <th>Teléfono</th>
                                                 <th>Estado</th>
@@ -211,7 +210,6 @@ if ($selectedAgentId !== null && $selectedAgentId !== '') {
                                                     <td>
                                                         <input type="checkbox" class="form-check-input lead-checkbox unassigned-checkbox" name="lead_ids[]" value="<?= $lead->id_lead ?>">
                                                     </td>
-                                                    <td><?= $index + 1 ?></td>
                                                     <td>
                                                         <strong><?= Html::encode($lead->name . ' ' . $lead->lastname) ?></strong>
                                                         <?php if (!empty($lead->comments)): ?>
@@ -308,7 +306,6 @@ if ($selectedAgentId !== null && $selectedAgentId !== '') {
                                 <table class="table table-hover mb-0 assign-table">
                                     <thead class="table-light">
                                         <tr>
-                                            <th>#</th>
                                             <th>Nombre</th>
                                             <th>Agente</th>
                                             <th>Estado</th>
@@ -318,7 +315,6 @@ if ($selectedAgentId !== null && $selectedAgentId !== '') {
                                     <tbody>
                                         <?php foreach ($assignedLeads as $index => $lead): ?>
                                             <tr>
-                                                <td><?= $index + 1 ?></td>
                                                 <td>
                                                     <strong><?= Html::encode($lead->name . ' ' . $lead->lastname) ?></strong>
                                                     <?php if (!empty($lead->comments)): ?>

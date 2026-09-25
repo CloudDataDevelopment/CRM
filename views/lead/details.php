@@ -3,7 +3,6 @@
 use yii\helpers\Html;
 use yii\helpers\Url;
 use yii\helpers\StringHelper;
-use yii\widgets\ActiveForm;
 
 $this->title = 'Detalles del Lead - ' . $model->name . ' ' . $model->lastname;
 $this->params['breadcrumbs'][] = ['label' => 'Leads', 'url' => ['index']];
@@ -14,16 +13,31 @@ $this->registerCssFile('@web/css/leads.css', ['depends' => [\yii\bootstrap5\Boot
 $this->registerCssFile('@web/css/dashboard.css', ['depends' => [\yii\bootstrap5\BootstrapAsset::class]]);
 $this->registerCssFile('@web/css/lead-details.css', ['depends' => [\yii\bootstrap5\BootstrapAsset::class], 'position' => \yii\web\View::POS_HEAD]);
 
-// Variables
-$statusList = isset($statusList) ? $statusList : [];
-$trackings = $model->salesTrackings ?? [];
-$quotes = $model->quotes ?? [];
-$totalTrackings = count($trackings);
-$totalQuotes = count($quotes);
+/* 🔥 OCULTO: CSS de evaluaciones
+$this->registerCssFile('@web/css/evaluaciones.css', ['depends' => [\yii\bootstrap5\BootstrapAsset::class], 'position' => \yii\web\View::POS_HEAD]);
+*/
 
-// Funciones de estado
-function getStatusColor($statusName) {
-    $colors = [
+// Variables (vienen del controlador)
+/* 🔥 OCULTO: Variables de evaluaciones
+$evaluaciones = isset($evaluaciones) ? $evaluaciones : [];
+$totalEvaluaciones = isset($totalEvaluaciones) ? $totalEvaluaciones : count($evaluaciones);
+*/
+
+$trackings = isset($trackings) ? $trackings : ($model->salesTrackings ?? []);
+$totalTrackings = isset($totalTrackings) ? $totalTrackings : count($trackings);
+
+$quotes = isset($quotes) ? $quotes : ($model->quotes ?? []);
+$totalQuotes = isset($totalQuotes) ? $totalQuotes : count($quotes);
+
+$agentName = isset($agentName) ? $agentName : $model->getAgentName();
+$statusName = isset($statusName) ? $statusName : $model->getStatusName();
+$statusIcon = isset($statusIcon) ? $statusIcon : $model->getStatusIcon();
+$daysSince = isset($daysSince) ? $daysSince : 0;
+
+// Color del estado
+$statusColor = isset($statusColor) ? $statusColor : '#6c757d';
+if (!isset($statusColor)) {
+    $statusColors = [
         'Nuevo' => '#4e73df',
         'Contactado' => '#17a2b8',
         'Procesando' => '#f6c23e',
@@ -31,47 +45,23 @@ function getStatusColor($statusName) {
         'Cliente' => '#1cc88a',
         'Cancelado' => '#6c757d',
         'Perdido' => '#e74a3b',
-        'Sin Estado' => '#6c757d',
     ];
-    return $colors[trim($statusName)] ?? '#6c757d';
+    $statusColor = $statusColors[trim($statusName)] ?? '#6c757d';
 }
 
-function getStatusIcon($statusName) {
-    $icons = [
-        'Nuevo' => 'fa-plus-circle',
-        'Contactado' => 'fa-phone',
-        'Procesando' => 'fa-spinner',
-        'Calificado' => 'fa-star',
-        'Cliente' => 'fa-user-check',
-        'Cancelado' => 'fa-ban',
-        'Perdido' => 'fa-times-circle',
-        'Sin Estado' => 'fa-question-circle',
-    ];
-    return $icons[trim($statusName)] ?? 'fa-circle';
-}
-
-$statusName = $model->getStatusName();
-$statusColor = getStatusColor(trim($statusName));
-$statusIcon = getStatusIcon(trim($statusName));
 $phone = $model->phone;
 $whatsappLink = $phone ? 'https://wa.me/' . preg_replace('/[^0-9]/', '', $phone) : '#';
-
-// 🔥 Usar el método del modelo que ya verifica isAgent()
-$agentName = $model->getAgentName();
-
-$createdAt = strtotime($model->created_at);
-$daysSince = floor((time() - $createdAt) / (60 * 60 * 24));
 ?>
 
 <div class="lead-details">
-    <div class="lead-details-container">
-        
+    <div class="lead-details-wrapper">
+
         <!-- HEADER -->
         <div class="leads-header">
             <div>
                 <div class="breadcrumb-custom">
                     <span>CRM</span><span class="separator">›</span>
-                    <span>Contactos</span><span class="separator">›</span>
+                    <span>Administracion de leads</span><span class="separator">›</span>
                     <span>Leads</span><span class="separator">›</span>
                     <span class="current">Detalles</span>
                 </div>
@@ -89,10 +79,10 @@ $daysSince = floor((time() - $createdAt) / (60 * 60 * 24));
 
         <!-- CONTENIDO PRINCIPAL -->
         <div class="row g-3">
-            
+
             <!-- COLUMNA IZQUIERDA: INFORMACIÓN -->
             <div class="col-lg-4">
-                
+
                 <!-- Perfil -->
                 <div class="card details-card">
                     <div class="card-header">
@@ -104,12 +94,9 @@ $daysSince = floor((time() - $createdAt) / (60 * 60 * 24));
                         </div>
                         <h4 class="profile-name-large mt-2"><?= Html::encode($model->name . ' ' . $model->lastname) ?></h4>
                         <p class="profile-phone-large"><i class="fas fa-phone"></i> <?= Html::encode($phone) ?></p>
-                        
+
                         <div class="profile-actions-large">
                             <?php if ($phone): ?>
-                                <a href="tel:<?= Html::encode($phone) ?>" class="btn btn-sm btn-outline-success">
-                                    <i class="fas fa-phone"></i> Llamar
-                                </a>
                                 <a href="<?= $whatsappLink ?>" target="_blank" class="btn btn-sm btn-outline-success">
                                     <i class="fab fa-whatsapp"></i> WhatsApp
                                 </a>
@@ -180,10 +167,12 @@ $daysSince = floor((time() - $createdAt) / (60 * 60 * 24));
                                 <div class="stat-number"><?= $totalQuotes ?></div>
                                 <div class="stat-label">Cotizaciones</div>
                             </div>
+                            <?php /* 🔥 OCULTO: Stat de Evaluaciones
                             <div class="stat-item-large">
-                                <div class="stat-number"><?= $daysSince ?></div>
-                                <div class="stat-label">Días activo</div>
+                                <div class="stat-number"><?= $totalEvaluaciones ?></div>
+                                <div class="stat-label">Evaluaciones</div>
                             </div>
+                            */ ?>
                         </div>
                     </div>
                 </div>
@@ -191,8 +180,84 @@ $daysSince = floor((time() - $createdAt) / (60 * 60 * 24));
 
             <!-- COLUMNA DERECHA: ACTIVIDADES -->
             <div class="col-lg-8">
-                
-                <!-- Seguimientos -->
+
+                <?php /* ============================================ 
+                   🔥 EVALUACIONES - OCULTO TEMPORALMENTE
+                   Para reactivar, quita el comentario PHP
+                   ============================================ */ ?>
+                <?php /*
+                <!-- ============================================ -->
+                <!-- 🔥 EVALUACIONES (mismo estilo que seguimientos) -->
+                <!-- ============================================ -->
+                <div class="card details-card">
+                    <div class="card-header d-flex justify-content-between align-items-center">
+                        <h5 class="mb-0"><i class="fas fa-clipboard-check"></i> Evaluaciones</h5>
+                        <div>
+                            <span class="badge bg-secondary"><?= $totalEvaluaciones ?></span>
+                            <a href="<?= Url::to(['report/create', 'leadId' => $model->id_lead]) ?>" class="btn btn-sm btn-outline-primary ms-2">
+                                <i class="fas fa-plus"></i> Nueva
+                            </a>
+                        </div>
+                    </div>
+                    <div class="card-body p-0">
+                        <div class="table-responsive">
+                            <table class="table table-hover mb-0 details-table">
+                                <thead class="table-light">
+                                    <tr>
+                                        <th style="width: 50px;">#</th>
+                                        <th>Nombre</th>
+                                        <th>Tipo</th>
+                                        <th>Fecha</th>
+                                        <th>Estado</th>
+                                        <th style="width: 60px;" class="text-center">Acción</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <?php if (!empty($evaluaciones)): ?>
+                                        <?php foreach ($evaluaciones as $index => $eval): ?>
+                                            <tr>
+                                                <td><?= $index + 1 ?></td>
+                                                <td><?= Html::encode($eval->report_name) ?></td>
+                                                <td><?= Html::encode($eval->report_type ?? '—') ?></td>
+                                                <td><?= $eval->date_report ? date('d/m/Y', strtotime($eval->date_report)) : '—' ?></td>
+                                                <td>
+                                                    <span class="badge bg-<?= $eval->getStatusBadgeClass() ?>">
+                                                        <?= $eval->getStatusName() ?>
+                                                    </span>
+                                                </td>
+                                                <td class="text-center">
+                                                    <?= Html::a('<i class="fas fa-eye"></i>', ['report/view', 'id' => $eval->id_report], [
+                                                        'class' => 'btn btn-info btn-sm btn-action',
+                                                        'title' => 'Ver'
+                                                    ]) ?>
+                                                </td>
+                                            </tr>
+                                        <?php endforeach; ?>
+                                    <?php else: ?>
+                                        <tr>
+                                            <td colspan="6" class="text-center text-muted py-4">
+                                                <i class="fas fa-inbox fa-2x d-block mb-2"></i>
+                                                No hay evaluaciones registradas
+                                            </td>
+                                        </tr>
+                                    <?php endif; ?>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                    <?php if ($totalEvaluaciones > 5): ?>
+                    <div class="card-footer text-end">
+                        <a href="<?= Url::to(['report/index', 'leadId' => $model->id_lead]) ?>" class="btn btn-sm btn-outline-primary">
+                            Ver todas las evaluaciones <i class="fas fa-arrow-right"></i>
+                        </a>
+                    </div>
+                    <?php endif; ?>
+                </div>
+                */ ?>
+
+                <!-- ============================================ -->
+                <!-- SEGUIMIENTOS                                 -->
+                <!-- ============================================ -->
                 <div class="card details-card">
                     <div class="card-header d-flex justify-content-between align-items-center">
                         <h5 class="mb-0"><i class="fas fa-history"></i> Seguimientos</h5>
@@ -258,7 +323,9 @@ $daysSince = floor((time() - $createdAt) / (60 * 60 * 24));
                     <?php endif; ?>
                 </div>
 
-                <!-- Cotizaciones -->
+                <!-- ============================================ -->
+                <!-- COTIZACIONES                                 -->
+                <!-- ============================================ -->
                 <div class="card details-card mt-3">
                     <div class="card-header d-flex justify-content-between align-items-center">
                         <h5 class="mb-0"><i class="fas fa-file-invoice"></i> Cotizaciones</h5>
@@ -333,5 +400,5 @@ $daysSince = floor((time() - $createdAt) / (60 * 60 * 24));
             </div>
         </div>
 
-    </div>
-</div>
+    </div><!-- /.lead-details-wrapper -->
+</div><!-- /.lead-details -->

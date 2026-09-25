@@ -15,6 +15,36 @@ $this->registerCssFile('@web/css/dashboard.css', [
 // Variables con valores por defecto
 $actividadesRecientes = isset($actividadesRecientes) ? $actividadesRecientes : [];
 $proximasActividades = isset($proximasActividades) ? $proximasActividades : [];
+
+// 🔥 Totales
+$totalMes = isset($totalMes) ? $totalMes : ['venta' => 0, 'utilidad' => 0, 'cotizaciones' => 0];
+$totalAnio = isset($totalAnio) ? $totalAnio : ['venta' => 0, 'utilidad' => 0, 'cotizaciones' => 0];
+$totalGlobal = isset($totalGlobal) ? $totalGlobal : ['venta' => 0, 'utilidad' => 0, 'cotizaciones' => 0];
+$porcentajeUtilidad = isset($porcentajeUtilidad) ? $porcentajeUtilidad : 25;
+
+// 🔥 METAS
+$metaMensual = isset($metaMensual) ? $metaMensual : 500000;
+$ventasMesActual = isset($ventasMesActual) ? $ventasMesActual : 0;
+$porcentajeAlcanzado = isset($porcentajeAlcanzado) ? $porcentajeAlcanzado : 0;
+$montoRestante = isset($montoRestante) ? $montoRestante : 0;
+$metaAlcanzada = isset($metaAlcanzada) ? $metaAlcanzada : false;
+
+// 🔥 METAS UTILIDAD
+$metaUtilidadMensual = isset($metaUtilidadMensual) ? $metaUtilidadMensual : 200000;
+$utilidadMesActual = isset($utilidadMesActual) ? $utilidadMesActual : 0;
+$porcentajeUtilidadAlcanzado = isset($porcentajeUtilidadAlcanzado) ? $porcentajeUtilidadAlcanzado : 0;
+$utilidadRestante = isset($utilidadRestante) ? $utilidadRestante : 0;
+$metaUtilidadAlcanzada = isset($metaUtilidadAlcanzada) ? $metaUtilidadAlcanzada : false;
+
+// 🔥 Variables de rol
+$esAdminOSuperAdmin = isset($esAdminOSuperAdmin) ? $esAdminOSuperAdmin : false;
+$mostrarUtilidad = isset($mostrarUtilidad) ? $mostrarUtilidad : true;
+$cantidadAgentes = isset($cantidadAgentes) ? $cantidadAgentes : 1;
+$metaVentasBase = isset($metaVentasBase) ? $metaVentasBase : 500000;
+$metaUtilidadBase = isset($metaUtilidadBase) ? $metaUtilidadBase : 200000;
+
+// 🔥 Datos para gráfica de comparación
+$perdidoData = isset($perdidoData) ? $perdidoData : [];
 ?>
 
 <div class="dashboard-index">
@@ -33,8 +63,8 @@ $proximasActividades = isset($proximasActividades) ? $proximasActividades : [];
                 </h1>
             </div>
             <div class="header-actions">
-                <span class="badge bg-success bg-opacity-10 text-success" style="font-size: 0.7rem; padding: 6px 14px;">
-                    <i class="fas fa-circle text-success me-1" style="font-size: 6px;"></i> Activo
+                <span class="badge bg-success bg-opacity-10 text-success badge-status-active">
+                    <i class="fas fa-circle text-success me-1"></i> Activo
                 </span>
             </div>
         </div>
@@ -167,13 +197,10 @@ $proximasActividades = isset($proximasActividades) ? $proximasActividades : [];
                             ?>
                                 <div class="funnel-step-row-wrapper">
                                     <div class="funnel-step-block-col">
-                                        <div class="funnel-block-trapezoid" style="
-                                            width: <?= $etapa['width'] ?>%;
-                                            background: <?= $etapa['color'] ?>;
-                                            border-left: <?= $etapa['border_size'] ?> solid transparent;
-                                            border-right: <?= $etapa['border_size'] ?> solid transparent;
-                                            border-top: 0px solid transparent;
-                                        ">
+                                        <div class="funnel-block-trapezoid funnel-block-dynamic"
+                                             data-width="<?= $etapa['width'] ?>"
+                                             data-color="<?= $etapa['color'] ?>"
+                                             data-border="<?= $etapa['border_size'] ?>">
                                             <div class="funnel-tooltip-trapezoid">
                                                 <i class="fas <?= $etapa['icon'] ?>"></i>
                                                 <?= $etapa['label'] ?>: <?= $etapa['count'] ?> leads
@@ -184,11 +211,11 @@ $proximasActividades = isset($proximasActividades) ? $proximasActividades : [];
                                     </div>
                                     
                                     <div class="funnel-step-info-col">
-                                        <div class="funnel-step-label" style="color: <?= $etapa['color'] ?>;">
+                                        <div class="funnel-step-label funnel-step-label-dynamic" data-color="<?= $etapa['color'] ?>">
                                             <i class="fas <?= $etapa['icon'] ?>"></i>
                                             <span><?= $etapa['label'] ?></span>
                                         </div>
-                                        <div class="funnel-step-count" style="background-color: <?= $etapa['color'] ?>;">
+                                        <div class="funnel-step-count funnel-step-count-dynamic" data-color="<?= $etapa['color'] ?>">
                                             <?= $etapa['count'] ?>
                                         </div>
                                     </div>
@@ -236,7 +263,7 @@ $proximasActividades = isset($proximasActividades) ? $proximasActividades : [];
                         <div class="activities-stack-list">
                             <?php if (!empty($actividadesRecientes)): ?>
                                 <?php foreach ($actividadesRecientes as $index => $actividad): ?>
-                                    <div class="activity-stack-item" style="animation-delay: <?= $index * 0.05 ?>s;">
+                                    <div class="activity-stack-item activity-stack-delay" data-delay="<?= $index * 0.05 ?>">
                                         <div class="activity-stack-icon">
                                             <i class="fas fa-<?= $actividad['icon'] ?> text-<?= $actividad['color'] ?>"></i>
                                         </div>
@@ -268,15 +295,14 @@ $proximasActividades = isset($proximasActividades) ? $proximasActividades : [];
                                 <div class="activity-stack-empty">
                                     <i class="fas fa-inbox text-muted"></i>
                                     <p>No hay actividades recientes</p>
-                                    <span class="text-muted" style="font-size: 0.7rem;">Los seguimientos aparecerán aquí</span>
+                                    <span class="text-muted activity-stack-empty-hint">Los seguimientos aparecerán aquí</span>
                                 </div>
                             <?php endif; ?>
                         </div>
                     </div>
                     <div class="card-footer text-center">
                         <?= Html::a('Ver todos los seguimientos <i class="fas fa-arrow-right"></i>', ['/sales-tracking/index'], [
-                            'class' => 'btn btn-link btn-sm',
-                            'style' => 'font-size: 0.7rem; text-decoration: none;'
+                            'class' => 'btn btn-link btn-sm activity-footer-link'
                         ]) ?>
                     </div>
                 </div>
@@ -299,7 +325,7 @@ $proximasActividades = isset($proximasActividades) ? $proximasActividades : [];
                         <div class="activities-stack-list">
                             <?php if (!empty($proximasActividades)): ?>
                                 <?php foreach ($proximasActividades as $index => $actividad): ?>
-                                    <div class="activity-stack-item activity-stack-upcoming" style="animation-delay: <?= $index * 0.05 ?>s;">
+                                    <div class="activity-stack-item activity-stack-upcoming activity-stack-delay" data-delay="<?= $index * 0.05 ?>">
                                         <div class="activity-stack-icon">
                                             <i class="fas fa-<?= $actividad['icon'] ?> text-<?= $actividad['color'] ?>"></i>
                                         </div>
@@ -331,15 +357,14 @@ $proximasActividades = isset($proximasActividades) ? $proximasActividades : [];
                                 <div class="activity-stack-empty">
                                     <i class="fas fa-check-circle text-success"></i>
                                     <p>No hay próximas actividades</p>
-                                    <span class="text-muted" style="font-size: 0.7rem;">Todo al día</span>
+                                    <span class="text-muted activity-stack-empty-hint">Todo al día</span>
                                 </div>
                             <?php endif; ?>
                         </div>
                     </div>
                     <div class="card-footer text-center">
                         <?= Html::a('Ver todos los seguimientos <i class="fas fa-arrow-right"></i>', ['/sales-tracking/index'], [
-                            'class' => 'btn btn-link btn-sm',
-                            'style' => 'font-size: 0.7rem; text-decoration: none;'
+                            'class' => 'btn btn-link btn-sm activity-footer-link'
                         ]) ?>
                     </div>
                 </div>
@@ -364,7 +389,7 @@ $proximasActividades = isset($proximasActividades) ? $proximasActividades : [];
                             <div class="legend-container">
                                 <?php foreach ($leadsLabels as $index => $label): ?>
                                     <div class="legend-item">
-                                        <span class="legend-color" style="background-color: <?= $leadsColors[$index] ?>;"></span>
+                                        <span class="legend-color legend-color-dynamic" data-color="<?= $leadsColors[$index] ?>"></span>
                                         <span class="legend-label"><?= $label ?></span>
                                         <span class="legend-value"><?= $leadsData[$index] ?></span>
                                         <span class="legend-separator">|</span>
@@ -401,66 +426,80 @@ $proximasActividades = isset($proximasActividades) ? $proximasActividades : [];
             </div>
         </div>
 
-        <!-- FILA 3: OBJETIVOS -->
-        <div class="row g-2">
-            <!-- OBJETIVO MENSUAL -->
-            <div class="col-md-6">
-                <div class="card goal-card dashboard-card">
+        <!-- ============================================ -->
+        <!-- 🔥 FILA 3: OBJETIVOS (VENTAS + UTILIDAD)    -->
+        <!-- ============================================ -->
+        <div class="row g-2 mb-2">
+
+            <!-- 🎯 META DE VENTAS -->
+            <div class="col-md-<?= $mostrarUtilidad ? '6' : '12' ?>">
+                <div class="card goal-card dashboard-card h-100">
                     <div class="card-header">
                         <div class="header-left">
-                            <i class="fas fa-bullseye text-danger"></i>
-                            <span>Objetivo Mensual - <?= date('F Y') ?></span>
+                            <i class="fas fa-shopping-cart text-primary"></i>
+                            <span><?= $esAdminOSuperAdmin ? 'Meta de Ventas' : 'Mi Meta de Ventas' ?> - <?= date('F Y') ?></span>
                         </div>
-                        <span class="badge <?= $metaAlcanzada ? 'bg-success' : 'bg-warning text-dark' ?>">
-                            <?= $metaAlcanzada ? '¡Alcanzado!' : 'En progreso' ?>
-                        </span>
+                        <div class="header-right-badges">
+                            <?php /* 🔥 Badge de agentes: SOLO para admin/superadmin */ ?>
+                            <?php if ($esAdminOSuperAdmin && $cantidadAgentes > 0): ?>
+                                <span class="badge bg-info text-white">
+                                    <i class="fas fa-users"></i> <?= $cantidadAgentes ?> agentes
+                                </span>
+                            <?php endif; ?>
+                            <span class="badge bg-primary">
+                                $<?= number_format($metaMensual, 0, '.', ',') ?>
+                            </span>
+                            <span class="badge-percent <?= $metaAlcanzada ? 'bg-success' : ($porcentajeAlcanzado >= 50 ? 'bg-warning text-dark' : 'bg-danger') ?>">
+                                <?= $porcentajeAlcanzado ?>%
+                            </span>
+                        </div>
                     </div>
                     <div class="card-body">
+                        <!-- Barra horizontal larga -->
                         <div class="progress-custom mb-2">
-                            <div class="progress-bar <?= $porcentajeAlcanzado >= 100 ? 'bg-success' : ($porcentajeAlcanzado >= 50 ? 'bg-primary' : 'bg-warning') ?>" 
-                                 style="width: <?= min($porcentajeAlcanzado, 100) ?>%;">
-                                <?= $porcentajeAlcanzado ?>%
+                            <div class="progress-bar progress-bar-dynamic <?= $porcentajeAlcanzado >= 100 ? 'bg-success' : ($porcentajeAlcanzado >= 50 ? 'bg-primary' : 'bg-warning') ?>"
+                                 data-width="<?= min($porcentajeAlcanzado, 100) ?>">
                             </div>
                         </div>
-                        
+
                         <div class="row g-1">
                             <div class="col-4">
                                 <div class="p-1 bg-light rounded-2 text-center">
-                                    <div class="text-muted" style="font-size: 0.5rem;">Meta</div>
-                                    <div class="fw-bold" style="font-size: 0.75rem;">
+                                    <div class="text-muted meta-label">Meta</div>
+                                    <div class="fw-bold meta-value">
                                         $<?= number_format($metaMensual, 0, '.', ',') ?>
                                     </div>
                                 </div>
                             </div>
                             <div class="col-4">
                                 <div class="p-1 bg-light rounded-2 text-center">
-                                    <div class="text-muted" style="font-size: 0.5rem;">Alcanzado</div>
-                                    <div class="fw-bold text-success" style="font-size: 0.75rem;">
+                                    <div class="text-muted meta-label">Alcanzado</div>
+                                    <div class="fw-bold text-primary meta-value">
                                         $<?= number_format($ventasMesActual, 0, '.', ',') ?>
                                     </div>
                                 </div>
                             </div>
                             <div class="col-4">
                                 <div class="p-1 bg-light rounded-2 text-center">
-                                    <div class="text-muted" style="font-size: 0.5rem;">Restante</div>
-                                    <div class="fw-bold <?= $montoRestante > 0 ? 'text-warning' : 'text-success' ?>" style="font-size: 0.75rem;">
+                                    <div class="text-muted meta-label">Restante</div>
+                                    <div class="fw-bold <?= $montoRestante > 0 ? 'text-warning' : 'text-success' ?> meta-value">
                                         $<?= number_format($montoRestante, 0, '.', ',') ?>
                                     </div>
                                 </div>
                             </div>
                         </div>
-                        
-                        <div class="mt-2 text-center" style="font-size: 0.65rem;">
+
+                        <div class="mt-2 text-center meta-footer">
                             <span class="text-muted">
-                                <i class="fas fa-chart-line"></i> 
-                                Progreso: <?= $porcentajeAlcanzado ?>% 
+                                <i class="fas fa-chart-line"></i>
+                                Progreso: <?= $porcentajeAlcanzado ?>%
                                 <?php if ($metaAlcanzada): ?>
                                     <span class="text-success ms-2">
                                         <i class="fas fa-trophy"></i> ¡Meta alcanzada!
                                     </span>
                                 <?php else: ?>
                                     <span class="text-warning ms-2">
-                                        <i class="fas fa-hourglass-half"></i> 
+                                        <i class="fas fa-hourglass-half"></i>
                                         Faltan $<?= number_format($montoRestante, 0, '.', ',') ?>
                                     </span>
                                 <?php endif; ?>
@@ -470,25 +509,184 @@ $proximasActividades = isset($proximasActividades) ? $proximasActividades : [];
                 </div>
             </div>
 
-            <!-- ACTUAL VS TARGET -->
-            <div class="col-md-6">
-                <div class="card goal-card dashboard-card">
-                    <div class="card-header">
-                        <div class="header-left">
-                            <i class="fas fa-arrows-left-right text-info"></i>
-                            <span>Actual vs Target (Últimos 6 meses)</span>
+            <!-- 🎯 META DE UTILIDAD (solo admin) -->
+            <?php if ($mostrarUtilidad): ?>
+                <div class="col-md-6">
+                    <div class="card goal-card dashboard-card h-100">
+                        <div class="card-header">
+                            <div class="header-left">
+                                <i class="fas fa-hand-holding-usd text-success"></i>
+                                <span>Meta de Utilidad - <?= date('F Y') ?></span>
+                            </div>
+                            <div class="header-right-badges">
+                                <span class="badge bg-success">
+                                    $<?= number_format($metaUtilidadMensual, 0, '.', ',') ?>
+                                </span>
+                                <span class="badge-percent <?= $metaUtilidadAlcanzada ? 'bg-success' : ($porcentajeUtilidadAlcanzado >= 50 ? 'bg-warning text-dark' : 'bg-danger') ?>">
+                                    <?= $porcentajeUtilidadAlcanzado ?>%
+                                </span>
+                            </div>
                         </div>
-                        <span class="badge bg-info text-white">
-                            Meta: $<?= number_format($metaMensual, 0, '.', ',') ?>
-                        </span>
+                        <div class="card-body">
+                            <div class="progress-custom mb-2">
+                                <div class="progress-bar progress-bar-dynamic <?= $porcentajeUtilidadAlcanzado >= 100 ? 'bg-success' : ($porcentajeUtilidadAlcanzado >= 50 ? 'bg-info' : 'bg-danger') ?>"
+                                     data-width="<?= min($porcentajeUtilidadAlcanzado, 100) ?>">
+                                </div>
+                            </div>
+
+                            <div class="row g-1">
+                                <div class="col-4">
+                                    <div class="p-1 bg-light rounded-2 text-center">
+                                        <div class="text-muted meta-label">Meta</div>
+                                        <div class="fw-bold meta-value">
+                                            $<?= number_format($metaUtilidadMensual, 0, '.', ',') ?>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-4">
+                                    <div class="p-1 bg-light rounded-2 text-center">
+                                        <div class="text-muted meta-label">Alcanzado</div>
+                                        <div class="fw-bold text-success meta-value">
+                                            $<?= number_format($utilidadMesActual, 0, '.', ',') ?>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-4">
+                                    <div class="p-1 bg-light rounded-2 text-center">
+                                        <div class="text-muted meta-label">Restante</div>
+                                        <div class="fw-bold <?= $utilidadRestante > 0 ? 'text-warning' : 'text-success' ?> meta-value">
+                                            $<?= number_format($utilidadRestante, 0, '.', ',') ?>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="mt-2 text-center meta-footer">
+                                <span class="text-muted">
+                                    <i class="fas fa-chart-line"></i>
+                                    Progreso: <?= $porcentajeUtilidadAlcanzado ?>%
+                                    <?php if ($metaUtilidadAlcanzada): ?>
+                                        <span class="text-success ms-2">
+                                            <i class="fas fa-trophy"></i> ¡Meta alcanzada!
+                                        </span>
+                                    <?php else: ?>
+                                        <span class="text-warning ms-2">
+                                            <i class="fas fa-hourglass-half"></i>
+                                            Faltan $<?= number_format($utilidadRestante, 0, '.', ',') ?>
+                                        </span>
+                                    <?php endif; ?>
+                                </span>
+                            </div>
+                        </div>
                     </div>
-                    <div class="card-body">
-                        <div class="chart-container-sm">
-                            <canvas id="comparisonChart"></canvas>
+                </div>
+            <?php endif; ?>
+
+        </div>
+
+        <!-- FILA 4: ACTUAL VS TARGET (solo admin) -->
+        <?php if ($mostrarUtilidad): ?>
+            <div class="row g-2 mb-2">
+                <div class="col-md-12">
+                    <div class="card goal-card dashboard-card h-100">
+                        <div class="card-header">
+                            <div class="header-left">
+                                <i class="fas fa-arrows-left-right text-info"></i>
+                                <span>Actual vs Target (Últimos 6 meses)</span>
+                            </div>
+                            <span class="badge bg-info text-white">
+                                Meta: $<?= number_format($metaMensual, 0, '.', ',') ?>
+                            </span>
+                        </div>
+                        <div class="card-body">
+                            <div class="chart-container-sm">
+                                <canvas id="comparisonChart"></canvas>
+                            </div>
                         </div>
                     </div>
                 </div>
             </div>
+        <?php endif; ?>
+
+        <!-- 🔥 FILA 5: VENTA TOTAL Y UTILIDAD TOTAL -->
+        <div class="row g-2">
+
+            <!-- VENTA TOTAL (visible para todos) -->
+            <div class="col-md-<?= $mostrarUtilidad ? '6' : '12' ?>">
+                <div class="card total-sale-card dashboard-card h-100">
+                    <div class="card-header">
+                        <div class="header-left">
+                            <i class="fas fa-shopping-cart text-primary"></i>
+                            <span>Venta Total</span>
+                        </div>
+                        <span class="badge bg-primary">
+                            <?= $totalGlobal['cotizaciones'] ?> cotiz.
+                        </span>
+                    </div>
+                    <div class="card-body">
+                        <div class="total-wrapper">
+                            <div class="total-value total-value-sale">
+                                $<?= number_format($totalGlobal['venta'], 2, '.', ',') ?>
+                            </div>
+
+                            <div class="total-mini-grid">
+                                <div class="total-mini-item">
+                                    <div class="total-mini-label">Este mes</div>
+                                    <div class="total-mini-value">
+                                        $<?= number_format($totalMes['venta'], 2, '.', ',') ?>
+                                    </div>
+                                </div>
+                                <div class="total-mini-item">
+                                    <div class="total-mini-label">Este año</div>
+                                    <div class="total-mini-value">
+                                        $<?= number_format($totalAnio['venta'], 2, '.', ',') ?>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- UTILIDAD TOTAL (solo admin) -->
+            <?php if ($mostrarUtilidad): ?>
+                <div class="col-md-6">
+                    <div class="card total-profit-card dashboard-card h-100">
+                        <div class="card-header">
+                            <div class="header-left">
+                                <i class="fas fa-hand-holding-usd text-success"></i>
+                                <span>Utilidad (<?= number_format($porcentajeUtilidad, 0) ?>%)</span>
+                            </div>
+                            <span class="badge bg-success">
+                                Margen
+                            </span>
+                        </div>
+                        <div class="card-body">
+                            <div class="total-wrapper">
+                                <div class="total-value total-value-profit">
+                                    $<?= number_format($totalGlobal['utilidad'], 2, '.', ',') ?>
+                                </div>
+
+                                <div class="total-mini-grid">
+                                    <div class="total-mini-item">
+                                        <div class="total-mini-label">Este mes</div>
+                                        <div class="total-mini-value total-mini-value-profit">
+                                            $<?= number_format($totalMes['utilidad'], 2, '.', ',') ?>
+                                        </div>
+                                    </div>
+                                    <div class="total-mini-item">
+                                        <div class="total-mini-label">Este año</div>
+                                        <div class="total-mini-value total-mini-value-profit">
+                                            $<?= number_format($totalAnio['utilidad'], 2, '.', ',') ?>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            <?php endif; ?>
+
         </div>
     </div>
 </div>
@@ -515,10 +713,64 @@ $ventasDataJson = json_encode($ventasData);
 $mesesLabelsJson = json_encode($mesesLabels);
 $actualDataJson = json_encode($actualData);
 $targetDataJson = json_encode($targetData);
+$perdidoDataJson = json_encode($perdidoData);
+
+// 🔥 Flag para saber si renderizar la gráfica de comparación
+$renderComparisonChart = $mostrarUtilidad;
 ?>
 
 <script>
 document.addEventListener('DOMContentLoaded', function() {
+    // ============================================
+    // 🔥 HELPER: Formatear números grandes (K / M)
+    // ============================================
+    function formatMoneyShort(value) {
+        if (value >= 1000000) {
+            var m = value / 1000000;
+            return '$' + (m % 1 === 0 ? m.toFixed(0) : m.toFixed(1)) + 'M';
+        }
+        if (value >= 1000) {
+            var k = value / 1000;
+            return '$' + (k % 1 === 0 ? k.toFixed(0) : k.toFixed(1)) + 'K';
+        }
+        return '$' + value;
+    }
+
+    // ============================================
+    // 🔥 APLICAR ESTILOS DINÁMICOS
+    // ============================================
+    document.querySelectorAll('.funnel-block-dynamic').forEach(function(el) {
+        var width = el.getAttribute('data-width');
+        var color = el.getAttribute('data-color');
+        var border = el.getAttribute('data-border');
+        el.style.width = width + '%';
+        el.style.background = color;
+        el.style.borderLeft = border + ' solid transparent';
+        el.style.borderRight = border + ' solid transparent';
+        el.style.borderTop = '0px solid transparent';
+    });
+
+    document.querySelectorAll('.funnel-step-label-dynamic').forEach(function(el) {
+        el.style.color = el.getAttribute('data-color');
+    });
+
+    document.querySelectorAll('.funnel-step-count-dynamic').forEach(function(el) {
+        el.style.backgroundColor = el.getAttribute('data-color');
+    });
+
+    document.querySelectorAll('.legend-color-dynamic').forEach(function(el) {
+        el.style.backgroundColor = el.getAttribute('data-color');
+    });
+
+    document.querySelectorAll('.progress-bar-dynamic').forEach(function(el) {
+        el.style.width = el.getAttribute('data-width') + '%';
+    });
+
+    document.querySelectorAll('.activity-stack-delay').forEach(function(el) {
+        var delay = parseFloat(el.getAttribute('data-delay')) || 0;
+        el.style.animationDelay = delay + 's';
+    });
+
     // ============================================
     // GRÁFICO DE LEADS POR ESTADO (PASTEL)
     // ============================================
@@ -656,23 +908,25 @@ document.addEventListener('DOMContentLoaded', function() {
     setTimeout(function() { salesChart.resize(); }, 200);
 
     // ============================================
-    // GRÁFICO DE COMPARACIÓN - ACTUAL VS TARGET
+    // 🔥 GRÁFICO DE COMPARACIÓN (solo admin)
     // ============================================
+    <?php if ($renderComparisonChart): ?>
     const ctxComparison = document.getElementById('comparisonChart').getContext('2d');
     const mesesLabels = <?= $mesesLabelsJson ?>;
     const actualData = <?= $actualDataJson ?>;
     const targetData = <?= $targetDataJson ?>;
+    const perdidoData = <?= $perdidoDataJson ?>;
 
     const canvasComp = document.getElementById('comparisonChart');
     const parentWidthComp = canvasComp.parentElement.clientWidth || 220;
     const dprComp = window.devicePixelRatio || 1;
 
     canvasComp.width = parentWidthComp * dprComp;
-    canvasComp.height = 140 * dprComp;
+    canvasComp.height = 170 * dprComp;
     canvasComp.style.width = parentWidthComp + 'px';
-    canvasComp.style.height = '140px';
+    canvasComp.style.height = '170px';
 
-    const maxComparacion = Math.max(...actualData, ...targetData, 1);
+    const maxComparacion = Math.max(...actualData, ...targetData, ...perdidoData, 1);
 
     new Chart(ctxComparison, {
         type: 'bar',
@@ -682,20 +936,29 @@ document.addEventListener('DOMContentLoaded', function() {
                 {
                     label: 'Actual',
                     data: actualData,
-                    backgroundColor: 'rgba(78, 115, 223, 0.8)',
+                    backgroundColor: 'rgba(78, 115, 223, 0.85)',
                     borderColor: 'rgba(78, 115, 223, 1)',
                     borderWidth: 1,
                     borderRadius: 3,
-                    maxBarThickness: 16
+                    maxBarThickness: 14
+                },
+                {
+                    label: 'Perdido',
+                    data: perdidoData,
+                    backgroundColor: 'rgba(231, 74, 59, 0.85)',
+                    borderColor: 'rgba(231, 74, 59, 1)',
+                    borderWidth: 1,
+                    borderRadius: 3,
+                    maxBarThickness: 14
                 },
                 {
                     label: 'Target',
                     data: targetData,
-                    backgroundColor: 'rgba(231, 74, 59, 0.8)',
-                    borderColor: 'rgba(231, 74, 59, 1)',
+                    backgroundColor: 'rgba(150, 150, 150, 0.6)',
+                    borderColor: 'rgba(150, 150, 150, 1)',
                     borderWidth: 1,
                     borderRadius: 3,
-                    maxBarThickness: 16
+                    maxBarThickness: 14
                 }
             ]
         },
@@ -737,9 +1000,15 @@ document.addEventListener('DOMContentLoaded', function() {
                     suggestedMax: maxComparacion * 1.1,
                     ticks: {
                         font: { size: 9 },
+                        // 🔥 FORMATO: K para miles, M para millones
                         callback: function(value) {
+                            if (value >= 1000000) {
+                                var m = value / 1000000;
+                                return '$' + (m % 1 === 0 ? m.toFixed(0) : m.toFixed(1)) + 'M';
+                            }
                             if (value >= 1000) {
-                                return '$' + (value / 1000).toFixed(0) + 'K';
+                                var k = value / 1000;
+                                return '$' + (k % 1 === 0 ? k.toFixed(0) : k.toFixed(1)) + 'K';
                             }
                             return '$' + value;
                         }
@@ -754,6 +1023,7 @@ document.addEventListener('DOMContentLoaded', function() {
             animation: { duration: 500 }
         }
     });
+    <?php endif; ?>
 
     // ============================================
     // RESIZE

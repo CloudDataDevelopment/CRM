@@ -23,11 +23,12 @@ $fecha_inicio = isset($fecha_inicio) ? $fecha_inicio : '';
 $fecha_fin = isset($fecha_fin) ? $fecha_fin : '';
 ?>
 
-<div class="quote-container">
-    <div class="quote-index">
+<!-- 🔥 CONTENEDOR PRINCIPAL CON SOMBRA -->
+<div class="report-index">
+    <div class="report-wrapper">
 
         <!-- HEADER -->
-        <div class="quote-header">
+        <div class="report-header">
             <div class="header-left">
                 <div class="breadcrumb-custom">
                     <span>CRM</span><span class="separator">›</span>
@@ -41,8 +42,8 @@ $fecha_fin = isset($fecha_fin) ? $fecha_fin : '';
             <div class="header-actions">
                 <?= $this->render('/layouts/_report_button') ?>
                 <?php if ($isAdmin || $isSuperAdmin): ?>
-                    <?= Html::a('<i class="fas fa-trash"></i> Papelera', ['trash'], ['class' => 'btn btn-outline-danger btn-sm']) ?>
-                    <?= Html::a('<i class="fas fa-plus"></i> Nueva Evaluación', ['create'], ['class' => 'btn btn-primary btn-sm']) ?>
+                    <?= Html::a('<i class="fas fa-trash"></i> Papelera', ['trash'], ['class' => 'btn btn-outline-danger btn-sm btn-report-action']) ?>
+                    <?= Html::a('<i class="fas fa-plus"></i> Nueva Evaluación', ['create'], ['class' => 'btn btn-primary btn-sm btn-report-action']) ?>
                 <?php endif; ?>
             </div>
         </div>
@@ -134,12 +135,12 @@ $fecha_fin = isset($fecha_fin) ? $fecha_fin : '';
             <div class="table-wrapper" id="tableWrapper">
                 <div class="card table-card">
                     <div class="card-header">
-                        <div style="display: flex; align-items: center; gap: 6px;">
+                        <div class="header-left">
                             <i class="fas fa-list"></i>
                             <span>Listado de Evaluaciones</span>
                             <span class="badge bg-primary ms-2"><?= $dataProvider ? $dataProvider->getTotalCount() : 0 ?></span>
                         </div>
-                        <div>
+                        <div class="header-right">
                             <span class="badge bg-secondary">
                                 Página <?= $dataProvider ? $dataProvider->getPagination()->getPage() + 1 : 1 ?> de <?= $dataProvider ? $dataProvider->getPagination()->getPageCount() : 1 ?>
                             </span>
@@ -255,8 +256,8 @@ $fecha_fin = isset($fecha_fin) ? $fecha_fin : '';
             </div>
         </div>
 
-    </div>
-</div>
+    </div><!-- /.report-wrapper -->
+</div><!-- /.report-index -->
 
 <script>
 document.addEventListener('DOMContentLoaded', function () {

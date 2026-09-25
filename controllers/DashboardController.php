@@ -9,15 +9,15 @@ use app\models\SalesTracking;
 use app\models\Task;
 use app\models\Status;
 use app\models\Quote;
+use app\models\User;
+use app\models\Authentication;
 
 class DashboardController extends Controller
 {
     public $layout = 'main';
 
     /**
-     * 🔥 Helper: Devuelve el array de IDs de leads visibles para el usuario actual.
-     * Esto permite filtrar tablas relacionadas (SalesTracking, Quote, Task) que
-     * no tienen id_company directo.
+     * 🔥 Helper: Devuelve los IDs de leads visibles para el usuario actual.
      */
     private function getLeadIdsForUser($user, $empresaId)
     {
@@ -27,7 +27,6 @@ class DashboardController extends Controller
             if (!empty($empresaId)) {
                 $query->andWhere(['id_company' => $empresaId]);
             } else {
-                // Sin empresa seleccionada, no mostrar nada
                 return [];
             }
         } elseif ($user->isAdmin() && !$user->isSuperAdmin()) {
@@ -40,8 +39,51 @@ class DashboardController extends Controller
     }
 
     /**
-     * 🔥 Helper: Aplica el filtro por empresa a una query de Quote.
-     * Quote no tiene id_company, se filtra vía su Lead relacionado.
+     * 🔥 Helper: Devuelve los IDs de usuarios visibles.
+     */
+    private function getUserIdsForUser($user, $empresaId)
+    {
+        $query = User::find()->select('id_user');
+
+        if ($user->isSuperAdmin()) {
+            if (!empty($empresaId)) {
+                $query->andWhere(['id_company' => $empresaId]);
+            } else {
+                return [];
+            }
+        } elseif ($user->isAdmin() && !$user->isSuperAdmin()) {
+            $query->andWhere(['id_company' => $user->id_company]);
+        } elseif ($user->isAgent()) {
+            $query->andWhere(['id_user' => $user->id_user]);
+        } else {
+            return [];
+        }
+
+        return $query->column();
+    }
+
+    /**
+     * 🔥 Helper: Cuenta cuántos agentes activos tiene la empresa.
+     * Un agente = usuario con Authentication.id_role = 3
+     */
+    private function getCantidadAgentes($idCompany)
+    {
+        if (empty($idCompany)) {
+            return 1;
+        }
+
+        $count = Authentication::find()
+            ->alias('a')
+            ->leftJoin('User u', 'a.id_user = u.id_user')
+            ->where(['u.id_company' => $idCompany])
+            ->andWhere(['a.id_role' => 3])
+            ->count();
+
+        return $count > 0 ? (int)$count : 1;
+    }
+
+    /**
+     * 🔥 Helper: Aplica filtro por empresa a una query de Quote.
      */
     private function applyQuoteCompanyFilter($query, $user, $empresaId)
     {
@@ -77,11 +119,54 @@ class DashboardController extends Controller
         }
 
         // ============================================
-        // 🔥 IDs DE LEADS VISIBLES PARA EL USUARIO
+        // 🔥 PORCENTAJE DE UTILIDAD
+        // ============================================
+        $porcentajeUtilidad = 0.25; // 25%
+
+        // ============================================
+        // 🔥 IDs VISIBLES
         // ============================================
         $leadIds = $this->getLeadIdsForUser($user, $empresaId);
+        $userIds = $this->getUserIdsForUser($user, $empresaId);
 
-        // ========== OBTENER ID DE ESTADOS ==========
+        // ============================================
+        // 🔥 EMPRESA EFECTIVA PARA CONTAR AGENTES
+        // ============================================
+        if ($user->isSuperAdmin()) {
+            $idCompanyEfectiva = $empresaId;
+        } elseif ($user->isAdmin() && !$user->isSuperAdmin()) {
+            $idCompanyEfectiva = $user->id_company;
+        } elseif ($user->isAgent()) {
+            $idCompanyEfectiva = $user->id_company;
+        } else {
+            $idCompanyEfectiva = null;
+        }
+
+        // ============================================
+        // 🎯 METAS SEGÚN ROL
+        // ============================================
+        $metaVentasBase = 500000;      // 🔥 Meta de ventas total de la empresa
+        $metaUtilidadBase = 200000;    // 🔥 Meta de utilidad total de la empresa
+
+        $esAdminOSuperAdmin = $user->isAdmin() || $user->isSuperAdmin();
+
+        if ($esAdminOSuperAdmin) {
+            // Admin/SuperAdmin: meta COMPLETA
+            $metaMensual = $metaVentasBase;
+            $metaUtilidadMensual = $metaUtilidadBase;
+            $cantidadAgentes = 1; // No aplica división
+            $mostrarUtilidad = true;
+        } else {
+            // Agente: meta DIVIDIDA entre el número de agentes
+            $cantidadAgentes = $this->getCantidadAgentes($idCompanyEfectiva);
+            $metaMensual = $metaVentasBase / $cantidadAgentes;
+            $metaUtilidadMensual = $metaUtilidadBase / $cantidadAgentes;
+            $mostrarUtilidad = false; // 🔥 Ocultar utilidad a agentes
+        }
+
+        // ============================================
+        // 🔥 IDs DE ESTADOS
+        // ============================================
         $statusInactivo = Status::find()->where(['status' => 'Inactivo'])->one();
         $idInactivo = $statusInactivo ? $statusInactivo->id_status : null;
 
@@ -99,6 +184,15 @@ class DashboardController extends Controller
 
         $statusCompletado = Status::find()->where(['status' => 'completado'])->one();
         $idCompletado = $statusCompletado ? $statusCompletado->id_status : null;
+
+        $statusPendiente = Status::find()->where(['status' => 'Pendiente'])->one();
+        $idPendiente = $statusPendiente ? $statusPendiente->id_status : null;
+
+        $statusPorHacer = Status::find()->where(['status' => 'Por hacer'])->one();
+        $idPorHacer = $statusPorHacer ? $statusPorHacer->id_status : null;
+
+        $statusCancelado = Status::find()->where(['status' => 'Cancelado'])->one();
+        $idCancelado = $statusCancelado ? $statusCancelado->id_status : null;
 
         // ============================================
         // LEADS
@@ -138,24 +232,24 @@ class DashboardController extends Controller
         // ============================================
         // LEADS POR ESTADO (GRÁFICO CIRCULAR)
         // ============================================
-        $estadosPermitidos = ['Nuevo', 'Contactado', 'Procesando', 'Cancelado'];
+        $estadosPermitidos = ['Nuevo', 'Contactado', 'Procesando', 'Completado', 'Cancelado'];
 
         $leadsLabels = [];
         $leadsData = [];
         $leadsColors = [];
 
         $colorMap = [
-            'Nuevo' => '#00b209',
-            'Contactado' => '#002afa',
-            'Procesando' => '#ffc107',
-            'Cancelado' => '#ff0000',
+            'Nuevo'       => '#00b209',
+            'Contactado'  => '#002afa',
+            'Procesando'  => '#ffc107',
+            'Completado'  => '#6f42c1',
+            'Cancelado'   => '#ff0000',
         ];
 
         foreach ($estadosPermitidos as $estado) {
             $status = Status::find()->where(['status' => $estado])->one();
             if ($status) {
-                $query = Lead::find()
-                    ->where(['Lead.id_status' => $status->id_status]);
+                $query = Lead::find()->where(['Lead.id_status' => $status->id_status]);
 
                 if ($user->isSuperAdmin() && !empty($empresaId)) {
                     $query->andWhere(['Lead.id_company' => $empresaId]);
@@ -211,7 +305,7 @@ class DashboardController extends Controller
         }
 
         // ============================================
-        // 🔥 VENTAS / CITAS (CON FILTRO POR EMPRESA)
+        // 🔥 VENTAS / CITAS
         // ============================================
         $totalCitas = 0;
         $citasHoy = 0;
@@ -245,7 +339,7 @@ class DashboardController extends Controller
         }
 
         // ============================================
-        // ACTIVIDADES RECIENTES (SEGUIMIENTOS)
+        // 🔥 ACTIVIDADES RECIENTES
         // ============================================
         $actividadesRecientes = [];
         $proximasActividades = [];
@@ -283,20 +377,64 @@ class DashboardController extends Controller
                     ];
                 }
             }
+
+            $taskQuery = Task::find()
+                ->alias('t')
+                ->leftJoin('User u', 't.id_user = u.id_user')
+                ->where(['not', ['t.id_user' => null]])
+                ->andWhere(['>', 't.id_user', 0]);
+
+            if ($user->isAgent()) {
+                $taskQuery->andWhere(['t.id_user' => $user->id_user]);
+            } else {
+                if (!empty($userIds)) {
+                    $taskQuery->andWhere(['t.id_user' => $userIds]);
+                } else {
+                    $taskQuery->andWhere(['t.id_task' => -1]);
+                }
+            }
+
+            $tasks = $taskQuery
+                ->orderBy(['t.date_time' => SORT_DESC, 't.id_task' => SORT_DESC])
+                ->limit(5)
+                ->all();
+
+            foreach ($tasks as $task) {
+                $hora = '';
+                if (!empty($task->date_time)) {
+                    $hora = date('H:i', strtotime($task->date_time));
+                }
+
+                $actividadesRecientes[] = [
+                    'lead_name'   => $task->user ? $task->user->name . ' ' . $task->user->lastname1 : 'Sin asignar',
+                    'status'      => $task->getStatusName(),
+                    'badge_color' => $task->getStatusBadgeClass(),
+                    'description' => $task->comments ?? 'Actividad',
+                    'date'        => $task->date_s . ' ' . $hora,
+                    'user_name'   => $task->user ? $task->user->name . ' ' . $task->user->lastname1 : '',
+                    'icon'        => 'tasks',
+                    'color'       => 'info',
+                ];
+            }
+
+            usort($actividadesRecientes, function($a, $b) {
+                return strtotime($b['date']) - strtotime($a['date']);
+            });
+            $actividadesRecientes = array_slice($actividadesRecientes, 0, 5);
+
         } catch (\Exception $e) {
             Yii::warning('Error al cargar actividades recientes: ' . $e->getMessage());
         }
 
         // ============================================
-        // PRÓXIMAS ACTIVIDADES (COTIZACIONES PENDIENTES)
+        // PRÓXIMAS ACTIVIDADES
         // ============================================
         try {
-            $statusPendiente = Status::find()->where(['status' => 'Pendiente'])->one();
-            if ($statusPendiente) {
+            if ($idPendiente) {
                 $quotesQuery = Quote::find()
                     ->alias('q')
                     ->leftJoin('Lead l', 'q.id_lead = l.id_lead')
-                    ->where(['q.id_status' => $statusPendiente->id_status])
+                    ->where(['q.id_status' => $idPendiente])
                     ->andWhere(['not in', 'l.id_status', [1, 10]]);
 
                 if ($user->isSuperAdmin() && !empty($empresaId)) {
@@ -331,9 +469,6 @@ class DashboardController extends Controller
             Yii::warning('Error al cargar cotizaciones pendientes: ' . $e->getMessage());
         }
 
-        // ============================================
-        // PRÓXIMOS SEGUIMIENTOS (FECHA FUTURA)
-        // ============================================
         try {
             $fechaHoy = date('Y-m-d');
 
@@ -392,6 +527,64 @@ class DashboardController extends Controller
             Yii::warning('Error al cargar próximos seguimientos: ' . $e->getMessage());
         }
 
+        try {
+            $fechaHoy = date('Y-m-d');
+
+            $proximasTareasQuery = Task::find()
+                ->alias('t')
+                ->leftJoin('User u', 't.id_user = u.id_user')
+                ->where(['not', ['t.id_user' => null]])
+                ->andWhere(['>', 't.id_user', 0])
+                ->andWhere(['>=', 't.date_s', $fechaHoy]);
+
+            if ($user->isAgent()) {
+                $proximasTareasQuery->andWhere(['t.id_user' => $user->id_user]);
+            } else {
+                if (!empty($userIds)) {
+                    $proximasTareasQuery->andWhere(['t.id_user' => $userIds]);
+                } else {
+                    $proximasTareasQuery->andWhere(['t.id_task' => -1]);
+                }
+            }
+
+            $proximasTareas = $proximasTareasQuery
+                ->orderBy(['t.date_s' => SORT_ASC])
+                ->limit(5)
+                ->all();
+
+            foreach ($proximasTareas as $task) {
+                $diasRestantes = (int) floor((strtotime($task->date_s) - strtotime($fechaHoy)) / 86400);
+
+                if ($diasRestantes == 0) {
+                    $etiquetaFecha = 'Hoy';
+                    $badgeColor = 'warning';
+                } elseif ($diasRestantes == 1) {
+                    $etiquetaFecha = 'Mañana';
+                    $badgeColor = 'info';
+                } elseif ($diasRestantes <= 7) {
+                    $etiquetaFecha = 'En ' . $diasRestantes . ' días';
+                    $badgeColor = 'info';
+                } else {
+                    $etiquetaFecha = 'En ' . $diasRestantes . ' días';
+                    $badgeColor = 'success';
+                }
+
+                $proximasActividades[] = [
+                    'lead_name'      => $task->user ? $task->user->name . ' ' . $task->user->lastname1 : 'Sin asignar',
+                    'status'         => 'Tarea (' . $etiquetaFecha . ')',
+                    'badge_color'    => $badgeColor,
+                    'description'    => $task->comments ?? 'Actividad programada',
+                    'date'           => $task->date_s,
+                    'dias_restantes' => $diasRestantes,
+                    'user_name'      => $task->user ? $task->user->name . ' ' . $task->user->lastname1 : '',
+                    'icon'           => 'tasks',
+                    'color'          => 'info',
+                ];
+            }
+        } catch (\Exception $e) {
+            Yii::warning('Error al cargar próximas tareas: ' . $e->getMessage());
+        }
+
         usort($proximasActividades, function($a, $b) {
             return strtotime($a['date']) - strtotime($b['date']);
         });
@@ -399,7 +592,7 @@ class DashboardController extends Controller
         $proximasActividades = array_slice($proximasActividades, 0, 5);
 
         // ============================================
-        // 🔥 VENTAS POR MES (CON FILTRO)
+        // 🔥 VENTAS POR MES
         // ============================================
         $ventasPorMes = [];
 
@@ -434,9 +627,8 @@ class DashboardController extends Controller
         }
 
         // ============================================
-        // METAS
+        // 🔥 VENTAS DEL MES (para calcular meta)
         // ============================================
-        $metaMensual = 100000;
         $mesActual = (int)date('n');
         $anioActual = date('Y');
 
@@ -460,17 +652,29 @@ class DashboardController extends Controller
 
         $ventasMesActual = $queryVentasMesActual->sum('q.total_amount') ?? 0;
 
+        // 🔥 Utilidad del mes
+        $utilidadMesActual = $ventasMesActual * $porcentajeUtilidad;
+
+        // 🔥 Cálculos META VENTAS (usando $metaMensual ya calculada según rol)
         $porcentajeAlcanzado = $metaMensual > 0 ? round(($ventasMesActual / $metaMensual) * 100, 1) : 0;
         $porcentajeAlcanzado = min($porcentajeAlcanzado, 100);
         $montoRestante = max(0, $metaMensual - $ventasMesActual);
         $metaAlcanzada = $ventasMesActual >= $metaMensual;
 
+        // 🔥 Cálculos META UTILIDAD
+        $porcentajeUtilidadAlcanzado = $metaUtilidadMensual > 0 ? round(($utilidadMesActual / $metaUtilidadMensual) * 100, 1) : 0;
+        $porcentajeUtilidadAlcanzado = min($porcentajeUtilidadAlcanzado, 100);
+        $utilidadRestante = max(0, $metaUtilidadMensual - $utilidadMesActual);
+        $metaUtilidadAlcanzada = $utilidadMesActual >= $metaUtilidadMensual;
+
         // ============================================
         // ACTUAL VS TARGET (ÚLTIMOS 6 MESES)
+        // Usa $metaMensual (dividida o completa según rol)
         // ============================================
         $mesesLabels = [];
         $actualData = [];
         $targetData = [];
+        $perdidoData = [];
 
         for ($i = 5; $i >= 0; $i--) {
             $fecha = strtotime("-$i months");
@@ -499,9 +703,31 @@ class DashboardController extends Controller
             }
 
             $ventasMes = $queryVentas->sum('q.total_amount') ?? 0;
-
             $actualData[] = (int)$ventasMes;
-            $targetData[] = $metaMensual;
+
+            $perdidoMes = 0;
+            if ($idCancelado) {
+                $queryPerdido = Quote::find()
+                    ->alias('q')
+                    ->leftJoin('Lead l', 'q.id_lead = l.id_lead')
+                    ->where(['MONTH(q.date_quote)' => $mes])
+                    ->andWhere(['YEAR(q.date_quote)' => $anio])
+                    ->andWhere(['q.id_status' => $idCancelado]);
+
+                if ($user->isSuperAdmin() && !empty($empresaId)) {
+                    $queryPerdido->andWhere(['l.id_company' => $empresaId]);
+                } elseif ($user->isAdmin() && !$user->isSuperAdmin()) {
+                    $queryPerdido->andWhere(['l.id_company' => $user->id_company]);
+                } elseif ($user->isAgent()) {
+                    $queryPerdido->andWhere(['l.id_user' => $user->id_user]);
+                }
+
+                $perdidoMes = $queryPerdido->sum('q.total_amount') ?? 0;
+            }
+            $perdidoData[] = (int)$perdidoMes;
+
+            // 🔥 TARGET = meta según rol (completa o dividida)
+            $targetData[] = (int)$metaMensual;
         }
 
         // ============================================
@@ -530,35 +756,16 @@ class DashboardController extends Controller
         $porcentajeAnual = $metaAnual > 0 ? round(($ventasAnio / $metaAnual) * 100, 1) : 0;
 
         // ============================================
-        // 🔥 TAREAS (CON FILTRO POR EMPRESA)
+        // 🔥 TAREAS
         // ============================================
-        $statusPendiente = Status::find()->where(['status' => 'Pendiente'])->one();
-        $idPendiente = $statusPendiente ? $statusPendiente->id_status : null;
-
-        // Obtener IDs de usuarios visibles
-        $userIds = [];
-        if ($user->isSuperAdmin() && !empty($empresaId)) {
-            $userIds = \app\models\User::find()
-                ->select('id_user')
-                ->where(['id_company' => $empresaId])
-                ->column();
-        } elseif ($user->isAdmin() && !$user->isSuperAdmin()) {
-            $userIds = \app\models\User::find()
-                ->select('id_user')
-                ->where(['id_company' => $user->id_company])
-                ->column();
-        } elseif ($user->isAgent()) {
-            $userIds = [$user->id_user];
-        }
-
         $tareasPendientes = 0;
         $tareasCompletadas = 0;
         $totalTareas = 0;
 
         if (!empty($userIds)) {
-            if ($idPendiente) {
+            if ($idPorHacer) {
                 $tareasPendientes = Task::find()
-                    ->where(['id_status' => $idPendiente])
+                    ->where(['id_status' => $idPorHacer])
                     ->andWhere(['id_user' => $userIds])
                     ->count();
             }
@@ -667,6 +874,60 @@ class DashboardController extends Controller
             'total' => (int)$totalEmbudo,
         ];
 
+        // ============================================
+        // 🔥 TOTALES: VENTA Y UTILIDAD
+        // ============================================
+        $calcularTotales = function($filtroFecha = null) use ($user, $empresaId, $idCompletado, $porcentajeUtilidad) {
+            $query = Quote::find()
+                ->alias('q')
+                ->leftJoin('Lead l', 'q.id_lead = l.id_lead')
+                ->select(['q.total_amount']);
+
+            if ($idCompletado) {
+                $query->andWhere(['q.id_status' => $idCompletado]);
+            }
+
+            if ($user->isSuperAdmin() && !empty($empresaId)) {
+                $query->andWhere(['l.id_company' => $empresaId]);
+            } elseif ($user->isAdmin() && !$user->isSuperAdmin()) {
+                $query->andWhere(['l.id_company' => $user->id_company]);
+            } elseif ($user->isAgent()) {
+                $query->andWhere(['l.id_user' => $user->id_user]);
+            }
+
+            if ($filtroFecha === 'mes') {
+                $query->andWhere(['MONTH(q.date_quote)' => (int)date('n')])
+                      ->andWhere(['YEAR(q.date_quote)' => date('Y')]);
+            } elseif ($filtroFecha === 'anio') {
+                $query->andWhere(['YEAR(q.date_quote)' => date('Y')]);
+            }
+
+            $items = $query->asArray()->all();
+
+            $ventaTotal = 0;
+            $utilidadTotal = 0;
+            $cotizaciones = 0;
+
+            foreach ($items as $item) {
+                $monto = (float)($item['total_amount'] ?? 0);
+                if ($monto <= 0) continue;
+
+                $ventaTotal += $monto;
+                $utilidadTotal += $monto * $porcentajeUtilidad;
+                $cotizaciones++;
+            }
+
+            return [
+                'venta' => $ventaTotal,
+                'utilidad' => $utilidadTotal,
+                'cotizaciones' => $cotizaciones,
+            ];
+        };
+
+        $totalMes = $calcularTotales('mes');
+        $totalAnio = $calcularTotales('anio');
+        $totalGlobal = $calcularTotales(null);
+
         return $this->render('index', [
             'totalLeads'        => $totalLeads,
             'nuevosLeads'       => $nuevosLeads,
@@ -681,21 +942,45 @@ class DashboardController extends Controller
             'citasHoy'          => $citasHoy,
             'ventasPorMes'      => $ventasPorMes,
             'tareasPendientes'  => $tareasPendientes,
+            'tareasCompletadas' => $tareasCompletadas,
+            'totalTareas'       => $totalTareas,
             'porcentajeTareas'  => $porcentajeTareas,
             'actividadesRecientes' => $actividadesRecientes,
             'proximasActividades'  => $proximasActividades,
             'embudo'            => $embudo,
+
+            // 🔥 METAS (divididas o completas según rol)
             'metaMensual'       => $metaMensual,
             'ventasMesActual'   => $ventasMesActual,
             'porcentajeAlcanzado' => $porcentajeAlcanzado,
             'montoRestante'     => $montoRestante,
             'metaAlcanzada'     => $metaAlcanzada,
+
+            // 🔥 UTILIDAD
+            'metaUtilidadMensual'         => $metaUtilidadMensual,
+            'utilidadMesActual'           => $utilidadMesActual,
+            'porcentajeUtilidadAlcanzado' => $porcentajeUtilidadAlcanzado,
+            'utilidadRestante'            => $utilidadRestante,
+            'metaUtilidadAlcanzada'       => $metaUtilidadAlcanzada,
+
+            // 🔥 NUEVAS VARIABLES DE ROL
+            'esAdminOSuperAdmin'  => $esAdminOSuperAdmin,
+            'mostrarUtilidad'     => $mostrarUtilidad,
+            'cantidadAgentes'     => $cantidadAgentes,
+            'metaVentasBase'      => $metaVentasBase,
+            'metaUtilidadBase'    => $metaUtilidadBase,
+
             'mesesLabels'       => $mesesLabels,
             'actualData'        => $actualData,
             'targetData'        => $targetData,
+            'perdidoData'       => $perdidoData,
             'ventasAnio'        => $ventasAnio,
             'metaAnual'         => $metaAnual,
             'porcentajeAnual'   => $porcentajeAnual,
+            'totalMes'          => $totalMes,
+            'totalAnio'         => $totalAnio,
+            'totalGlobal'       => $totalGlobal,
+            'porcentajeUtilidad' => $porcentajeUtilidad * 100,
         ]);
     }
 }

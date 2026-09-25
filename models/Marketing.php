@@ -260,8 +260,7 @@ class Marketing extends Model
         } elseif ($this->type === self::TYPE_PROMOTION && $this->_promotion) {
             return $this->_promotion->company;
         }
-        
-        // Si no tenemos el objeto cargado, intentar buscarlo
+
         if ($this->type === self::TYPE_CAMPAIGN && $this->id) {
             $campaign = Campaign::findOne($this->id);
             if ($campaign) {
@@ -287,8 +286,7 @@ class Marketing extends Model
             } elseif ($this->type === self::TYPE_PROMOTION && $this->_promotion) {
                 return $this->_promotion->status;
             }
-            
-            // Si no tenemos el objeto cargado, intentar buscarlo
+
             if ($this->type === self::TYPE_CAMPAIGN && $this->id) {
                 $campaign = Campaign::findOne($this->id);
                 if ($campaign) {
@@ -316,7 +314,7 @@ class Marketing extends Model
             if (!$status) {
                 return '<span class="badge bg-secondary">Sin Estado</span>';
             }
-            
+
             $badges = [
                 'Activo' => 'success',
                 'Inactivo' => 'danger',
@@ -325,7 +323,7 @@ class Marketing extends Model
                 'Cancelado' => 'secondary',
                 'Completado' => 'info',
             ];
-            
+
             $class = $badges[$status->status] ?? 'secondary';
             return '<span class="badge bg-' . $class . '">' . $status->status . '</span>';
         } catch (\Exception $e) {
@@ -390,30 +388,40 @@ class Marketing extends Model
     }
 
     /**
-     * Obtener lista de estados para dropdown
+     * 🔥 OBTENER LISTA DE ESTADOS - SOLO ACTIVO E INACTIVO
+     * Búsqueda robusta: case-insensitive, tolerante a espacios
      */
     public static function getStatusList()
     {
         try {
-            if (class_exists('app\models\Status')) {
-                $statuses = Status::find()
-                    ->select(['status', 'id_status'])
-                    ->indexBy('id_status')
-                    ->column();
-                if (!empty($statuses)) {
-                    return $statuses;
+            // Traer todos los estados y filtrar en PHP (más confiable)
+            $todos = Status::find()
+                ->select(['id_status', 'status'])
+                ->orderBy(['id_status' => SORT_ASC])
+                ->all();
+
+            $lista = [];
+            foreach ($todos as $s) {
+                $nombre = strtolower(trim((string)$s->status));
+
+                if ($nombre === 'activo') {
+                    $lista[$s->id_status] = $s->status;
+                } elseif ($nombre === 'inactivo') {
+                    $lista[$s->id_status] = $s->status;
                 }
             }
+
+            if (!empty($lista)) {
+                return $lista;
+            }
         } catch (\Exception $e) {
-            // Si hay error, usar lista por defecto
+            Yii::error('Error al cargar estados de marketing: ' . $e->getMessage(), 'marketing');
         }
-        
+
+        // 🔥 Fallback de último recurso (IDs hardcodeados)
         return [
             1 => 'Activo',
             2 => 'Inactivo',
-            3 => 'Pendiente',
-            4 => 'Finalizado',
-            5 => 'Cancelado',
         ];
     }
 
@@ -428,12 +436,10 @@ class Marketing extends Model
                 return [];
             }
 
-            // Verificar si es SuperAdmin (id_role = 1)
             $auth = Authentication::find()
                 ->where(['id_user' => $user->id])
                 ->one();
 
-            // Si es SuperAdmin, ver todas las empresas
             if ($auth && $auth->id_role == 1) {
                 return Company::find()
                     ->select(['name', 'id_company'])
@@ -441,7 +447,6 @@ class Marketing extends Model
                     ->column();
             }
 
-            // Si no es SuperAdmin, solo su empresa
             return Company::find()
                 ->select(['name', 'id_company'])
                 ->where(['id_company' => $user->id_company])
@@ -462,15 +467,28 @@ class Marketing extends Model
         $user = Yii::$app->user->identity;
         $companyFilter = ($user && !$user->isSuperAdmin()) ? $user->id_company : null;
 
-        // Campañas (tabla Campaign)
+        // 🔥 Obtener ID de "Activo" dinámicamente
+        $statusActivo = null;
+        try {
+            $todos = Status::find()->select(['id_status', 'status'])->all();
+            foreach ($todos as $s) {
+                if (strtolower(trim((string)$s->status)) === 'activo') {
+                    $statusActivo = $s;
+                    break;
+                }
+            }
+        } catch (\Exception $e) {
+            $statusActivo = null;
+        }
+
+        // Campañas
         if ($type === null || $type === self::TYPE_CAMPAIGN) {
             $query = Campaign::find();
             if ($companyFilter) {
                 $query->andWhere(['id_company' => $companyFilter]);
             }
             $total += $query->count();
-            
-            $statusActivo = Status::find()->where(['status' => 'Activo'])->one();
+
             if ($statusActivo) {
                 $activeQuery = Campaign::find()->where(['id_status' => $statusActivo->id_status]);
                 if ($companyFilter) {
@@ -480,15 +498,14 @@ class Marketing extends Model
             }
         }
 
-        // Promociones (tabla Promotions)
+        // Promociones
         if ($type === null || $type === self::TYPE_PROMOTION) {
             $query = Promotion::find();
             if ($companyFilter) {
                 $query->andWhere(['id_company' => $companyFilter]);
             }
             $total += $query->count();
-            
-            $statusActivo = Status::find()->where(['status' => 'Activo'])->one();
+
             if ($statusActivo) {
                 $activeQuery = Promotion::find()->where(['id_status' => $statusActivo->id_status]);
                 if ($companyFilter) {

@@ -1,107 +1,113 @@
 <?php
 
 use yii\helpers\Html;
-use yii\grid\GridView;
-use yii\widgets\Pjax;
-use app\models\MarketingSearch;
+use yii\widgets\LinkPager;
 
 $isAdmin = isset($isAdmin) ? $isAdmin : false;
 ?>
 
 <div class="marketing-table">
-    <div class="table-responsive">
-        <?= GridView::widget([
-            'dataProvider' => $dataProvider,
-            'filterModel' => $searchModel,
-            'tableOptions' => ['class' => 'table table-hover'],
-            'filterRowOptions' => ['class' => 'filter-row'],
-            'columns' => [
-                ['class' => 'yii\grid\SerialColumn'],
-                [
-                    'attribute' => 'name',
-                    'label' => 'Nombre',
-                    'value' => 'name',
-                    'contentOptions' => ['style' => 'font-weight: 500;'],
-                    'filterInputOptions' => [
-                        'class' => 'form-control form-control-sm',
-                        'placeholder' => 'Buscar por nombre...',
-                    ],
-                ],
-                [
-                    'attribute' => 'start_date',
-                    'label' => 'Inicio',
-                    'value' => function($model) {
-                        return $model->start_date ? date('d/m/Y', strtotime($model->start_date)) : 'N/A';
-                    },
-                    'contentOptions' => ['style' => 'font-size: 0.8rem;'],
-                    'filterInputOptions' => [
-                        'class' => 'form-control form-control-sm',
-                        'type' => 'date',
-                    ],
-                ],
-                [
-                    'attribute' => 'end_date',
-                    'label' => 'Fin',
-                    'value' => function($model) {
-                        return $model->end_date ? date('d/m/Y', strtotime($model->end_date)) : 'N/A';
-                    },
-                    'contentOptions' => ['style' => 'font-size: 0.8rem;'],
-                    'filterInputOptions' => [
-                        'class' => 'form-control form-control-sm',
-                        'type' => 'date',
-                    ],
-                ],
-                [
-                    'attribute' => 'id_status',
-                    'label' => 'Estado',
-                    'value' => function($model) {
-                        return $model->getStatusBadge();
-                    },
-                    'format' => 'raw',
-                    'filter' => MarketingSearch::getStatusOptions(),
-                    'filterInputOptions' => [
-                        'class' => 'form-select form-select-sm',
-                        'prompt' => 'Todos',
-                    ],
-                ],
-                [
-                    'class' => 'yii\grid\ActionColumn',
-                    'template' => '{view} {update} {delete}',
-                    'visibleButtons' => [
-                        'update' => $isAdmin,
-                        'delete' => $isAdmin,
-                    ],
-                    'buttons' => [
-                        'view' => function($url, $model) {
-                            return Html::a('<i class="fas fa-eye"></i>', ['view', 'id' => $model->id], [
-                                'class' => 'btn btn-sm btn-outline-primary marketing-btn-action',
-                                'title' => 'Ver',
-                            ]);
-                        },
-                        'update' => function($url, $model) {
-                            return Html::a('<i class="fas fa-edit"></i>', ['update', 'id' => $model->id], [
-                                'class' => 'btn btn-sm btn-outline-warning marketing-btn-action',
-                                'title' => 'Editar',
-                            ]);
-                        },
-                        'delete' => function($url, $model) {
-                            return Html::a('<i class="fas fa-trash"></i>', ['delete', 'id' => $model->id], [
-                                'class' => 'btn btn-sm btn-outline-danger marketing-btn-action',
-                                'title' => 'Eliminar',
-                                'data' => [
-                                    'confirm' => '¿Estás seguro de eliminar este elemento?',
-                                    'method' => 'post',
-                                ],
-                            ]);
-                        },
-                    ],
-                ],
-            ],
-            'pager' => [
-                'class' => 'yii\bootstrap5\LinkPager',
-                'options' => ['class' => 'pagination justify-content-center'],
-            ],
-            'summary' => '<div class="text-muted summary-text">Mostrando {begin}-{end} de {totalCount} elementos</div>',
-        ]); ?>
+    <div class="card table-card">
+        <div class="card-header">
+            <div class="header-left">
+                <i class="fas fa-bullhorn"></i>
+                <span>Listado de Campañas</span>
+                <span class="badge bg-primary ms-2"><?= $dataProvider->getTotalCount() ?></span>
+            </div>
+            <div class="header-right">
+                <span class="badge bg-secondary">
+                    Página <?= $dataProvider->getPagination()->getPage() + 1 ?> de <?= $dataProvider->getPagination()->getPageCount() ?>
+                </span>
+            </div>
+        </div>
+
+        <div class="card-body p-0">
+            <div class="table-responsive">
+                <table class="table table-hover mb-0">
+                    <thead class="table-light">
+                        <tr>
+                            <th>Nombre</th>
+                            <th>Inicio</th>
+                            <th>Fin</th>
+                            <th>Estado</th>
+                            <th class="text-center">Acciones</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <?php if ($dataProvider->getCount() > 0): ?>
+                            <?php foreach ($dataProvider->getModels() as $model): ?>
+                                <tr>
+                                    <td><strong><?= Html::encode($model->campaign_name) ?></strong></td>
+                                    <td>
+                                        <?= $model->start_date ? date('d/m/Y', strtotime($model->start_date)) : 'N/A' ?>
+                                    </td>
+                                    <td>
+                                        <?= $model->end_date ? date('d/m/Y', strtotime($model->end_date)) : 'N/A' ?>
+                                    </td>
+                                    <td>
+                                        <?= $model->getStatusBadge() ?>
+                                    </td>
+                                    <td class="text-center">
+                                        <div class="d-flex gap-1 justify-content-center">
+                                            <?= Html::a('<i class="fas fa-eye"></i>', ['view', 'id' => $model->id_campaign], [
+                                                'class' => 'btn btn-sm marketing-btn-action btn-outline-primary',
+                                                'title' => 'Ver',
+                                            ]) ?>
+                                            <?php if ($isAdmin): ?>
+                                                <?= Html::a('<i class="fas fa-edit"></i>', ['update', 'id' => $model->id_campaign], [
+                                                    'class' => 'btn btn-sm marketing-btn-action btn-outline-warning',
+                                                    'title' => 'Editar',
+                                                ]) ?>
+                                                <?= Html::a('<i class="fas fa-trash"></i>', ['delete', 'id' => $model->id_campaign], [
+                                                    'class' => 'btn btn-sm marketing-btn-action btn-outline-danger',
+                                                    'title' => 'Eliminar',
+                                                    'data' => [
+                                                        'confirm' => '¿Estás seguro de eliminar esta campaña?',
+                                                        'method' => 'post',
+                                                    ],
+                                                ]) ?>
+                                            <?php endif; ?>
+                                        </div>
+                                    </td>
+                                </tr>
+                            <?php endforeach; ?>
+                        <?php else: ?>
+                            <tr>
+                                <td colspan="5" class="text-center text-muted py-4">
+                                    <i class="fas fa-inbox fa-2x d-block mb-2"></i>
+                                    No hay campañas registradas
+                                </td>
+                            </tr>
+                        <?php endif; ?>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- FOOTER CON PAGINACIÓN -->
+        <div class="card-footer">
+            <div class="row align-items-center">
+                <div class="col-md-6">
+                    <small class="text-muted">
+                        Mostrando <?= $dataProvider->getCount() ?> de <?= $dataProvider->getTotalCount() ?> campañas
+                    </small>
+                </div>
+                <div class="col-md-6">
+                    <?php if ($dataProvider->getTotalCount() > 0): ?>
+                        <?= LinkPager::widget([
+                            'pagination' => $dataProvider->getPagination(),
+                            'options' => ['class' => 'pagination justify-content-end mb-0'],
+                            'linkOptions' => ['class' => 'page-link'],
+                            'prevPageLabel' => '<i class="fas fa-chevron-left"></i>',
+                            'nextPageLabel' => '<i class="fas fa-chevron-right"></i>',
+                            'firstPageLabel' => '<i class="fas fa-angle-double-left"></i>',
+                            'lastPageLabel' => '<i class="fas fa-angle-double-right"></i>',
+                            'maxButtonCount' => 5,
+                            'hideOnSinglePage' => false,
+                        ]) ?>
+                    <?php endif; ?>
+                </div>
+            </div>
+        </div>
     </div>
 </div>

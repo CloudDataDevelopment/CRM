@@ -5,6 +5,7 @@
 
 use yii\bootstrap5\Html;
 use yii\helpers\Url;
+use app\models\Company;
 
 $bodyClass = Yii::$app->user->isGuest ? 'guest' : '';
 
@@ -13,7 +14,30 @@ $isSuperAdmin = $user ? $user->isSuperAdmin() : false;
 $isAdminUser = $user ? $user->isAdmin() : false;
 $hideSidebar = isset($this->params['hideSidebar']) && $this->params['hideSidebar'] === true;
 
-// Registrar CSS (todos externos, sin inline)
+// 🔥 OBTENER NOMBRE DE LA EMPRESA
+$empresaNombre = null;
+if (!$user) {
+    // Invitado
+} elseif ($user->isSuperAdmin()) {
+    // Super Admin: nombre desde sesión
+    $empresaNombre = Yii::$app->session->get('empresa_nombre');
+    if (empty($empresaNombre)) {
+        $empresaId = Yii::$app->session->get('empresa_id');
+        if (!empty($empresaId)) {
+            $empresa = Company::findOne($empresaId);
+            $empresaNombre = $empresa ? $empresa->name : null;
+        }
+    }
+} else {
+    // Admin/Agente: nombre desde su empresa o sesión
+    $empresaNombre = Yii::$app->session->get('empresa_nombre');
+    if (empty($empresaNombre) && !empty($user->id_company)) {
+        $empresa = Company::findOne($user->id_company);
+        $empresaNombre = $empresa ? $empresa->name : null;
+    }
+}
+
+// Registrar CSS
 $this->registerCssFile('@web/css/sidebar.css', ['depends' => [\yii\bootstrap5\BootstrapAsset::class]]);
 $this->registerCssFile('@web/css/site.css', ['depends' => [\yii\bootstrap5\BootstrapAsset::class]]);
 
@@ -41,7 +65,7 @@ if (file_exists($jsPath)) {
     ]);
 }
 
-// JavaScript global (funciones reutilizables)
+// JavaScript global
 $this->registerJs("
     function handleLogout(url) {
         const csrfToken = document.querySelector('meta[name=\"csrf-token\"]');
@@ -109,7 +133,13 @@ $this->beginPage();
 <?php if (!$hideSidebar && !Yii::$app->user->isGuest): ?>
     <nav class="sidebar" id="sidebar">
         <div class="sidebar-header">
-            <h3><i class="fas fa-rocket"></i> <span>CRM</span></h3>
+            <h3>
+                <i class="fas fa-rocket"></i>
+                <span>CRM</span>
+                <?php if (!empty($empresaNombre)): ?>
+                    <small class="sidebar-company-name"><?= Html::encode($empresaNombre) ?></small>
+                <?php endif; ?>
+            </h3>
         </div>
         
         <div class="sidebar-scroll">
@@ -128,71 +158,117 @@ $this->beginPage();
                         ]) ?>
                     </li>
                 <?php endif; ?>
-                
+
+                <!-- ============================================ -->
+                <!-- 🔥 ADMINISTRACIÓN DE LEADS (DESPLEGABLE)     -->
+                <!-- ============================================ -->
+                <?php
+                $isLeadMenuActive = in_array(Yii::$app->controller->id, ['lead', 'lead-assign', 'report']);
+                ?>
                 <li class="nav-item searchable-item">
-                    <?= Html::a('<i class="fas fa-plus-circle"></i> <span>Crear Leads</span>', ['/lead/create'], [
-                        'class' => 'nav-link' . (Yii::$app->controller->id == 'lead' && Yii::$app->controller->action->id == 'create' ? ' active' : '')
-                    ]) ?>
+                    <a class="nav-link <?= $isLeadMenuActive ? 'active' : '' ?>"
+                       data-bs-toggle="collapse"
+                       href="#leadsAdminMenu"
+                       role="button"
+                       aria-expanded="<?= $isLeadMenuActive ? 'true' : 'false' ?>"
+                       aria-controls="leadsAdminMenu">
+                        <i class="fas fa-users-cog"></i> <span>Administración de Leads</span>
+                        <i class="fas fa-chevron-down float-end" style="font-size: 0.7rem; margin-top: 5px;"></i>
+                    </a>
+                    <div class="collapse <?= $isLeadMenuActive ? 'show' : '' ?>" id="leadsAdminMenu">
+                        <ul class="nav flex-column ms-3">
+                            <!-- Crear Leads -->
+                            <li class="nav-item searchable-item">
+                                <?= Html::a('<i class="fas fa-plus-circle"></i> <span>Crear Leads</span>', ['/lead/create'], [
+                                    'class' => 'nav-link' . (
+                                        Yii::$app->controller->id == 'lead' &&
+                                        Yii::$app->controller->action->id == 'create' ? ' active' : ''
+                                    )
+                                ]) ?>
+                            </li>
+
+                            <!-- Asignación de Leads (solo admin) -->
+                            <?php if ($isAdminUser): ?>
+                                <li class="nav-item searchable-item">
+                                    <?= Html::a('<i class="fas fa-user-check"></i> <span>Asignación de Leads</span>', ['/lead-assign/index'], [
+                                        'class' => 'nav-link' . (Yii::$app->controller->id == 'lead-assign' ? ' active' : '')
+                                    ]) ?>
+                                </li>
+                            <?php endif; ?>
+
+                            <!-- Gestor de Leads -->
+                            <li class="nav-item searchable-item">
+                                <?= Html::a('<i class="fas fa-users"></i> <span>Gestor de Leads</span>', ['/lead/index'], [
+                                    'class' => 'nav-link' . (
+                                        Yii::$app->controller->id == 'lead' &&
+                                        Yii::$app->controller->action->id == 'index' ? ' active' : ''
+                                    )
+                                ]) ?>
+                            </li>
+
+<?php /*
+<li class="nav-item searchable-item">
+    <?= Html::a('<i class="fas fa-chart-bar"></i> <span>Evaluaciones</span>', ['/report/index'], [
+        'class' => 'nav-link' . (Yii::$app->controller->id == 'report' ? ' active' : '')
+    ]) ?>
+</li>
+*/ ?>
+                        </ul>
+                    </div>
                 </li>
-                
-                <?php if ($isAdminUser): ?>
-                    <li class="nav-item searchable-item">
-                        <?= Html::a('<i class="fas fa-user-check"></i> <span>Asignación de Leads</span>', ['/lead-assign/index'], [
-                            'class' => 'nav-link' . (Yii::$app->controller->id == 'lead-assign' ? ' active' : '')
-                        ]) ?>
-                    </li>
-                <?php endif; ?>
-                
-                <li class="nav-item searchable-item">
-                    <?= Html::a('<i class="fas fa-users"></i> <span>Gestor de Leads</span>', ['/lead/index'], [
-                        'class' => 'nav-link' . (Yii::$app->controller->id == 'lead' && Yii::$app->controller->action->id == 'index' ? ' active' : '')
-                    ]) ?>
-                </li>
-                
+
+                <!-- Contactos -->
                 <li class="nav-item searchable-item">
                     <?= Html::a('<i class="fas fa-address-book"></i> <span>Contactos</span>', ['/contacts/index'], [
                         'class' => 'nav-link' . (Yii::$app->controller->id == 'contacts' ? ' active' : '')
                     ]) ?>
                 </li>
                 
+                <!-- Seguimientos -->
                 <li class="nav-item searchable-item">
                     <?= Html::a('<i class="fas fa-phone"></i> <span>Seguimientos</span>', ['/sales-tracking/index'], [
                         'class' => 'nav-link' . (Yii::$app->controller->id == 'sales-tracking' ? ' active' : '')
                     ]) ?>
                 </li>
                 
+                <!-- Cotizaciones -->
                 <li class="nav-item searchable-item">
                     <?= Html::a('<i class="fas fa-file-invoice"></i> <span>Cotizaciones</span>', ['/quote/index'], [
                         'class' => 'nav-link' . (Yii::$app->controller->id == 'quote' ? ' active' : '')
                     ]) ?>
                 </li>
                 
+                <!-- Registro de Ventas -->
                 <li class="nav-item searchable-item">
                     <?= Html::a('<i class="fas fa-shopping-cart"></i> <span>Registro de Ventas</span>', ['/sales/index'], [
                         'class' => 'nav-link' . (Yii::$app->controller->id == 'sales' ? ' active' : '')
                     ]) ?>
                 </li>
                 
+                <!-- Agenda -->
                 <li class="nav-item searchable-item">
                     <?= Html::a('<i class="fas fa-tasks"></i> <span>Agenda</span>', ['/task/index'], [
                         'class' => 'nav-link' . (Yii::$app->controller->id == 'task' ? ' active' : '')
                     ]) ?>
                 </li>
                 
+                <!-- Calendario -->
                 <li class="nav-item searchable-item">
                     <?= Html::a('<i class="fas fa-calendar-alt"></i> <span>Calendario</span>', ['/calendar/index'], [
                         'class' => 'nav-link' . (Yii::$app->controller->id == 'calendar' ? ' active' : '')
                     ]) ?>
                 </li>
-                
-                <li class="nav-item searchable-item">
-                    <?= Html::a('<i class="fas fa-chart-bar"></i> <span>Evaluaciones</span>', ['/report/index'], [
-                        'class' => 'nav-link' . (Yii::$app->controller->id == 'report' ? ' active' : '')
-                    ]) ?>
-                </li>
 
+                <!-- ============================================ -->
+                <!-- MARKETING (DESPLEGABLE)                      -->
+                <!-- ============================================ -->
                 <li class="nav-item searchable-item">
-                    <a class="nav-link <?= (Yii::$app->controller->id == 'marketing') ? 'active' : '' ?>" data-bs-toggle="collapse" href="#marketingMenu" role="button" aria-expanded="<?= (Yii::$app->controller->id == 'marketing') ? 'true' : 'false' ?>" aria-controls="marketingMenu">
+                    <a class="nav-link <?= (Yii::$app->controller->id == 'marketing') ? 'active' : '' ?>"
+                       data-bs-toggle="collapse"
+                       href="#marketingMenu"
+                       role="button"
+                       aria-expanded="<?= (Yii::$app->controller->id == 'marketing') ? 'true' : 'false' ?>"
+                       aria-controls="marketingMenu">
                         <i class="fas fa-bullhorn"></i> <span>Marketing</span>
                         <i class="fas fa-chevron-down float-end" style="font-size: 0.7rem; margin-top: 5px;"></i>
                     </a>
@@ -215,9 +291,17 @@ $this->beginPage();
                     </div>
                 </li>
 
+                <!-- ============================================ -->
+                <!-- ADMINISTRACIÓN (DESPLEGABLE)                 -->
+                <!-- ============================================ -->
                 <?php if ($isAdminUser || $isSuperAdmin): ?>
                     <li class="nav-item searchable-item">
-                        <a class="nav-link <?= (Yii::$app->controller->id == 'user-management') ? 'active' : '' ?>" data-bs-toggle="collapse" href="#adminMenu" role="button" aria-expanded="<?= (Yii::$app->controller->id == 'user-management') ? 'true' : 'false' ?>" aria-controls="adminMenu">
+                        <a class="nav-link <?= (Yii::$app->controller->id == 'user-management') ? 'active' : '' ?>"
+                           data-bs-toggle="collapse"
+                           href="#adminMenu"
+                           role="button"
+                           aria-expanded="<?= (Yii::$app->controller->id == 'user-management') ? 'true' : 'false' ?>"
+                           aria-controls="adminMenu">
                             <i class="fas fa-cog"></i> <span>Administración</span>
                             <i class="fas fa-chevron-down float-end" style="font-size: 0.7rem; margin-top: 5px;"></i>
                         </a>
@@ -325,16 +409,7 @@ $this->beginPage();
                         <span>Mi Perfil</span>
                     </a>
                 </li>
-                
-                <?php if ($isAdminUser || $isSuperAdmin): ?>
-                    <li>
-                        <a class="dropdown-item" href="<?= Url::to(['/user-management/index']) ?>">
-                            <i class="fas fa-cog text-secondary"></i>
-                            <span>Configuración</span>
-                        </a>
-                    </li>
-                <?php endif; ?>
-                
+
                 <li><hr class="dropdown-divider"></li>
                 
                 <li>

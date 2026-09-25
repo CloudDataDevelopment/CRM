@@ -1164,3 +1164,396 @@
 .dashboard-card:nth-child(2) { animation-delay: 0.10s; }
 .dashboard-card:nth-child(3) { animation-delay: 0.15s; }
 .dashboard-card:nth-child(4) { animation-delay: 0.20s; }
+/* ============================================ */
+/* 🔥 CONTENEDOR PRINCIPAL CON SOMBRA (CREATE) */
+/* ============================================ */
+
+.quote-create {
+    width: 100%;
+    padding: 0;
+    background: transparent;
+}
+
+.quote-wrapper {
+    background: #ffffff;
+    border-radius: 12px;
+    padding: 20px 25px 25px 25px;
+    box-shadow: 0 2px 12px rgba(0, 0, 0, 0.08);
+    border: none;
+    width: 100%;
+}
+
+/* ============================================ */
+/* BOTONES EN HEADER                           */
+/* ============================================ */
+
+.btn-quote-action {
+    min-width: 120px;
+    text-align: center;
+    padding: 6px 16px;
+    border-radius: 6px;
+    font-size: 0.8rem;
+    transition: all 0.3s ease;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+}
+
+.btn-quote-action i {
+    font-size: 0.85rem;
+}
+
+.btn-primary.btn-quote-action {
+    background: #0a48e2 !important;
+    border-color: #0a48e2 !important;
+    color: #ffffff !important;
+}
+
+.btn-primary.btn-quote-action:hover {
+    background: #245eff !important;
+    border-color: #245eff !important;
+}
+
+.btn-secondary.btn-quote-action {
+    background: #6c757d !important;
+    border-color: #6c757d !important;
+    color: #ffffff !important;
+}
+
+.btn-secondary.btn-quote-action:hover {
+    background: #5a6268 !important;
+    border-color: #5a6268 !important;
+}
+
+/* ============================================ */
+/* CARDS DE DETALLE (details-card)              */
+/* ============================================ */
+
+.details-card {
+    border: 2px solid #000 !important;
+    border-radius: 10px;
+    overflow: hidden;
+    background: #ffffff;
+    box-shadow: 0 1px 8px rgba(0, 0, 0, 0.05);
+    transition: all 0.3s ease;
+}
+
+.details-card:hover {
+    box-shadow: 0 3px 15px rgba(0, 0, 0, 0.08);
+}
+
+.details-card .card-header {
+    background: #f8f9fa;
+    border-bottom: 2px solid #000 !important;
+    padding: 10px 15px;
+}
+
+.details-card .card-header h5 {
+    font-size: 0.85rem;
+    font-weight: 600;
+    color: #2c3e50;
+    margin: 0;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.details-card .card-header h5 i {
+    color: #4e73df;
+    font-size: 0.9rem;
+}
+
+.details-card .card-body {
+    padding: 15px;
+}
+
+/* ============================================ */
+/* LEAD BLOQUEADO (bloque azul)                 */
+/* ============================================ */
+
+.lead-locked-box {
+    border: 2px solid #0a48e2;
+    border-radius: 10px;
+    padding: 14px 16px;
+    background: linear-gradient(135deg, #f0f4ff 0%, #e7f1ff 100%);
+    position: relative;
+}
+
+.lead-locked-header {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 10px;
+    padding-bottom: 10px;
+    border-bottom: 1px dashed #b6ccff;
+    flex-wrap: wrap;
+}
+
+.lead-locked-header i {
+    color: #0a48e2;
+    font-size: 1rem;
+}
+
+.lead-locked-header strong {
+    font-size: 0.95rem;
+    color: #1a2332;
+    font-weight: 600;
+}
+
+.lead-locked-header .badge {
+    font-size: 0.6rem;
+    padding: 3px 10px;
+    border-radius: 10px;
+    margin-left: auto;
+}
+
+.lead-locked-info {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 12px;
+    font-size: 0.75rem;
+    color: #495057;
+    margin-bottom: 8px;
+}
+
+.lead-locked-info span {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+}
+
+.lead-locked-info i {
+    color: #6c757d;
+    font-size: 0.7rem;
+}
+
+.lead-locked-box .text-muted {
+    font-size: 0.7rem;
+    display: block;
+}
+
+.lead-locked-box .text-muted i {
+    color: #0a48e2;
+    margin-right: 4px;
+}
+
+/* ============================================ */
+/* PERFIL GRANDE (sidebar)                      */
+/* ============================================ */
+
+.profile-avatar-large {
+    font-size: 60px;
+    color: #4e73df;
+    display: block;
+    line-height: 1;
+    text-align: center;
+}
+
+.profile-avatar-large i {
+    display: block;
+    line-height: 1;
+}
+
+.profile-name-large {
+    font-size: 1.15rem;
+    font-weight: 600;
+    color: #1a2332;
+    margin-top: 8px;
+    margin-bottom: 4px;
+    text-align: center;
+}
+
+.profile-phone-large {
+    font-size: 0.9rem;
+    color: #6c757d;
+    margin-bottom: 10px;
+    text-align: center;
+}
+
+.profile-actions-large {
+    display: flex;
+    justify-content: center;
+    gap: 6px;
+    flex-wrap: wrap;
+    margin-top: 10px;
+}
+
+.profile-actions-large .btn {
+    font-size: 0.72rem;
+    padding: 5px 12px;
+    border-radius: 6px;
+    transition: all 0.2s ease;
+}
+
+.profile-actions-large .btn:hover {
+    transform: translateY(-1px);
+}
+
+/* ============================================ */
+/* ALERTA DE SALDO PENDIENTE                    */
+/* ============================================ */
+
+.quote-create .alert-info {
+    background: #f0f4ff;
+    border: 1px solid #cfe2ff;
+    border-radius: 8px;
+    padding: 10px 14px;
+    font-size: 0.85rem;
+    color: #0a48e2;
+}
+
+.quote-create .alert-info i {
+    color: #0a48e2;
+}
+
+#pending-payment-display {
+    transition: color 0.3s ease;
+}
+
+/* ============================================ */
+/* FORM CONTROLS                                */
+/* ============================================ */
+
+.quote-create .form-control,
+.quote-create .form-select {
+    border-radius: 6px;
+    font-size: 0.85rem;
+    padding: 8px 12px;
+    border: 1px solid #ced4da;
+    transition: all 0.3s ease;
+}
+
+.quote-create .form-control:focus,
+.quote-create .form-select:focus {
+    border-color: #0a48e2;
+    box-shadow: 0 0 0 3px rgba(10, 72, 226, 0.1);
+}
+
+.quote-create .control-label {
+    font-weight: 600;
+    font-size: 0.82rem;
+    color: #495057;
+    margin-bottom: 4px;
+}
+
+.quote-create .control-label .text-danger {
+    color: #dc3545;
+    font-weight: 700;
+}
+
+.quote-create .help-block {
+    font-size: 0.72rem;
+    color: #dc3545;
+    margin-top: 3px;
+}
+
+.quote-create .text-muted {
+    font-size: 0.72rem;
+}
+
+/* ============================================ */
+/* RESPONSIVE                                   */
+/* ============================================ */
+
+@media (max-width: 992px) {
+    .quote-wrapper {
+        padding: 18px 20px 20px 20px;
+        border-radius: 10px;
+    }
+}
+
+@media (max-width: 768px) {
+    .quote-wrapper {
+        padding: 15px;
+        border-radius: 10px;
+    }
+
+    .quote-header {
+        flex-direction: column;
+        align-items: stretch;
+        gap: 10px;
+    }
+
+    .quote-header .page-title {
+        font-size: 1.2rem;
+    }
+
+    .quote-header .page-title small {
+        display: block;
+        margin-left: 0;
+        margin-top: 2px;
+        font-size: 0.7rem;
+    }
+
+    .btn-quote-action {
+        min-width: 90px;
+        font-size: 0.7rem;
+        padding: 5px 12px;
+    }
+
+    .profile-avatar-large {
+        font-size: 48px;
+    }
+
+    .profile-name-large {
+        font-size: 1rem;
+    }
+
+    .profile-actions-large .btn {
+        font-size: 0.65rem;
+        padding: 4px 10px;
+    }
+
+    .lead-locked-box {
+        padding: 12px;
+    }
+
+    .lead-locked-header {
+        flex-wrap: wrap;
+    }
+
+    .lead-locked-info {
+        font-size: 0.7rem;
+        gap: 8px;
+    }
+}
+
+@media (max-width: 576px) {
+    .quote-wrapper {
+        padding: 10px;
+        border-radius: 8px;
+    }
+
+    .quote-header .page-title {
+        font-size: 1rem;
+    }
+
+    .quote-header .breadcrumb-custom {
+        font-size: 0.65rem;
+    }
+
+    .btn-quote-action {
+        min-width: 70px;
+        font-size: 0.65rem;
+        padding: 4px 10px;
+        gap: 4px;
+    }
+
+    .profile-avatar-large {
+        font-size: 40px;
+    }
+
+    .profile-name-large {
+        font-size: 0.9rem;
+    }
+
+    .lead-locked-box {
+        padding: 12px;
+    }
+
+    .lead-locked-info {
+        flex-direction: column;
+        gap: 5px;
+    }
+}

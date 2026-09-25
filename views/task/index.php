@@ -212,7 +212,6 @@ $ultimasTareas = array_slice($tasks, 0, 5);
                     <table class="table table-hover mb-0" id="tasks-table">
                         <thead class="table-light">
                             <tr>
-                                <th>#</th>
                                 <th>Descripción</th>
                                 <th>Estado</th>
                                 <th>Fecha Actividad</th>
@@ -223,7 +222,6 @@ $ultimasTareas = array_slice($tasks, 0, 5);
                             <?php if (!empty($tasks)): ?>
                                 <?php foreach ($tasks as $index => $task): ?>
                                     <tr class="task-row" data-id="<?= $task->id_task ?>">
-                                        <td><?= $index + 1 ?></td>
                                         <td><strong><?= StringHelper::truncate(Html::encode($task->comments ?? 'Sin descripción'), 60, '...') ?></strong></td>
                                         <td>
                                             <span class="badge bg-<?= $task->getStatusBadgeClass() ?>">
@@ -252,7 +250,7 @@ $ultimasTareas = array_slice($tasks, 0, 5);
                                 <?php endforeach; ?>
                             <?php else: ?>
                                 <tr>
-                                    <td colspan="5" class="text-center text-muted py-4">
+                                    <td colspan="4" class="text-center text-muted py-4">
                                         <i class="fas fa-inbox fa-2x d-block mb-2"></i>
                                         No hay Actividades registradas
                                     </td>

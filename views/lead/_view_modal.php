@@ -9,24 +9,18 @@ $error = isset($error) ? $error : null;
 if ($error) {
     echo '<div class="slide-panel-content">
             <div class="slide-panel-header">
-                <div class="d-flex justify-content-between align-items-center">
-                    <h5 class="mb-0 text-danger">Error</h5>
-                    <button type="button" class="btn-close-panel" onclick="closePanel()">
-                        <i class="fas fa-times"></i>
-                    </button>
+                <div class="d-flex justify-content-end align-items-center">
+                    <button type="button" class="btn-close-panel" data-panel-close><i class="fas fa-times"></i></button>
                 </div>
             </div>
             <div class="slide-panel-body">
                 <div class="text-center text-danger py-5">
                     <i class="fas fa-exclamation-triangle fa-3x d-block mb-3"></i>
                     <p>' . Html::encode($error) . '</p>
-                    <button class="btn btn-secondary btn-sm mt-3" onclick="closePanel()">Cerrar</button>
                 </div>
             </div>
             <div class="slide-panel-footer">
-                <button class="btn-footer btn-footer-secondary" onclick="closePanel()">
-                    <i class="fas fa-times"></i> Cerrar
-                </button>
+                <button class="btn-footer btn-footer-secondary" data-panel-close><i class="fas fa-times"></i> Cerrar</button>
             </div>
         </div>';
     return;
@@ -35,24 +29,18 @@ if ($error) {
 if (!$model) {
     echo '<div class="slide-panel-content">
             <div class="slide-panel-header">
-                <div class="d-flex justify-content-between align-items-center">
-                    <h5 class="mb-0 text-muted">Lead no encontrado</h5>
-                    <button type="button" class="btn-close-panel" onclick="closePanel()">
-                        <i class="fas fa-times"></i>
-                    </button>
+                <div class="d-flex justify-content-end align-items-center">
+                    <button type="button" class="btn-close-panel" data-panel-close><i class="fas fa-times"></i></button>
                 </div>
             </div>
             <div class="slide-panel-body">
                 <div class="text-center text-muted py-5">
                     <i class="fas fa-inbox fa-3x d-block mb-3"></i>
                     <p>Lead no encontrado</p>
-                    <button class="btn btn-secondary btn-sm mt-3" onclick="closePanel()">Cerrar</button>
                 </div>
             </div>
             <div class="slide-panel-footer">
-                <button class="btn-footer btn-footer-secondary" onclick="closePanel()">
-                    <i class="fas fa-times"></i> Cerrar
-                </button>
+                <button class="btn-footer btn-footer-secondary" data-panel-close><i class="fas fa-times"></i> Cerrar</button>
             </div>
         </div>';
     return;
@@ -82,35 +70,67 @@ try {
 }
 
 // ============================================
-// FUNCIONES DE ESTADO
+// FUNCIONES DE ESTADO (con guard para evitar redeclaración)
 // ============================================
 
-function getStatusColor($statusName) {
-    $colors = [
-        'Nuevo' => '#4e73df',
-        'Contactado' => '#17a2b8',
-        'Procesando' => '#f6c23e',
-        'Calificado' => '#1cc88a',
-        'Cliente' => '#1cc88a',
-        'Cancelado' => '#6c757d',
-        'Perdido' => '#e74a3b',
-        'Sin Estado' => '#6c757d',
-    ];
-    return $colors[trim($statusName)] ?? '#6c757d';
+if (!function_exists('getStatusColor')) {
+    function getStatusColor($statusName) {
+        $colors = [
+            'Nuevo' => '#4e73df',
+            'Contactado' => '#17a2b8',
+            'Procesando' => '#f6c23e',
+            'Calificado' => '#1cc88a',
+            'Cliente' => '#1cc88a',
+            'Cancelado' => '#6c757d',
+            'Perdido' => '#e74a3b',
+            'Sin Estado' => '#6c757d',
+        ];
+        return $colors[trim($statusName)] ?? '#6c757d';
+    }
 }
 
-function getStatusIcon($statusName) {
-    $icons = [
-        'Nuevo' => 'fa-plus-circle',
-        'Contactado' => 'fa-phone',
-        'Procesando' => 'fa-spinner',
-        'Calificado' => 'fa-star',
-        'Cliente' => 'fa-user-check',
-        'Cancelado' => 'fa-ban',
-        'Perdido' => 'fa-times-circle',
-        'Sin Estado' => 'fa-question-circle',
-    ];
-    return $icons[trim($statusName)] ?? 'fa-circle';
+if (!function_exists('getStatusIcon')) {
+    function getStatusIcon($statusName) {
+        $icons = [
+            'Nuevo' => 'fa-plus-circle',
+            'Contactado' => 'fa-phone',
+            'Procesando' => 'fa-spinner',
+            'Calificado' => 'fa-star',
+            'Cliente' => 'fa-user-check',
+            'Cancelado' => 'fa-ban',
+            'Perdido' => 'fa-times-circle',
+            'Sin Estado' => 'fa-question-circle',
+        ];
+        return $icons[trim($statusName)] ?? 'fa-circle';
+    }
+}
+
+if (!function_exists('getActivityIcon')) {
+    function getActivityIcon($statusSales) {
+        $icons = [
+            'Llamada' => 'fa-phone',
+            'Cita' => 'fa-calendar-check',
+            'Reunión' => 'fa-users',
+            'Correo' => 'fa-envelope',
+            'WhatsApp' => 'fa-whatsapp',
+            'Seguimiento' => 'fa-comment',
+        ];
+        return $icons[$statusSales] ?? 'fa-comment';
+    }
+}
+
+if (!function_exists('getActivityColor')) {
+    function getActivityColor($statusSales) {
+        $colors = [
+            'Llamada' => '#28a745',
+            'Cita' => '#ffc107',
+            'Reunión' => '#4e73df',
+            'Correo' => '#17a2b8',
+            'WhatsApp' => '#25D366',
+            'Seguimiento' => '#6c757d',
+        ];
+        return $colors[$statusSales] ?? '#6c757d';
+    }
 }
 
 // ============================================
@@ -121,150 +141,67 @@ if (empty($model->id_status) || $model->id_status == 0) {
     $statusName = 'Sin Estado';
     $statusIcon = 'fa-question-circle';
     $statusColor = '#6c757d';
-    $hasValidStatus = false;
 } else {
-    try {
-        $statusName = $model->getStatusName();
-    } catch (\Exception $e) {
-        $statusName = 'Sin Estado';
-    }
-
-    try {
-        $statusIcon = $model->getStatusIcon();
-    } catch (\Exception $e) {
-        $statusIcon = 'fa-question-circle';
-    }
-
+    try { $statusName = $model->getStatusName(); } catch (\Exception $e) { $statusName = 'Sin Estado'; }
+    try { $statusIcon = $model->getStatusIcon(); } catch (\Exception $e) { $statusIcon = 'fa-question-circle'; }
     $statusColor = getStatusColor(trim($statusName));
-    $hasValidStatus = true;
 }
 
 $phone = $model->phone;
 $whatsappLink = $phone ? 'https://wa.me/' . preg_replace('/[^0-9]/', '', $phone) : '#';
 
-// ============================================
-// OBTENER COTIZACIONES Y SEGUIMIENTOS
-// ============================================
-
-try {
-    $quotes = $model->getQuotes()->limit(3)->all();
-} catch (\Exception $e) {
-    $quotes = [];
-}
-
-try {
-    $trackings = $model->salesTrackings ?? [];
-} catch (\Exception $e) {
-    $trackings = [];
-}
-
-// ============================================
-// FUNCIÓN PARA OBTENER ICONO DE ACTIVIDAD
-// ============================================
-
-function getActivityIcon($statusSales) {
-    $icons = [
-        'Llamada' => 'fa-phone',
-        'Cita' => 'fa-calendar-check',
-        'Reunión' => 'fa-users',
-        'Correo' => 'fa-envelope',
-        'WhatsApp' => 'fa-whatsapp',
-        'Seguimiento' => 'fa-comment',
-    ];
-    return $icons[$statusSales] ?? 'fa-comment';
-}
-
-function getActivityColor($statusSales) {
-    $colors = [
-        'Llamada' => '#28a745',
-        'Cita' => '#ffc107',
-        'Reunión' => '#4e73df',
-        'Correo' => '#17a2b8',
-        'WhatsApp' => '#25D366',
-        'Seguimiento' => '#6c757d',
-    ];
-    return $colors[$statusSales] ?? '#6c757d';
-}
+try { $quotes = $model->getQuotes()->limit(3)->all(); } catch (\Exception $e) { $quotes = []; }
+try { $trackings = $model->salesTrackings ?? []; } catch (\Exception $e) { $trackings = []; }
 ?>
 
 <div class="slide-panel-content">
 
-    <!-- ========================================== -->
-    <!-- HEADER - Solo botón cerrar                 -->
-    <!-- ========================================== -->
+    <!-- HEADER -->
     <div class="slide-panel-header">
         <div class="d-flex justify-content-end align-items-center">
-            <button type="button" class="btn-close-panel" onclick="closePanel()">
+            <button type="button" class="btn-close-panel" data-panel-close>
                 <i class="fas fa-times"></i>
             </button>
         </div>
     </div>
 
-    <!-- ========================================== -->
-    <!-- CUERPO                                     -->
-    <!-- ========================================== -->
+    <!-- CUERPO -->
     <div class="slide-panel-body">
 
-        <!-- ========================================== -->
-        <!-- APARTADO 1: PERFIL DEL LEAD                -->
-        <!-- ========================================== -->
+        <!-- PERFIL -->
         <div class="profile-section">
-            <!-- Avatar -->
             <div class="profile-avatar">
                 <i class="fas fa-user-circle"></i>
             </div>
-            
-            <!-- Nombre -->
             <div class="profile-name">
                 <?= Html::encode($model->name . ' ' . $model->lastname) ?>
             </div>
-            
-            <!-- Estado -->
             <div class="profile-status">
                 <span class="status-badge" style="background-color: <?= $statusColor ?>;">
                     <i class="fas <?= $statusIcon ?>"></i> <?= $statusName ?>
                 </span>
             </div>
-            
-            <!-- Teléfono -->
             <div class="profile-phone">
                 <i class="fas fa-phone"></i> <?= Html::encode($phone) ?>
             </div>
-            
-            <!-- Botones de acción -->
             <div class="profile-actions">
                 <?php if ($phone): ?>
-                    <a href="tel:<?= Html::encode($phone) ?>" class="action-btn action-btn-phone" title="Llamar">
-                        <i class="fas fa-phone"></i>
-                        <span>Llamar</span>
-                    </a>
+
                     <a href="<?= $whatsappLink ?>" target="_blank" class="action-btn action-btn-whatsapp" title="WhatsApp">
                         <i class="fab fa-whatsapp"></i>
                         <span>WhatsApp</span>
                     </a>
                 <?php endif; ?>
-                <a href="#" class="action-btn action-btn-meeting" onclick="event.preventDefault(); closePanel(); window.location.href='<?= Url::to(['calendar/create', 'leadId' => $model->id_lead]) ?>';">
-                    <i class="fas fa-calendar-plus"></i>
-                    <span>Reunión</span>
-                </a>
-                <a href="#" class="action-btn action-btn-email" onclick="event.preventDefault(); alert('Función en desarrollo');">
-                    <i class="fas fa-envelope"></i>
-                    <span>Email</span>
-                </a>
             </div>
         </div>
 
-        <!-- Separador -->
         <hr class="section-divider">
 
-        <!-- ========================================== -->
-        <!-- APARTADO 2: INFORMACIÓN DEL LEAD           -->
-        <!-- ========================================== -->
+        <!-- INFORMACIÓN -->
         <div class="info-section">
             <div class="info-title">
                 <i class="fas fa-info-circle"></i> Información del Lead
             </div>
-            
             <div class="info-row">
                 <span class="info-label"><i class="fas fa-calendar-alt"></i> Fecha de Registro</span>
                 <span class="info-value"><?= date('d/m/Y H:i', strtotime($model->created_at)) ?></span>
@@ -297,12 +234,9 @@ function getActivityColor($statusSales) {
             <?php endif; ?>
         </div>
 
-        <!-- Separador -->
         <hr class="section-divider">
 
-        <!-- ========================================== -->
-        <!-- APARTADO 3: CALIFICACIÓN                   -->
-        <!-- ========================================== -->
+        <!-- CALIFICACIÓN -->
         <div class="rating-section">
             <div class="rating-header">
                 <span><i class="fas fa-star"></i> Calificación</span>
@@ -330,17 +264,14 @@ function getActivityColor($statusSales) {
             </div>
         </div>
 
-        <!-- Separador -->
         <hr class="section-divider">
 
-        <!-- ========================================== -->
-        <!-- APARTADO 4: COTIZACIONES                   -->
-        <!-- ========================================== -->
+        <!-- COTIZACIONES -->
         <div class="list-section">
             <div class="list-header">
                 <span><i class="fas fa-file-invoice"></i> Cotizaciones</span>
                 <span class="list-badge"><?= $totalQuotes ?></span>
-                <a href="<?= Url::to(['quote/create', 'leadId' => $model->id_lead]) ?>" target="_blank" class="list-add" onclick="closePanel();">
+                <a href="<?= Url::to(['quote/create', 'leadId' => $model->id_lead]) ?>" class="list-add" data-panel-close-go="<?= Url::to(['quote/create', 'leadId' => $model->id_lead]) ?>">
                     <i class="fas fa-plus"></i>
                 </a>
             </div>
@@ -357,17 +288,14 @@ function getActivityColor($statusSales) {
             <?php endif; ?>
         </div>
 
-        <!-- Separador -->
         <hr class="section-divider">
 
-        <!-- ========================================== -->
-        <!-- APARTADO 5: SEGUIMIENTO                    -->
-        <!-- ========================================== -->
+        <!-- SEGUIMIENTO -->
         <div class="list-section">
             <div class="list-header">
                 <span><i class="fas fa-history"></i> Seguimiento</span>
                 <span class="list-badge"><?= count($trackings) ?></span>
-                <a href="<?= Url::to(['sales-tracking/create', 'leadId' => $model->id_lead]) ?>" target="_blank" class="list-add" onclick="closePanel();">
+                <a href="<?= Url::to(['sales-tracking/create', 'leadId' => $model->id_lead]) ?>" class="list-add" data-panel-close-go="<?= Url::to(['sales-tracking/create', 'leadId' => $model->id_lead]) ?>">
                     <i class="fas fa-plus"></i>
                 </a>
             </div>
@@ -393,25 +321,10 @@ function getActivityColor($statusSales) {
 
     </div>
 
-    <!-- ========================================== -->
-    <!-- FOOTER                                     -->
-    <!-- ========================================== -->
+    <!-- FOOTER -->
     <div class="slide-panel-footer">
-        <a href="<?= Url::to(['lead/details', 'id' => $model->id_lead]) ?>" target="_blank" class="btn-footer btn-footer-secondary" onclick="closePanel();">
+        <a href="<?= Url::to(['lead/details', 'id' => $model->id_lead]) ?>" class="btn-footer btn-footer-secondary" data-panel-close-go="<?= Url::to(['lead/details', 'id' => $model->id_lead]) ?>">
             <i class="fas fa-external-link-alt"></i> Abrir
         </a>
     </div>
 </div>
-
-<script>
-// Asegurar que closePanel esté disponible
-if (typeof closePanel === 'undefined') {
-    window.closePanel = function() {
-        if (window.parent && typeof window.parent.closePanel === 'function') {
-            window.parent.closePanel();
-        } else if (typeof window.opener !== 'undefined' && window.opener.closePanel) {
-            window.opener.closePanel();
-        }
-    };
-}
-</script>

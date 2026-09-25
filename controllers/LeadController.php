@@ -11,6 +11,7 @@ use app\models\SalesTracking;
 use app\models\Quote;
 use app\models\Status;
 use app\models\User;
+use app\models\Report;  // 🔥 NUEVO: Import para evaluaciones
 use app\components\ErrorManager;
 
 class LeadController extends Controller
@@ -177,7 +178,6 @@ class LeadController extends Controller
             // 🔥 MÉTRICAS POR ESTADO (DINÁMICAS)
             // ============================================
             
-            // 🔥 Obtener IDs de los 4 estados reales
             $statusNuevo      = Status::find()->where(['status' => 'Nuevo'])->one();
             $statusContactado = Status::find()->where(['status' => 'Contactado'])->one();
             $statusProcesando = Status::find()->where(['status' => 'Procesando'])->one();
@@ -188,16 +188,10 @@ class LeadController extends Controller
             $idStatusProcesando = $statusProcesando ? $statusProcesando->id_status : null;
             $idStatusCancelado  = $statusCancelado  ? $statusCancelado->id_status  : null;
             
-            // ============================================
-            // 🔥 TOTAL LEADS (todos excepto papelera)
-            // ============================================
+            // TOTAL LEADS
             $totalLeadsQuery = Lead::find()->where(['not in', 'Lead.id_status', $excludeIds]);
             $applyLeadFilter($totalLeadsQuery);
             $totalLeads = $totalLeadsQuery->count();
-            
-            // ============================================
-            // 🔥 CONTEO POR ESTADO
-            // ============================================
             
             // NUEVO
             $nuevoCount = 0;
@@ -231,9 +225,7 @@ class LeadController extends Controller
                 $canceladoCount = $queryCancelado->count();
             }
             
-            // ============================================
-            // 🔥 PORCENTAJES
-            // ============================================
+            // PORCENTAJES
             $totalParaPorcentajes = $totalLeads > 0 ? $totalLeads : 1;
             
             $porcentajeNuevo      = round(($nuevoCount / $totalParaPorcentajes) * 100, 1);
@@ -241,9 +233,7 @@ class LeadController extends Controller
             $porcentajeProcesando = round(($procesandoCount / $totalParaPorcentajes) * 100, 1);
             $porcentajeCancelado  = round(($canceladoCount / $totalParaPorcentajes) * 100, 1);
             
-            // ============================================
-            // 🔥 ALIAS PARA COMPATIBILIDAD CON LA VISTA
-            // ============================================
+            // ALIAS PARA COMPATIBILIDAD CON LA VISTA
             $nuevosMes   = $nuevoCount;
             $contactados = $contactadoCount;
             $enProceso   = $procesandoCount;
@@ -251,15 +241,7 @@ class LeadController extends Controller
             $calificados = 0;
             $convertidos = 0;
 
-            // ============================================
-            // 🔥 EMBUDO DE LEADS POR ETAPAS
-            // ============================================
-            
-            $idNuevo      = $idStatusNuevo;
-            $idContactado = $idStatusContactado;
-            $idCalificado = null;
-            $idCliente    = null;
-            
+            // EMBUDO DE LEADS POR ETAPAS
             $nuevoProspecto = $nuevoCount;
             $contactado     = $contactadoCount;
             $calificado     = 0;
@@ -554,6 +536,9 @@ class LeadController extends Controller
                 return $this->redirect(['index']);
             }
 
+            // ============================================
+            // 🔥 VERIFICACIÓN DE PERMISOS
+            // ============================================
             if ($user && $user->isAgent()) {
                 if ($model->id_user != $user->id_user) {
                     if ($isModal || $isAjax) {
@@ -609,29 +594,42 @@ class LeadController extends Controller
                 ->indexBy('id_status')
                 ->column();
 
+            // ============================================
+            // 🔥 PROCESAR POST
+            // ============================================
             if ($model->load(Yii::$app->request->post())) {
                 try {
                     if ($model->save()) {
+                        // 🔥 RESPUESTA PARA MODAL/AJAX
                         if ($isModal || $isAjax) {
                             return $this->renderPartial('_update_modal', [
                                 'model' => $model,
                                 'statusList' => $statusList,
                                 'estadosPermitidos' => $estadosPermitidos,
                                 'returnUrl' => $returnUrl,
-                                'success' => '✅ Lead actualizado exitosamente'
+                                'success' => 'Lead actualizado exitosamente'
                             ]);
                         }
                         
+                        // 🔥 RESPUESTA PARA VISTA COMPLETA
                         Yii::$app->session->setFlash('success', 'Lead actualizado exitosamente');
                         return $this->redirect(['view', 'id' => $model->id_lead]);
+                        
                     } else {
+                        // 🔥 ERROR DE VALIDACIÓN EN MODAL
                         if ($isModal || $isAjax) {
+                            $errors = $model->getErrors();
+                            $errorMessages = [];
+                            foreach ($errors as $attribute => $errorList) {
+                                $label = $model->getAttributeLabel($attribute);
+                                $errorMessages[] = $label . ': ' . implode(', ', $errorList);
+                            }
                             return $this->renderPartial('_update_modal', [
                                 'model' => $model,
                                 'statusList' => $statusList,
                                 'estadosPermitidos' => $estadosPermitidos,
                                 'returnUrl' => $returnUrl,
-                                'error' => 'Error al actualizar: ' . implode(', ', $model->getFirstErrors())
+                                'error' => 'Error al actualizar:<br>' . implode('<br>', $errorMessages)
                             ]);
                         }
                         Yii::$app->session->setFlash('error', 'Error al actualizar el lead.');
@@ -650,6 +648,9 @@ class LeadController extends Controller
                 }
             }
 
+            // ============================================
+            // 🔥 RENDER INICIAL DEL FORMULARIO
+            // ============================================
             if ($isModal || $isAjax) {
                 return $this->renderPartial('_update_modal', [
                     'model' => $model,
@@ -1036,6 +1037,7 @@ class LeadController extends Controller
 
     // ============================================
     // DETALLES DEL LEAD (Vista completa)
+    // 🔥 INCLUYE EVALUACIONES
     // ============================================
     public function actionDetails($id)
     {
@@ -1053,6 +1055,9 @@ class LeadController extends Controller
                 return $this->redirect(['index']);
             }
 
+            // ============================================
+            // 🔥 VERIFICACIÓN DE PERMISOS
+            // ============================================
             if ($user && $user->isAgent()) {
                 if ($model->id_user != $user->id_user) {
                     Yii::$app->session->setFlash('error', 'No tienes permiso para ver este lead.');
@@ -1070,6 +1075,47 @@ class LeadController extends Controller
                 }
             }
 
+            // ============================================
+            // 🔥 CARGAR EVALUACIONES DEL LEAD
+            // Usa la relación getReports() definida en Lead.php
+            // La FK está en Reports.id_lead
+            // ============================================
+            $evaluaciones = $model->getReports()
+                ->with(['status', 'user'])
+                ->all();
+            $totalEvaluaciones = count($evaluaciones);
+
+            // ============================================
+            // 🔥 CARGAR SEGUIMIENTOS Y COTIZACIONES
+            // ============================================
+            $trackings = $model->salesTrackings ?? [];
+            $totalTrackings = count($trackings);
+
+            $quotes = $model->quotes ?? [];
+            $totalQuotes = count($quotes);
+
+            // ============================================
+            // 🔥 DATOS ADICIONALES
+            // ============================================
+            $agentName = $model->getAgentName();
+            $statusName = $model->getStatusName();
+            $statusIcon = $model->getStatusIcon();
+
+            $statusColor = '#6c757d';
+            $statusColors = [
+                'Nuevo' => '#4e73df',
+                'Contactado' => '#17a2b8',
+                'Procesando' => '#f6c23e',
+                'Calificado' => '#1cc88a',
+                'Cliente' => '#1cc88a',
+                'Cancelado' => '#6c757d',
+                'Perdido' => '#e74a3b',
+            ];
+            $statusColor = $statusColors[trim($statusName)] ?? '#6c757d';
+
+            $createdAt = strtotime($model->created_at);
+            $daysSince = floor((time() - $createdAt) / (60 * 60 * 24));
+
             $statusList = Status::find()
                 ->where(['in', 'status', ['Nuevo', 'Contactado', 'Procesando', 'Completado', 'Cancelado']])
                 ->select(['status', 'id_status'])
@@ -1077,12 +1123,27 @@ class LeadController extends Controller
                 ->column();
 
             return $this->render('details', [
-                'model' => $model,
-                'statusList' => $statusList,
+                'model'             => $model,
+                'evaluaciones'      => $evaluaciones,
+                'totalEvaluaciones' => $totalEvaluaciones,
+                'trackings'         => $trackings,
+                'totalTrackings'    => $totalTrackings,
+                'quotes'            => $quotes,
+                'totalQuotes'       => $totalQuotes,
+                'agentName'         => $agentName,
+                'statusName'        => $statusName,
+                'statusIcon'        => $statusIcon,
+                'statusColor'       => $statusColor,
+                'daysSince'         => $daysSince,
+                'statusList'        => $statusList,
+                'isAdmin'           => $user->isAdmin(),
+                'isAgent'           => $user->isAgent(),
+                'isSuperAdmin'      => $user->isSuperAdmin(),
             ]);
             
         } catch (\Exception $e) {
             Yii::error('Error en actionDetails: ' . $e->getMessage(), 'lead-details');
+            Yii::error('Stack trace: ' . $e->getTraceAsString(), 'lead-details');
             Yii::$app->session->setFlash('error', 'Error al cargar la información del lead.');
             return $this->redirect(['index']);
         }

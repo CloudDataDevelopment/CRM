@@ -4,219 +4,210 @@ namespace app\models;
 
 use Yii;
 use yii\base\Model;
-use yii\data\ArrayDataProvider;
-use app\models\Company;
-use app\models\Authentication;
+use yii\data\ActiveDataProvider;
+use app\models\Campaign;
+use app\models\Promotion;
 use app\models\Status;
 
 class MarketingSearch extends Model
 {
-    public $search;
-    public $status;
-    public $company_id;
-    public $date_from;
-    public $date_to;
+    // 🔥 Propiedades para filtros
+    public $name;
+    public $start_date;
+    public $end_date;
+    public $id_status;
+    public $id_company;
     public $type;
 
     public function rules()
     {
         return [
-            [['search', 'status', 'company_id', 'date_from', 'date_to', 'type'], 'safe'],
+            [['name'], 'string', 'max' => 255],
+            [['start_date', 'end_date'], 'safe'],
+            [['id_status', 'id_company'], 'integer'],
+            [['type'], 'string'],
         ];
     }
 
     public function attributeLabels()
     {
         return [
-            'search' => 'Buscar',
-            'status' => 'Estado',
-            'company_id' => 'Empresa',
-            'date_from' => 'Fecha Desde',
-            'date_to' => 'Fecha Hasta',
+            'name' => 'Nombre',
+            'start_date' => 'Fecha Inicio',
+            'end_date' => 'Fecha Fin',
+            'id_status' => 'Estado',
+            'id_company' => 'Empresa',
             'type' => 'Tipo',
         ];
     }
 
-    /**
-     * Buscar campañas
-     */
-    public function searchCampaigns($params = [])
+    // ============================================
+    // BUSCAR CAMPAÑAS
+    // ============================================
+    public function searchCampaigns($params)
     {
-        $this->load($params, '');
+        $user = Yii::$app->user->identity;
+        $empresaId = Yii::$app->session->get('empresa_id');
 
         $query = Campaign::find()
-            ->with('company')
-            ->with('status')
-            ->orderBy(['start_date' => SORT_DESC]);
+            ->alias('c')
+            ->with(['status', 'company']);
 
-        $user = Yii::$app->user->identity;
-        if ($user && !$user->isSuperAdmin()) {
-            $query->andWhere(['id_company' => $user->id_company]);
+        // 🔥 FILTRO POR ROL Y EMPRESA
+        if ($user->isSuperAdmin()) {
+            if (!empty($empresaId)) {
+                $query->andWhere(['c.id_company' => $empresaId]);
+            }
+        } elseif ($user->isAdmin() && !$user->isSuperAdmin()) {
+            $query->andWhere(['c.id_company' => $user->id_company]);
+        } elseif ($user->isAgent()) {
+            $query->andWhere(['c.id_company' => $user->id_company]);
         }
 
-        if (!empty($this->search)) {
-            $query->andWhere(['or',
-                ['like', 'campaign_name', $this->search],
-                ['like', 'comments', $this->search],
+        // 🔥 FILTROS
+        $this->load($params);
+
+        if (!$this->validate()) {
+            return new ActiveDataProvider([
+                'query' => $query->where('1=0'),
+                'pagination' => [
+                    'pageSize' => 10,
+                    'pageSizeParam' => 'per-page',
+                    'pageParam' => 'page_campaigns',
+                ],
+                'sort' => [
+                    'defaultOrder' => ['id' => SORT_DESC],
+                ],
             ]);
         }
 
-        if (!empty($this->status)) {
-            $statusModel = Status::find()->where(['status' => $this->status])->one();
-            if ($statusModel) {
-                $query->andWhere(['id_status' => $statusModel->id_status]);
-            }
+        if (!empty($this->name)) {
+            $query->andWhere(['like', 'c.name', $this->name]);
         }
 
-        if (!empty($this->company_id) && $user && $user->isSuperAdmin()) {
-            $query->andWhere(['id_company' => $this->company_id]);
+        if (!empty($this->start_date)) {
+            $query->andWhere(['>=', 'c.start_date', $this->start_date]);
         }
 
-        if (!empty($this->date_from)) {
-            $query->andWhere(['>=', 'start_date', $this->date_from]);
+        if (!empty($this->end_date)) {
+            $query->andWhere(['<=', 'c.end_date', $this->end_date]);
         }
 
-        if (!empty($this->date_to)) {
-            $query->andWhere(['<=', 'end_date', $this->date_to]);
+        if (!empty($this->id_status)) {
+            $query->andWhere(['c.id_status' => $this->id_status]);
         }
 
-        $campaigns = $query->all();
+        // 🔥 ORDEN POR DEFECTO: ÚLTIMO REGISTRADO PRIMERO
+        $query->orderBy(['c.id' => SORT_DESC]);
 
-        // Convertir a modelos Marketing
-        $marketingModels = [];
-        foreach ($campaigns as $campaign) {
-            $marketing = new Marketing();
-            $marketing->loadFromCampaign($campaign);
-            $marketingModels[] = $marketing;
-        }
-
-        return new ArrayDataProvider([
-            'allModels' => $marketingModels,
+        return new ActiveDataProvider([
+            'query' => $query,
             'pagination' => [
-                'pageSize' => 15,
+                'pageSize' => 10,
+                'pageSizeParam' => 'per-page',
+                'pageParam' => 'page_campaigns',
             ],
             'sort' => [
+                'defaultOrder' => ['id' => SORT_DESC],
                 'attributes' => [
-                    'name',
-                    'start_date',
-                    'end_date',
+                    'id' => ['asc' => ['c.id' => SORT_ASC], 'desc' => ['c.id' => SORT_DESC]],
+                    'name' => ['asc' => ['c.name' => SORT_ASC], 'desc' => ['c.name' => SORT_DESC]],
+                    'start_date' => ['asc' => ['c.start_date' => SORT_ASC], 'desc' => ['c.start_date' => SORT_DESC]],
+                    'end_date' => ['asc' => ['c.end_date' => SORT_ASC], 'desc' => ['c.end_date' => SORT_DESC]],
+                    'id_status' => ['asc' => ['c.id_status' => SORT_ASC], 'desc' => ['c.id_status' => SORT_DESC]],
                 ],
             ],
         ]);
     }
 
-    /**
-     * Buscar promociones
-     */
-    public function searchPromotions($params = [])
+    // ============================================
+    // BUSCAR PROMOCIONES
+    // ============================================
+    public function searchPromotions($params)
     {
-        $this->load($params, '');
+        $user = Yii::$app->user->identity;
+        $empresaId = Yii::$app->session->get('empresa_id');
 
         $query = Promotion::find()
-            ->with('company')
-            ->with('status')
-            ->orderBy(['start_date' => SORT_DESC]);
+            ->alias('p')
+            ->with(['status', 'company']);
 
-        $user = Yii::$app->user->identity;
-        if ($user && !$user->isSuperAdmin()) {
-            $query->andWhere(['id_company' => $user->id_company]);
+        // 🔥 FILTRO POR ROL Y EMPRESA
+        if ($user->isSuperAdmin()) {
+            if (!empty($empresaId)) {
+                $query->andWhere(['p.id_company' => $empresaId]);
+            }
+        } elseif ($user->isAdmin() && !$user->isSuperAdmin()) {
+            $query->andWhere(['p.id_company' => $user->id_company]);
+        } elseif ($user->isAgent()) {
+            $query->andWhere(['p.id_company' => $user->id_company]);
         }
 
-        if (!empty($this->search)) {
-            $query->andWhere(['or',
-                ['like', 'promotion_name', $this->search],
-                ['like', 'comments', $this->search],
+        // 🔥 FILTROS
+        $this->load($params);
+
+        if (!$this->validate()) {
+            return new ActiveDataProvider([
+                'query' => $query->where('1=0'),
+                'pagination' => [
+                    'pageSize' => 10,
+                    'pageSizeParam' => 'per-page',
+                    'pageParam' => 'page_promotions',
+                ],
+                'sort' => [
+                    'defaultOrder' => ['id' => SORT_DESC],
+                ],
             ]);
         }
 
-        if (!empty($this->status)) {
-            $statusModel = Status::find()->where(['status' => $this->status])->one();
-            if ($statusModel) {
-                $query->andWhere(['id_status' => $statusModel->id_status]);
-            }
+        if (!empty($this->name)) {
+            $query->andWhere(['like', 'p.name', $this->name]);
         }
 
-        if (!empty($this->company_id) && $user && $user->isSuperAdmin()) {
-            $query->andWhere(['id_company' => $this->company_id]);
+        if (!empty($this->start_date)) {
+            $query->andWhere(['>=', 'p.start_date', $this->start_date]);
         }
 
-        if (!empty($this->date_from)) {
-            $query->andWhere(['>=', 'start_date', $this->date_from]);
+        if (!empty($this->end_date)) {
+            $query->andWhere(['<=', 'p.end_date', $this->end_date]);
         }
 
-        if (!empty($this->date_to)) {
-            $query->andWhere(['<=', 'end_date', $this->date_to]);
+        if (!empty($this->id_status)) {
+            $query->andWhere(['p.id_status' => $this->id_status]);
         }
 
-        $promotions = $query->all();
+        // 🔥 ORDEN POR DEFECTO: ÚLTIMO REGISTRADO PRIMERO
+        $query->orderBy(['p.id' => SORT_DESC]);
 
-        // Convertir a modelos Marketing
-        $marketingModels = [];
-        foreach ($promotions as $promotion) {
-            $marketing = new Marketing();
-            $marketing->loadFromPromotion($promotion);
-            $marketingModels[] = $marketing;
-        }
-
-        return new ArrayDataProvider([
-            'allModels' => $marketingModels,
+        return new ActiveDataProvider([
+            'query' => $query,
             'pagination' => [
-                'pageSize' => 15,
+                'pageSize' => 10,
+                'pageSizeParam' => 'per-page',
+                'pageParam' => 'page_promotions',
             ],
             'sort' => [
+                'defaultOrder' => ['id' => SORT_DESC],
                 'attributes' => [
-                    'name',
-                    'start_date',
-                    'end_date',
+                    'id' => ['asc' => ['p.id' => SORT_ASC], 'desc' => ['p.id' => SORT_DESC]],
+                    'name' => ['asc' => ['p.name' => SORT_ASC], 'desc' => ['p.name' => SORT_DESC]],
+                    'start_date' => ['asc' => ['p.start_date' => SORT_ASC], 'desc' => ['p.start_date' => SORT_DESC]],
+                    'end_date' => ['asc' => ['p.end_date' => SORT_ASC], 'desc' => ['p.end_date' => SORT_DESC]],
+                    'id_status' => ['asc' => ['p.id_status' => SORT_ASC], 'desc' => ['p.id_status' => SORT_DESC]],
                 ],
             ],
         ]);
     }
 
-    /**
-     * Obtener lista de empresas para el filtro
-     */
-    public static function getCompanyList()
-    {
-        try {
-            $user = Yii::$app->user->identity;
-            if (!$user) {
-                return [];
-            }
-
-            $auth = Authentication::find()
-                ->where(['id_user' => $user->id])
-                ->one();
-
-            if ($auth && $auth->id_role == 1) {
-                return Company::find()
-                    ->select(['name', 'id_company'])
-                    ->indexBy('id_company')
-                    ->column();
-            }
-
-            return Company::find()
-                ->select(['name', 'id_company'])
-                ->where(['id_company' => $user->id_company])
-                ->indexBy('id_company')
-                ->column();
-        } catch (\Exception $e) {
-            return [];
-        }
-    }
-
-    /**
-     * Obtener opciones de estado para filtro
-     */
+    // ============================================
+    // LISTA DE ESTADOS PARA FILTRO
+    // ============================================
     public static function getStatusOptions()
     {
-        try {
-            return Status::find()
-                ->select(['status', 'id_status'])
-                ->indexBy('id_status')
-                ->column();
-        } catch (\Exception $e) {
-            return [];
-        }
+        return Status::find()
+            ->select(['status', 'id_status'])
+            ->where(['IN', 'status', ['Activo', 'Programado', 'Suspendido', 'Publicado', 'Inactivo', 'Cancelado']])
+            ->indexBy('id_status')
+            ->column();
     }
 }

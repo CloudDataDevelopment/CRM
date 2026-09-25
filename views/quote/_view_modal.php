@@ -12,7 +12,7 @@ $isSuperAdmin = isset($isSuperAdmin) ? $isSuperAdmin : false;
 if ($error) {
     echo '<div class="slide-panel-content">
             <div class="slide-panel-header">
-                <button type="button" class="btn-close-panel" onclick="closePanel()">
+                <button type="button" class="btn-close-panel" data-panel-close>
                     <i class="fas fa-times"></i>
                 </button>
             </div>
@@ -23,7 +23,7 @@ if ($error) {
                 </div>
             </div>
             <div class="slide-panel-footer">
-                <button class="btn-footer btn-footer-secondary" onclick="closePanel()">
+                <button class="btn-footer btn-footer-secondary" data-panel-close>
                     <i class="fas fa-times"></i> Cerrar
                 </button>
             </div>
@@ -34,7 +34,7 @@ if ($error) {
 if (!$model) {
     echo '<div class="slide-panel-content">
             <div class="slide-panel-header">
-                <button type="button" class="btn-close-panel" onclick="closePanel()">
+                <button type="button" class="btn-close-panel" data-panel-close>
                     <i class="fas fa-times"></i>
                 </button>
             </div>
@@ -45,7 +45,7 @@ if (!$model) {
                 </div>
             </div>
             <div class="slide-panel-footer">
-                <button class="btn-footer btn-footer-secondary" onclick="closePanel()">
+                <button class="btn-footer btn-footer-secondary" data-panel-close>
                     <i class="fas fa-times"></i> Cerrar
                 </button>
             </div>
@@ -91,7 +91,7 @@ $statusIcons = [
 
     <!-- HEADER -->
     <div class="slide-panel-header">
-        <button type="button" class="btn-close-panel" onclick="closePanel()">
+        <button type="button" class="btn-close-panel" data-panel-close>
             <i class="fas fa-times"></i>
         </button>
     </div>
@@ -194,15 +194,10 @@ $statusIcons = [
 
     <!-- FOOTER -->
     <div class="slide-panel-footer">
-        <a href="<?= Url::to(['quote/details', 'id' => $model->id_quote]) ?>" target="_blank" class="btn-footer btn-footer-primary">
+        <a href="<?= Url::to(['quote/details', 'id' => $model->id_quote]) ?>" class="btn-footer btn-footer-primary" data-panel-close-go="<?= Url::to(['quote/details', 'id' => $model->id_quote]) ?>">
             <i class="fas fa-external-link-alt"></i> Ver más
         </a>
-        <?php if ($isAdmin || $isSuperAdmin || ($isAgent && $model->lead && $model->lead->id_user == Yii::$app->user->id)): ?>
-
-        <?php endif; ?>
-        <?php if ($model->lead): ?>
-        <?php endif; ?>
-        <button class="btn-footer btn-footer-secondary" onclick="closePanel()">
+        <button class="btn-footer btn-footer-secondary" data-panel-close>
             <i class="fas fa-times"></i> Cerrar
         </button>
     </div>

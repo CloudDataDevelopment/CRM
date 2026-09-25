@@ -7,6 +7,7 @@ use yii\web\Controller;
 use yii\web\NotFoundHttpException;
 use yii\filters\VerbFilter;
 use yii\filters\AccessControl;
+use yii\data\ActiveDataProvider;
 use app\models\MarketingSearch;
 use app\models\Marketing;
 use app\models\Campaign;
@@ -51,20 +52,126 @@ class MarketingController extends Controller
             $user = Yii::$app->user->identity;
             $empresaId = Yii::$app->session->get('empresa_id');
 
-            // 🔥 Verificar empresa seleccionada para Super Admin
             if ($user->isSuperAdmin() && empty($empresaId)) {
                 Yii::$app->session->setFlash('warning', 'Por favor, selecciona una empresa para continuar.');
                 return $this->redirect(['empresa/index']);
             }
 
-            $searchModel = new MarketingSearch();
+            // ============================================
+            // QUERY BASE PARA CAMPAÑAS (PK: id_campaign)
+            // ============================================
+            $campaignQuery = Campaign::find()
+                ->alias('c')
+                ->orderBy(['c.id_campaign' => SORT_DESC]);
 
-            $params = Yii::$app->request->queryParams;
+            if ($user->isSuperAdmin() && !empty($empresaId)) {
+                $campaignQuery->andWhere(['c.id_company' => $empresaId]);
+            } elseif (!$user->isSuperAdmin()) {
+                $campaignQuery->andWhere(['c.id_company' => $user->id_company]);
+            }
 
-            $campaignDataProvider = $searchModel->searchCampaigns($params);
-            $promotionDataProvider = $searchModel->searchPromotions($params);
+            // ============================================
+            // QUERY BASE PARA PROMOCIONES (PK: id_promotion)
+            // ============================================
+            $promotionQuery = Promotion::find()
+                ->alias('p')
+                ->orderBy(['p.id_promotion' => SORT_DESC]);
 
-            // 🔥 Obtener totales con filtro de empresa
+            if ($user->isSuperAdmin() && !empty($empresaId)) {
+                $promotionQuery->andWhere(['p.id_company' => $empresaId]);
+            } elseif (!$user->isSuperAdmin()) {
+                $promotionQuery->andWhere(['p.id_company' => $user->id_company]);
+            }
+
+            // ============================================
+            // DATAPROVIDER CAMPAÑAS
+            // ============================================
+            $campaignDataProvider = new ActiveDataProvider([
+                'query' => $campaignQuery,
+                'pagination' => [
+                    'pageSize' => 10,
+                    'pageSizeParam' => 'per-page',
+                    'pageParam' => 'page_campaigns',
+                ],
+                'sort' => [
+                    'defaultOrder' => ['id_campaign' => SORT_DESC],
+                    'attributes' => [
+                        'id_campaign' => [
+                            'asc' => ['c.id_campaign' => SORT_ASC],
+                            'desc' => ['c.id_campaign' => SORT_DESC],
+                            'label' => 'ID',
+                            'default' => SORT_DESC,
+                        ],
+                        'campaign_name' => [
+                            'asc' => ['c.campaign_name' => SORT_ASC],
+                            'desc' => ['c.campaign_name' => SORT_DESC],
+                            'label' => 'Nombre',
+                        ],
+                        'start_date' => [
+                            'asc' => ['c.start_date' => SORT_ASC],
+                            'desc' => ['c.start_date' => SORT_DESC],
+                            'label' => 'Fecha Inicio',
+                        ],
+                        'end_date' => [
+                            'asc' => ['c.end_date' => SORT_ASC],
+                            'desc' => ['c.end_date' => SORT_DESC],
+                            'label' => 'Fecha Fin',
+                        ],
+                        'id_status' => [
+                            'asc' => ['c.id_status' => SORT_ASC],
+                            'desc' => ['c.id_status' => SORT_DESC],
+                            'label' => 'Estado',
+                        ],
+                    ],
+                ],
+            ]);
+
+            // ============================================
+            // DATAPROVIDER PROMOCIONES
+            // ============================================
+            $promotionDataProvider = new ActiveDataProvider([
+                'query' => $promotionQuery,
+                'pagination' => [
+                    'pageSize' => 10,
+                    'pageSizeParam' => 'per-page',
+                    'pageParam' => 'page_promotions',
+                ],
+                'sort' => [
+                    'defaultOrder' => ['id_promotion' => SORT_DESC],
+                    'attributes' => [
+                        'id_promotion' => [
+                            'asc' => ['p.id_promotion' => SORT_ASC],
+                            'desc' => ['p.id_promotion' => SORT_DESC],
+                            'label' => 'ID',
+                            'default' => SORT_DESC,
+                        ],
+                        'promotion_name' => [
+                            'asc' => ['p.promotion_name' => SORT_ASC],
+                            'desc' => ['p.promotion_name' => SORT_DESC],
+                            'label' => 'Nombre',
+                        ],
+                        'start_date' => [
+                            'asc' => ['p.start_date' => SORT_ASC],
+                            'desc' => ['p.start_date' => SORT_DESC],
+                            'label' => 'Fecha Inicio',
+                        ],
+                        'end_date' => [
+                            'asc' => ['p.end_date' => SORT_ASC],
+                            'desc' => ['p.end_date' => SORT_DESC],
+                            'label' => 'Fecha Fin',
+                        ],
+                        'id_status' => [
+                            'asc' => ['p.id_status' => SORT_ASC],
+                            'desc' => ['p.id_status' => SORT_DESC],
+                            'label' => 'Estado',
+                        ],
+                    ],
+                ],
+            ]);
+
+            // ============================================
+            // TOTALES
+            // ============================================
             $totalCampaignsQuery = Campaign::find();
             $totalPromotionsQuery = Promotion::find();
 
@@ -79,6 +186,9 @@ class MarketingController extends Controller
             $totalCampaigns = $totalCampaignsQuery->count();
             $totalPromotions = $totalPromotionsQuery->count();
 
+            // ============================================
+            // ACTIVOS
+            // ============================================
             $statusActivo = Status::find()->where(['status' => 'Activo'])->one();
             $activeCampaigns = 0;
             $activePromotions = 0;
@@ -99,19 +209,10 @@ class MarketingController extends Controller
                 $activePromotions = $activePromotionsQuery->count();
             }
 
-            $companyList = [];
-            if ($user->isSuperAdmin()) {
-                $companyList = Company::find()
-                    ->select(['name', 'id_company'])
-                    ->indexBy('id_company')
-                    ->column();
-            }
-
-            $statusList = Status::find()
-                ->select(['status', 'id_status'])
-                ->where(['IN', 'status', self::MARKETING_STATUS_LIST])
-                ->indexBy('id_status')
-                ->column();
+            // ============================================
+            // SEARCH MODEL
+            // ============================================
+            $searchModel = new MarketingSearch();
 
             $canCreate = $user->isAdmin() || $user->isSuperAdmin();
 
@@ -123,34 +224,22 @@ class MarketingController extends Controller
                 'totalPromotions' => $totalPromotions,
                 'activeCampaigns' => $activeCampaigns,
                 'activePromotions' => $activePromotions,
-                'companyList' => $companyList,
-                'statusList' => $statusList,
+                'companyList' => [],
+                'statusList' => [],
                 'canCreate' => $canCreate,
                 'isAdmin' => $user->isAdmin(),
                 'isSuperAdmin' => $user->isSuperAdmin(),
             ]);
 
         } catch (\Exception $e) {
-            ErrorManager::handle($e, 'Error al cargar el módulo de marketing');
-            return $this->render('index', [
-                'searchModel' => new MarketingSearch(),
-                'campaignDataProvider' => new \yii\data\ArrayDataProvider(['allModels' => []]),
-                'promotionDataProvider' => new \yii\data\ArrayDataProvider(['allModels' => []]),
-                'totalCampaigns' => 0,
-                'totalPromotions' => 0,
-                'activeCampaigns' => 0,
-                'activePromotions' => 0,
-                'companyList' => [],
-                'statusList' => [],
-                'canCreate' => false,
-                'isAdmin' => false,
-                'isSuperAdmin' => false,
-            ]);
+            Yii::error('❌ [MARKETING] ERROR: ' . $e->getMessage(), 'marketing-debug');
+            Yii::error('❌ [MARKETING] Archivo: ' . $e->getFile() . ':' . $e->getLine(), 'marketing-debug');
+            throw $e;
         }
     }
 
     // ============================================
-    // CREAR (Campaña o Promoción)
+    // CREAR → Redirige a VIEW
     // ============================================
     public function actionCreate()
     {
@@ -163,7 +252,6 @@ class MarketingController extends Controller
             return $this->redirect(['empresa/index']);
         }
 
-        // Asignar empresa
         if ($user->isSuperAdmin()) {
             if (!empty($empresaId)) {
                 $model->id_company = $empresaId;
@@ -172,13 +260,11 @@ class MarketingController extends Controller
             $model->id_company = $user->id_company;
         }
 
-        // Asignar estado por defecto
         $statusActivo = Status::find()->where(['status' => 'Activo'])->one();
         if ($statusActivo) {
             $model->id_status = $statusActivo->id_status;
         }
 
-        // Si el tipo viene por GET (desde el botón)
         $type = Yii::$app->request->get('type');
         if ($type && in_array($type, [Marketing::TYPE_CAMPAIGN, Marketing::TYPE_PROMOTION])) {
             $model->type = $type;
@@ -188,7 +274,7 @@ class MarketingController extends Controller
             try {
                 if ($model->save()) {
                     Yii::$app->session->setFlash('success', ucfirst($model->getTypeLabel()) . ' creada exitosamente.');
-                    return $this->redirect(['index']);
+                    return $this->redirect(['view', 'id' => $model->id]);
                 }
             } catch (\Exception $e) {
                 Yii::$app->session->setFlash('error', 'Error al guardar: ' . $e->getMessage());
@@ -213,7 +299,6 @@ class MarketingController extends Controller
             throw new NotFoundHttpException('Elemento no encontrado.');
         }
 
-        // 🔥 VERIFICAR PERMISOS
         if ($user->isSuperAdmin() && !empty($empresaId) && $model->id_company != $empresaId) {
             Yii::$app->session->setFlash('error', 'No tienes permiso para ver este elemento.');
             return $this->redirect(['index']);
@@ -228,7 +313,7 @@ class MarketingController extends Controller
     }
 
     // ============================================
-    // ACTUALIZAR
+    // ACTUALIZAR → Redirige a VIEW
     // ============================================
     public function actionUpdate($id)
     {
@@ -240,7 +325,6 @@ class MarketingController extends Controller
             throw new NotFoundHttpException('Elemento no encontrado.');
         }
 
-        // 🔥 VERIFICAR PERMISOS
         if ($user->isSuperAdmin() && !empty($empresaId) && $model->id_company != $empresaId) {
             Yii::$app->session->setFlash('error', 'No tienes permiso para editar este elemento.');
             return $this->redirect(['index']);
@@ -255,7 +339,7 @@ class MarketingController extends Controller
             try {
                 if ($model->save()) {
                     Yii::$app->session->setFlash('success', ucfirst($model->getTypeLabel()) . ' actualizada exitosamente.');
-                    return $this->redirect(['index']);
+                    return $this->redirect(['view', 'id' => $model->id]);
                 }
             } catch (\Exception $e) {
                 Yii::$app->session->setFlash('error', 'Error al actualizar: ' . $e->getMessage());
@@ -268,7 +352,7 @@ class MarketingController extends Controller
     }
 
     // ============================================
-    // ELIMINAR
+    // ELIMINAR → Redirige a INDEX
     // ============================================
     public function actionDelete($id)
     {
@@ -281,7 +365,6 @@ class MarketingController extends Controller
                 throw new NotFoundHttpException('Elemento no encontrado.');
             }
 
-            // 🔥 VERIFICAR PERMISOS
             if ($user->isSuperAdmin() && !empty($empresaId) && $model->id_company != $empresaId) {
                 Yii::$app->session->setFlash('error', 'No tienes permiso para eliminar este elemento.');
                 return $this->redirect(['index']);
@@ -299,26 +382,5 @@ class MarketingController extends Controller
             Yii::$app->session->setFlash('error', 'Error al eliminar: ' . $e->getMessage());
         }
         return $this->redirect(['index']);
-    }
-
-    // ============================================
-    // FINDERS
-    // ============================================
-    protected function findCampaign($id)
-    {
-        $model = Campaign::findOne($id);
-        if (!$model) {
-            throw new NotFoundHttpException('Campaña no encontrada.');
-        }
-        return $model;
-    }
-
-    protected function findPromotion($id)
-    {
-        $model = Promotion::findOne($id);
-        if (!$model) {
-            throw new NotFoundHttpException('Promoción no encontrada.');
-        }
-        return $model;
     }
 }

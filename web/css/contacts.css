@@ -4,15 +4,25 @@
    ============================================ */
 
 /* ============================================ */
-/* CONTENEDOR PRINCIPAL                        */
+/* 🔥 CONTENEDOR PRINCIPAL CON SOMBRA          */
 /* ============================================ */
 
+.contacts-index,
+.contacts-create,
+.contacts-trash {
+    width: 100%;
+    padding: 0;
+    background: transparent;
+}
+
+/* Contenedor blanco con sombra que encapsula todo */
 .contacts-wrapper {
     background: #ffffff;
     border-radius: 12px;
     padding: 20px 25px 25px 25px;
     box-shadow: 0 2px 12px rgba(0, 0, 0, 0.08);
     border: none;
+    width: 100%;
 }
 
 /* ============================================ */
@@ -95,6 +105,17 @@
     color: #ffffff !important;
 }
 
+.btn-outline-danger.btn-header-action {
+    background: transparent !important;
+    border: 1px solid #dc3545 !important;
+    color: #dc3545 !important;
+}
+
+.btn-outline-danger.btn-header-action:hover {
+    background: #dc3545 !important;
+    color: #ffffff !important;
+}
+
 .btn-primary.btn-header-action {
     background: #0a48e2 !important;
     border-color: #0a48e2 !important;
@@ -104,6 +125,17 @@
 .btn-primary.btn-header-action:hover {
     background: #245eff !important;
     border-color: #245eff !important;
+}
+
+.btn-secondary.btn-header-action {
+    background: #6c757d !important;
+    border-color: #6c757d !important;
+    color: #ffffff !important;
+}
+
+.btn-secondary.btn-header-action:hover {
+    background: #5a6268 !important;
+    border-color: #5a6268 !important;
 }
 
 /* ============================================ */
@@ -567,6 +599,11 @@
 /* ============================================ */
 
 @media (max-width: 992px) {
+    .contacts-wrapper {
+        padding: 18px 20px 20px 20px;
+        border-radius: 10px;
+    }
+
     .stat-card {
         min-height: 55px;
         max-height: 55px;

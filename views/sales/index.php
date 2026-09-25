@@ -54,9 +54,7 @@ $filtrandoCancelado = (strtolower(trim($status)) === 'cancelado');
 <div class="sales-container">
     <div class="sales-wrapper">
         
-        <!-- ============================================ -->
         <!-- HEADER -->
-        <!-- ============================================ -->
         <div class="sales-header">
             <div>
                 <div class="breadcrumb-custom">
@@ -74,18 +72,9 @@ $filtrandoCancelado = (strtolower(trim($status)) === 'cancelado');
                     <small><?= date('d/m/Y H:i') ?></small>
                 </h1>
             </div>
-            <div class="header-actions">
-                <?php if ($isAdmin || $isSuperAdmin): ?>
-                    <?= Html::a('<i class="fas fa-file-invoice"></i> Cotizaciones', ['/quote/index'], [
-                        'class' => 'btn btn-outline-info btn-sm btn-header-action'
-                    ]) ?>
-                <?php endif; ?>
-            </div>
         </div>
 
-        <!-- ============================================ -->
-        <!-- MÉTRICAS PRINCIPALES (CANTIDAD, PERDIDOS Y VENTAS MES) -->
-        <!-- ============================================ -->
+        <!-- MÉTRICAS PRINCIPALES -->
         <div class="row g-2 mb-3">
             <div class="col-xl-4 col-md-6 col-6">
                 <div class="card stat-card stat-card-success dashboard-card">
@@ -123,9 +112,7 @@ $filtrandoCancelado = (strtolower(trim($status)) === 'cancelado');
             </div>
         </div>
 
-        <!-- ============================================ -->
-        <!-- MÉTRICAS SECUNDARIAS (PROMEDIO, TOTAL VENDIDO, CANCELADOS) -->
-        <!-- ============================================ -->
+        <!-- MÉTRICAS SECUNDARIAS -->
         <div class="row g-2 mb-3">
             <div class="col-xl-4 col-md-6 col-6">
                 <div class="card stat-card stat-card-secondary dashboard-card">
@@ -162,9 +149,7 @@ $filtrandoCancelado = (strtolower(trim($status)) === 'cancelado');
             </div>
         </div>
 
-        <!-- ============================================ -->
         <!-- FILTROS -->
-        <!-- ============================================ -->
         <div class="card filtros-card mb-3">
             <div class="card-body">
                 <form method="get" action="<?= Url::to(['sales/index']) ?>" id="form-filtros">
@@ -176,7 +161,7 @@ $filtrandoCancelado = (strtolower(trim($status)) === 'cancelado');
                         </div>
                         <div class="col-md-3">
                             <input type="text" class="form-control" name="search" 
-                                   placeholder="Buscar por cliente o folio..." 
+                                   placeholder="Buscar por cliente..." 
                                    value="<?= Html::encode($search) ?>" id="search-input">
                         </div>
                         <div class="col-md-2">
@@ -212,9 +197,7 @@ $filtrandoCancelado = (strtolower(trim($status)) === 'cancelado');
             </div>
         </div>
 
-        <!-- ============================================ -->
         <!-- TABLA DE VENTAS -->
-        <!-- ============================================ -->
         <div class="card table-card">
             <div class="card-header">
                 <div class="header-left">
@@ -237,12 +220,9 @@ $filtrandoCancelado = (strtolower(trim($status)) === 'cancelado');
                     <table class="table table-hover mb-0" id="sales-table">
                         <thead class="table-light">
                             <tr>
-                                <th>#</th>
-                                <th>Folio</th>
                                 <th>Cliente</th>
                                 <th>Teléfono</th>
                                 <th>Monto Total</th>
-                                <th>Estado</th>
                                 <th>Estatus Venta</th>
                                 <th>Fecha</th>
                             </tr>
@@ -259,15 +239,8 @@ $filtrandoCancelado = (strtolower(trim($status)) === 'cancelado');
                                     $rowClass = $isCancelado ? 'table-danger' : 'table-success';
                                     ?>
                                     <tr class="sale-row <?= $rowClass ?>" data-id="<?= $sale->id_quote ?>">
-                                        <td><?= (($currentPage - 1) * $pageSize) + $index + 1 ?></td>
-                                        <td>
-                                            <span class="badge bg-secondary">#<?= str_pad($sale->id_quote, 6, '0', STR_PAD_LEFT) ?></span>
-                                        </td>
                                         <td>
                                             <strong><?= isset($sale->lead) ? Html::encode($sale->lead->name . ' ' . $sale->lead->lastname) : 'Lead eliminado' ?></strong>
-                                            <?php if (isset($sale->lead)): ?>
-                                                <br><small class="text-muted"><i class="fas fa-phone"></i> <?= $sale->lead->phone ?? 'Sin teléfono' ?></small>
-                                            <?php endif; ?>
                                         </td>
                                         <td>
                                             <?php if (isset($sale->lead) && $sale->lead->phone): ?>
@@ -285,24 +258,6 @@ $filtrandoCancelado = (strtolower(trim($status)) === 'cancelado');
                                             <strong class="<?= $isCancelado ? 'text-danger' : 'text-success' ?>">
                                                 $<?= number_format($sale->total_amount, 0, '.', ',') ?>
                                             </strong>
-                                            <?php if ($isCancelado): ?>
-                                                <br><small class="text-danger"><i class="fas fa-times-circle"></i> Perdido</small>
-                                            <?php endif; ?>
-                                        </td>
-                                        <td>
-                                            <?php
-                                            $statusClass = 'secondary';
-                                            if ($isCancelado) {
-                                                $statusClass = 'danger';
-                                            } elseif ($isVendido) {
-                                                $statusClass = 'success';
-                                            } elseif (strtolower($statusName) == 'pendiente') {
-                                                $statusClass = 'warning';
-                                            } elseif (strtolower($statusName) == 'rechazada') {
-                                                $statusClass = 'danger';
-                                            }
-                                            ?>
-                                            <span class="badge bg-<?= $statusClass ?>"><?= Html::encode($statusName) ?></span>
                                         </td>
                                         <td>
                                             <?php if ($isCancelado): ?>
@@ -310,7 +265,7 @@ $filtrandoCancelado = (strtolower(trim($status)) === 'cancelado');
                                             <?php elseif ($isVendido): ?>
                                                 <span class="badge bg-success"><i class="fas fa-check-circle"></i> Vendido</span>
                                             <?php else: ?>
-                                                <span class="badge bg-warning"><i class="fas fa-clock"></i> Pendiente</span>
+                                                <span class="badge bg-warning"><i class="fas fa-clock"></i> <?= Html::encode($statusName) ?></span>
                                             <?php endif; ?>
                                         </td>
                                         <td><?= date('d/m/Y', strtotime($sale->date_quote)) ?></td>
@@ -318,7 +273,7 @@ $filtrandoCancelado = (strtolower(trim($status)) === 'cancelado');
                                 <?php endforeach; ?>
                             <?php else: ?>
                                 <tr>
-                                    <td colspan="8" class="text-center text-muted py-4">
+                                    <td colspan="5" class="text-center text-muted py-4">
                                         <i class="fas fa-inbox fa-2x d-block mb-2"></i>
                                         <?php if ($filtrandoCancelado): ?>
                                             No hay cotizaciones canceladas
@@ -335,9 +290,6 @@ $filtrandoCancelado = (strtolower(trim($status)) === 'cancelado');
                     </table>
                 </div>
             </div>
-            <!-- ============================================ -->
-            <!-- FOOTER CON PAGINACIÓN -->
-            <!-- ============================================ -->
             <div class="card-footer">
                 <div class="row align-items-center">
                     <div class="col-md-6">
@@ -363,9 +315,7 @@ $filtrandoCancelado = (strtolower(trim($status)) === 'cancelado');
             </div>
         </div>
 
-        <!-- ============================================ -->
         <!-- ÚLTIMAS VENTAS + RESUMEN -->
-        <!-- ============================================ -->
         <div class="row g-2 mt-3 bottom-cards">
             <div class="col-md-6">
                 <div class="card activities-card">
@@ -406,14 +356,13 @@ $filtrandoCancelado = (strtolower(trim($status)) === 'cancelado');
                                                 <strong><?= isset($sale->lead) ? Html::encode($sale->lead->name . ' ' . $sale->lead->lastname) : 'Lead eliminado' ?></strong>
                                                 <?php if ($isCancelado): ?>
                                                     <span class="badge bg-danger">Perdido</span>
+                                                <?php elseif ($isVendido): ?>
+                                                    <span class="badge bg-success">Vendido</span>
                                                 <?php else: ?>
-                                                    <span class="badge bg-<?= $isVendido ? 'success' : 'warning' ?>">
-                                                        <?= $isVendido ? 'Vendido' : 'Pendiente' ?>
-                                                    </span>
+                                                    <span class="badge bg-warning"><?= Html::encode($statusName) ?></span>
                                                 <?php endif; ?>
                                             </div>
                                             <div class="activity-description">
-                                                Folio #<?= str_pad($sale->id_quote, 6, '0', STR_PAD_LEFT) ?> - 
                                                 $<?= number_format($sale->total_amount, 0, '.', ',') ?>
                                             </div>
                                             <div class="activity-meta">
@@ -484,9 +433,6 @@ $filtrandoCancelado = (strtolower(trim($status)) === 'cancelado');
     </div>
 </div>
 
-<!-- ============================================ -->
-<!-- SCRIPTS -->
-<!-- ============================================ -->
 <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
 <script>
 // ============================================

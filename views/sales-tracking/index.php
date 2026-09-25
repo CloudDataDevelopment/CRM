@@ -15,7 +15,6 @@ $this->registerCssFile('@web/css/sales-tracking.css', ['depends' => [\yii\bootst
 $this->registerCssFile('@web/css/sales-tracking-panel.css', ['depends' => [\yii\bootstrap5\BootstrapAsset::class], 'position' => \yii\web\View::POS_HEAD]);
 $this->registerCssFile('@web/css/sales-tracking-edit-modal.css', ['depends' => [\yii\bootstrap5\BootstrapAsset::class], 'position' => \yii\web\View::POS_HEAD]);
 
-// Registrar JS
 $this->registerJsFile('https://code.jquery.com/jquery-3.6.0.min.js', ['position' => \yii\web\View::POS_HEAD]);
 
 // ============================================
@@ -37,9 +36,6 @@ $fecha_fin = isset($fecha_fin) ? $fecha_fin : '';
 
 $hasData = !empty($trackings);
 
-// ============================================
-// MÉTRICAS
-// ============================================
 $metricas = [
     ['class' => 'primary', 'icon' => 'phone', 'label' => 'Total Seguimientos', 'value' => $totalTrackings],
     ['class' => 'warning', 'icon' => 'clock', 'label' => 'Pendientes', 'value' => $statusCounts['Pendiente'] ?? 0],
@@ -50,9 +46,10 @@ $metricas = [
 ];
 ?>
 
+<!-- 🔥 CONTENEDOR PRINCIPAL CON SOMBRA -->
 <div class="sales-tracking-index">
     <div class="sales-tracking-wrapper">
-        
+
         <!-- HEADER -->
         <div class="sales-tracking-header">
             <div>
@@ -71,7 +68,7 @@ $metricas = [
             </div>
             <div class="header-actions">
                 <?= $this->render('/layouts/_report_button') ?>
-                
+
                 <?php if ($isAdmin || $isSuperAdmin): ?>
                     <?= Html::a(
                         '<i class="fas fa-trash"></i> Papelera',
@@ -79,7 +76,7 @@ $metricas = [
                         ['class' => 'btn btn-outline-danger btn-sm btn-tracking-action']
                     ) ?>
                 <?php endif; ?>
-                
+
                 <?= Html::a('<i class="fas fa-plus"></i> Nuevo Seguimiento', ['create'], [
                     'class' => 'btn btn-primary btn-sm btn-tracking-action'
                 ]) ?>
@@ -141,7 +138,6 @@ $metricas = [
 
         <!-- CONTENEDOR PRINCIPAL -->
         <div class="tracking-panel-container">
-            <!-- Tabla -->
             <div class="tracking-table-wrapper" id="tableWrapper">
                 <div class="card tracking-table-card">
                     <div class="card-header">
@@ -261,7 +257,7 @@ $metricas = [
                         </div>
                     </div>
                 </div>
-                
+
                 <!-- ÚLTIMOS SEGUIMIENTOS + RESUMEN -->
                 <div class="row g-2 mt-3 bottom-cards">
                     <div class="col-md-6">
@@ -313,7 +309,7 @@ $metricas = [
                             </div>
                             <div class="card-body d-flex align-items-center">
                                 <div class="w-100">
-                                    <?php if (!empty($statusCounts)): 
+                                    <?php if (!empty($statusCounts)):
                                         $colors = ['warning', 'info', 'success', 'danger', 'secondary', 'primary'];
                                         $i = 0;
                                         foreach ($statusCounts as $name => $count):
@@ -336,7 +332,7 @@ $metricas = [
                     </div>
                 </div>
             </div>
-            
+
             <!-- Panel Lateral -->
             <div class="panel-wrapper" id="panelWrapper">
                 <div class="card slide-panel-card">
@@ -345,8 +341,8 @@ $metricas = [
             </div>
         </div>
 
-    </div>
-</div>
+    </div><!-- /.sales-tracking-wrapper -->
+</div><!-- /.sales-tracking-index -->
 
 <?php
 $viewModalUrl = Url::to(['sales-tracking/view-modal']);
@@ -354,9 +350,6 @@ $updateModalUrl = Url::to(['sales-tracking/update-modal']);
 ?>
 
 <script>
-// ============================================
-// ACTUALIZACIÓN EN TIEMPO REAL
-// ============================================
 window.onTrackingUpdated = function(t) {
     var row = document.querySelector('.tracking-row[data-id="' + t.id + '"]');
     if (!row) return;
@@ -378,9 +371,6 @@ window.onTrackingUpdated = function(t) {
     setTimeout(function() { row.style.backgroundColor = ''; }, 1000);
 };
 
-// ============================================
-// EJECUTAR SCRIPTS DE CONTENIDO AJAX
-// ============================================
 function executeScripts(container) {
     if (!container) return 0;
     var scripts = container.querySelectorAll('script');
@@ -394,9 +384,6 @@ function executeScripts(container) {
     return scripts.length;
 }
 
-// ============================================
-// ESPERAR A QUE JQUERY ESTÉ CARGADO
-// ============================================
 (function() {
     if (typeof jQuery === 'undefined') {
         var script = document.createElement('script');
@@ -412,31 +399,31 @@ function executeScripts(container) {
 
 function inicializar() {
     var $ = jQuery;
-    
+
     var viewModalUrl = '<?= $viewModalUrl ?>';
     var updateModalUrl = '<?= $updateModalUrl ?>';
     var isOpen = false;
     var currentId = null;
-    
+
     function closePanel(callback) {
         var panel = document.getElementById('panelWrapper');
         var tableWrapper = document.getElementById('tableWrapper');
-        
+
         if (!panel || !tableWrapper) {
             if (callback) callback();
             return;
         }
-        
+
         isOpen = false;
-        
+
         document.querySelectorAll('.tracking-row').forEach(function(row) {
             row.classList.remove('tracking-row-selected');
         });
-        
+
         panel.classList.remove('visible');
         panel.classList.add('closing');
         tableWrapper.classList.remove('with-panel');
-        
+
         setTimeout(function() {
             panel.style.display = 'none';
             panel.classList.remove('closing');
@@ -448,13 +435,13 @@ function inicializar() {
             if (callback) callback();
         }, 300);
     }
-    
+
     function openPanel(id) {
         if (id === currentId && isOpen) {
             closePanel();
             return;
         }
-        
+
         if (isOpen) {
             closePanel(function() {
                 setTimeout(function() {
@@ -463,32 +450,32 @@ function inicializar() {
             });
             return;
         }
-        
+
         currentId = id;
         isOpen = true;
-        
+
         var panel = document.getElementById('panelWrapper');
         var panelContent = document.getElementById('slidePanelContent');
         var tableWrapper = document.getElementById('tableWrapper');
         var filaSeleccionada = document.querySelector('.tracking-row[data-id="' + id + '"]');
-        
+
         if (!panel || !tableWrapper || !panelContent) {
             return;
         }
-        
+
         document.querySelectorAll('.tracking-row').forEach(function(row) {
             row.classList.remove('tracking-row-selected');
         });
         if (filaSeleccionada) {
             filaSeleccionada.classList.add('tracking-row-selected');
         }
-        
+
         tableWrapper.classList.add('with-panel');
         panel.style.display = 'block';
         panel.classList.add('visible');
-        
+
         panelContent.innerHTML = '<div class="text-center text-muted py-4"><div class="spinner-border text-primary" role="status"></div><p class="mt-2">Cargando...</p></div>';
-        
+
         fetch(viewModalUrl + '?id=' + id)
             .then(function(response) {
                 if (!response.ok) throw new Error('HTTP ' + response.status);
@@ -502,7 +489,7 @@ function inicializar() {
                 panelContent.innerHTML = '<div class="text-center text-danger py-4"><i class="fas fa-exclamation-triangle fa-2x d-block mb-2"></i><p>Error al cargar</p><button class="btn btn-secondary btn-sm mt-2" onclick="closePanel()">Cerrar</button></div>';
             });
     }
-    
+
     function openEditPanel(id) {
         if (isOpen) {
             closePanel(function() {
@@ -512,32 +499,32 @@ function inicializar() {
             });
             return;
         }
-        
+
         currentId = id;
         isOpen = true;
-        
+
         var panel = document.getElementById('panelWrapper');
         var panelContent = document.getElementById('slidePanelContent');
         var tableWrapper = document.getElementById('tableWrapper');
         var filaSeleccionada = document.querySelector('.tracking-row[data-id="' + id + '"]');
-        
+
         if (!panel || !tableWrapper || !panelContent) {
             return;
         }
-        
+
         document.querySelectorAll('.tracking-row').forEach(function(row) {
             row.classList.remove('tracking-row-selected');
         });
         if (filaSeleccionada) {
             filaSeleccionada.classList.add('tracking-row-selected');
         }
-        
+
         tableWrapper.classList.add('with-panel');
         panel.style.display = 'block';
         panel.classList.add('visible');
-        
+
         panelContent.innerHTML = '<div class="text-center text-muted py-4"><div class="spinner-border text-primary" role="status"></div><p class="mt-2">Cargando formulario...</p></div>';
-        
+
         fetch(updateModalUrl + '?id=' + id)
             .then(function(response) {
                 if (!response.ok) throw new Error('HTTP ' + response.status);
@@ -551,63 +538,63 @@ function inicializar() {
                 panelContent.innerHTML = '<div class="text-center text-danger py-4"><i class="fas fa-exclamation-triangle fa-2x d-block mb-2"></i><p>Error al cargar</p><button class="btn btn-secondary btn-sm mt-2" onclick="closePanel()">Cerrar</button></div>';
             });
     }
-    
+
     window.openPanel = openPanel;
     window.openEditPanel = openEditPanel;
     window.closePanel = closePanel;
-    
+
     $(document).on('click', '.view-tracking-btn', function(e) {
         e.stopPropagation();
         var id = $(this).data('id');
         if (id) openPanel(id);
     });
-    
+
     $(document).on('click', '.edit-tracking-btn', function(e) {
         e.stopPropagation();
         var id = $(this).data('id');
         if (id) openEditPanel(id);
     });
-    
+
     $(document).on('click', '.tracking-row', function(e) {
         if ($(e.target).closest('a, button').length > 0) return;
         var id = $(this).data('id');
         if (id) openPanel(id);
     });
-    
+
     document.addEventListener('keydown', function(e) {
         if (e.key === 'Escape' && isOpen) {
             closePanel();
         }
     });
-    
+
     var searchInput = document.getElementById('search-input');
     if (searchInput) {
         searchInput.addEventListener('keypress', function(e) {
             if (e.key === 'Enter') document.getElementById('form-filtros').submit();
         });
     }
-    
+
     var statusSelect = document.getElementById('status-select');
     if (statusSelect) {
         statusSelect.addEventListener('change', function() {
             document.getElementById('form-filtros').submit();
         });
     }
-    
+
     var fechaInicio = document.getElementById('fecha-inicio');
     if (fechaInicio) {
         fechaInicio.addEventListener('change', function() {
             document.getElementById('form-filtros').submit();
         });
     }
-    
+
     var fechaFin = document.getElementById('fecha-fin');
     if (fechaFin) {
         fechaFin.addEventListener('change', function() {
             document.getElementById('form-filtros').submit();
         });
     }
-    
+
     var btnFiltrar = document.getElementById('btn-filtrar');
     if (btnFiltrar) {
         btnFiltrar.addEventListener('click', function(e) {

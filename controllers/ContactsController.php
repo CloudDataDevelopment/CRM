@@ -18,7 +18,6 @@ class ContactsController extends Controller
 {
     public $layout = 'main';
 
-    // 🔥 Estados permitidos (solo Activo/Inactivo)
     const CONTACT_STATUS_LIST = ['Activo', 'Inactivo'];
 
     public function behaviors()
@@ -27,8 +26,8 @@ class ContactsController extends Controller
             'verbs' => [
                 'class' => VerbFilter::className(),
                 'actions' => [
-                    'delete'           => ['POST', 'GET'],  // 🔥 Acepta ambos
-                    'restore'          => ['POST', 'GET'],  // 🔥 Acepta ambos
+                    'delete'           => ['POST', 'GET'],
+                    'restore'          => ['POST', 'GET'],
                     'create-type-ajax' => ['POST'],
                 ],
             ],
@@ -36,7 +35,7 @@ class ContactsController extends Controller
     }
 
     // ============================================
-    // 🔥 Helper: ID de papelera (Inactivo)
+    // HELPER: ID de papelera (Inactivo)
     // ============================================
     private function getTrashStatusId()
     {
@@ -45,7 +44,107 @@ class ContactsController extends Controller
     }
 
     // ============================================
-    // LISTA DE CONTACTOS CON PAGINACIÓN
+    // HELPER: Obtener empresa efectiva del usuario
+    // ============================================
+    private function getEffectiveCompanyId($user, $empresaId)
+    {
+        if ($user->isSuperAdmin()) {
+            if (!empty($empresaId)) {
+                return (int) $empresaId;
+            }
+            if (!empty($user->id_company)) {
+                return (int) $user->id_company;
+            }
+            $company = Company::find()->one();
+            return $company ? (int) $company->id_company : 1;
+        }
+
+        if (!empty($user->id_company)) {
+            return (int) $user->id_company;
+        }
+
+        $company = Company::find()->one();
+        return $company ? (int) $company->id_company : 1;
+    }
+
+    // ============================================
+    // HELPER: Verificar si un contacto pertenece a la empresa del usuario
+    // ============================================
+    private function canAccessContact($contact, $user, $empresaId)
+    {
+        if (!$contact) {
+            return false;
+        }
+
+        // Super Admin: solo si la empresa seleccionada coincide
+        if ($user->isSuperAdmin()) {
+            if (!empty($empresaId) && $contact->id_company != $empresaId) {
+                return false;
+            }
+            return true;
+        }
+
+        // Admin normal: solo su empresa
+        if ($user->isAdmin() && !$user->isSuperAdmin()) {
+            return $contact->id_company == $user->id_company;
+        }
+
+        // Agente: solo su empresa
+        if ($user->isAgent()) {
+            return $contact->id_company == $user->id_company;
+        }
+
+        return false;
+    }
+
+    // ============================================
+    // HELPER: Procesar nuevo tipo de contacto
+    // ============================================
+    private function processNewTypeContact($post)
+    {
+        $typeValue = $post['Contacts']['id_type_contact'] ?? null;
+
+        if ($typeValue === '__new__' || $typeValue === '0' || $typeValue === 0) {
+            $newTypeName = trim($post['new_type_contact'] ?? '');
+
+            if (empty($newTypeName)) {
+                return ['success' => false, 'error' => 'Debes ingresar un nombre para el nuevo tipo de contacto.'];
+            }
+
+            if (mb_strlen($newTypeName) < 2) {
+                return ['success' => false, 'error' => 'El nombre del tipo debe tener al menos 2 caracteres.'];
+            }
+
+            $existing = TypeContact::find()
+                ->where(['type_contact' => $newTypeName])
+                ->one();
+
+            if ($existing) {
+                return ['success' => true, 'id_type_contact' => $existing->id_type_contact];
+            }
+
+            $newType = new TypeContact();
+            $newType->type_contact = $newTypeName;
+
+            if ($newType->save()) {
+                return ['success' => true, 'id_type_contact' => $newType->id_type_contact];
+            }
+
+            return [
+                'success' => false,
+                'error' => 'Error al crear el tipo: ' . implode(', ', $newType->getFirstErrors())
+            ];
+        }
+
+        if (empty($typeValue)) {
+            return ['success' => true, 'id_type_contact' => null];
+        }
+
+        return ['success' => true, 'id_type_contact' => (int) $typeValue];
+    }
+
+    // ============================================
+    // INDEX
     // ============================================
     public function actionIndex()
     {
@@ -62,28 +161,34 @@ class ContactsController extends Controller
                 return $this->redirect(['empresa/index']);
             }
 
-            // 🔥 QUERY BASE
-            $query = Contacts::find()
-                ->joinWith(['company', 'status', 'typeContact']);
+            // 🔥 QUERY BASE con JOIN a relaciones
+            $query = Contacts::find()->joinWith(['company', 'status', 'typeContact']);
 
-            // 🔥 EXCLUIR PAPELERA (Inactivo)
+            // 🔥 EXCLUIR PAPELERA
             $trashId = $this->getTrashStatusId();
             if ($trashId) {
                 $query->andWhere(['<>', 'Contacts.id_status', $trashId]);
             }
 
-            // FILTRO POR ROL Y EMPRESA
+            // ============================================
+            // 🔥 FILTRO POR ROL Y EMPRESA (id_company)
+            // ============================================
             if ($user->isSuperAdmin()) {
+                // Super Admin: solo la empresa seleccionada en sesión
                 if (!empty($empresaId)) {
-                    $query->andWhere(['Contacts.id_company' => $empresaId]);
+                    $query->andWhere(['Contacts.id_company' => (int) $empresaId]);
                 }
             } elseif ($user->isAdmin() && !$user->isSuperAdmin()) {
-                $query->andWhere(['Contacts.id_company' => $user->id_company]);
+                // Admin normal: solo su empresa
+                $query->andWhere(['Contacts.id_company' => (int) $user->id_company]);
             } elseif ($user->isAgent()) {
-                $query->andWhere(['Contacts.id_company' => $user->id_company]);
+                // Agente: solo su empresa
+                $query->andWhere(['Contacts.id_company' => (int) $user->id_company]);
             }
 
-            // 🔥 FILTROS DE BÚSQUEDA
+            // ============================================
+            // FILTROS DE BÚSQUEDA
+            // ============================================
             $search = Yii::$app->request->get('search', '');
             $status = Yii::$app->request->get('status', '');
             $type = Yii::$app->request->get('type', '');
@@ -97,7 +202,6 @@ class ContactsController extends Controller
                 ]);
             }
 
-            // 🔥 FILTRO POR ESTADO (solo Activo/Inactivo)
             if (!empty($status) && in_array($status, self::CONTACT_STATUS_LIST)) {
                 $statusModel = Status::find()->where(['status' => $status])->one();
                 if ($statusModel) {
@@ -112,7 +216,7 @@ class ContactsController extends Controller
                 }
             }
 
-            // 🔥 DATAPROVIDER CON PAGINACIÓN
+            // 🔥 ORDEN TIPO PILA: el último registrado primero
             $dataProvider = new ActiveDataProvider([
                 'query' => $query,
                 'pagination' => [
@@ -121,10 +225,7 @@ class ContactsController extends Controller
                     'pageParam' => 'page',
                 ],
                 'sort' => [
-                    'defaultOrder' => [
-                        'name' => SORT_ASC,
-                        'last_name' => SORT_ASC,
-                    ],
+                    'defaultOrder' => ['id_contact' => SORT_DESC],
                     'attributes' => [
                         'id_contact' => ['asc' => ['Contacts.id_contact' => SORT_ASC], 'desc' => ['Contacts.id_contact' => SORT_DESC]],
                         'name' => ['asc' => ['Contacts.name' => SORT_ASC], 'desc' => ['Contacts.name' => SORT_DESC]],
@@ -139,30 +240,37 @@ class ContactsController extends Controller
 
             $contacts = $dataProvider->getModels();
 
-            // 🔥 ESTADÍSTICAS
+            // ============================================
+            // MÉTRICAS (todas filtradas por empresa)
+            // ============================================
             $countQuery = clone $query;
             $totalContacts = $countQuery->count();
 
             $statusActivo = Status::find()->where(['status' => 'Activo'])->one();
             $statusInactivo = Status::find()->where(['status' => 'Inactivo'])->one();
 
+            // 🔥 CONTACTOS ACTIVOS
             $activeQuery = Contacts::find();
-            if ($user->isSuperAdmin() && !empty($empresaId)) {
-                $activeQuery->andWhere(['id_company' => $empresaId]);
+            if ($user->isSuperAdmin()) {
+                if (!empty($empresaId)) {
+                    $activeQuery->andWhere(['id_company' => (int) $empresaId]);
+                }
             } elseif (!$user->isSuperAdmin()) {
-                $activeQuery->andWhere(['id_company' => $user->id_company]);
+                $activeQuery->andWhere(['id_company' => (int) $user->id_company]);
             }
             if ($statusActivo) {
                 $activeQuery->andWhere(['id_status' => $statusActivo->id_status]);
             }
             $activeContacts = $activeQuery->count();
 
-            // 🔥 CONTAR PAPELERA (Inactivo)
+            // 🔥 CONTACTOS EN PAPELERA
             $trashQuery = Contacts::find();
-            if ($user->isSuperAdmin() && !empty($empresaId)) {
-                $trashQuery->andWhere(['id_company' => $empresaId]);
+            if ($user->isSuperAdmin()) {
+                if (!empty($empresaId)) {
+                    $trashQuery->andWhere(['id_company' => (int) $empresaId]);
+                }
             } elseif (!$user->isSuperAdmin()) {
-                $trashQuery->andWhere(['id_company' => $user->id_company]);
+                $trashQuery->andWhere(['id_company' => (int) $user->id_company]);
             }
             if ($statusInactivo) {
                 $trashQuery->andWhere(['id_status' => $statusInactivo->id_status]);
@@ -171,7 +279,9 @@ class ContactsController extends Controller
 
             $inactiveContacts = $totalContacts - $activeContacts;
 
-            // 🔥 Listas para filtros
+            // ============================================
+            // LISTAS PARA FILTROS
+            // ============================================
             $statusList = Status::find()
                 ->select(['status', 'id_status'])
                 ->where(['in', 'status', self::CONTACT_STATUS_LIST])
@@ -224,7 +334,7 @@ class ContactsController extends Controller
     }
 
     // ============================================
-    // 🔥 PAPELERA DE CONTACTOS
+    // PAPELERA
     // ============================================
     public function actionTrash()
     {
@@ -247,23 +357,21 @@ class ContactsController extends Controller
                 return $this->redirect(['index']);
             }
 
-            // 🔥 QUERY BASE
             $query = Contacts::find()
                 ->joinWith(['company', 'status', 'typeContact'])
                 ->andWhere(['Contacts.id_status' => $trashId]);
 
-            // FILTRO POR ROL Y EMPRESA
+            // 🔥 FILTRO POR EMPRESA
             if ($user->isSuperAdmin()) {
                 if (!empty($empresaId)) {
-                    $query->andWhere(['Contacts.id_company' => $empresaId]);
+                    $query->andWhere(['Contacts.id_company' => (int) $empresaId]);
                 }
             } elseif ($user->isAdmin() && !$user->isSuperAdmin()) {
-                $query->andWhere(['Contacts.id_company' => $user->id_company]);
+                $query->andWhere(['Contacts.id_company' => (int) $user->id_company]);
             } elseif ($user->isAgent()) {
-                $query->andWhere(['Contacts.id_company' => $user->id_company]);
+                $query->andWhere(['Contacts.id_company' => (int) $user->id_company]);
             }
 
-            // Filtros
             $search = Yii::$app->request->get('search', '');
             if (!empty($search)) {
                 $query->andWhere(['or',
@@ -273,7 +381,6 @@ class ContactsController extends Controller
                 ]);
             }
 
-            // DATAPROVIDER
             $dataProvider = new ActiveDataProvider([
                 'query' => $query,
                 'pagination' => [
@@ -282,7 +389,7 @@ class ContactsController extends Controller
                     'pageParam' => 'page',
                 ],
                 'sort' => [
-                    'defaultOrder' => ['name' => SORT_ASC],
+                    'defaultOrder' => ['id_contact' => SORT_DESC],
                 ],
             ]);
 
@@ -306,7 +413,7 @@ class ContactsController extends Controller
     }
 
     // ============================================
-    // 🔥 RESTAURAR CONTACTO
+    // RESTAURAR
     // ============================================
     public function actionRestore($id)
     {
@@ -321,12 +428,7 @@ class ContactsController extends Controller
 
             $model = $this->findModel($id);
 
-            if ($user->isSuperAdmin() && !empty($empresaId) && $model->id_company != $empresaId) {
-                Yii::$app->session->setFlash('error', 'No tienes permiso para restaurar este contacto.');
-                return $this->redirect(['trash']);
-            }
-
-            if (!$user->isSuperAdmin() && $model->id_company != $user->id_company) {
+            if (!$this->canAccessContact($model, $user, $empresaId)) {
                 Yii::$app->session->setFlash('error', 'No tienes permiso para restaurar este contacto.');
                 return $this->redirect(['trash']);
             }
@@ -356,7 +458,7 @@ class ContactsController extends Controller
     }
 
     // ============================================
-    // 🔥 CREAR TIPO DE CONTACTO VÍA AJAX
+    // CREAR TIPO DE CONTACTO VÍA AJAX
     // ============================================
     public function actionCreateTypeAjax()
     {
@@ -379,7 +481,6 @@ class ContactsController extends Controller
                 return ['success' => false, 'message' => 'El nombre no puede tener más de 50 caracteres.'];
             }
 
-            // Verificar si ya existe
             $existing = TypeContact::find()
                 ->where(['type_contact' => $typeName])
                 ->one();
@@ -393,7 +494,6 @@ class ContactsController extends Controller
                 ];
             }
 
-            // Crear nuevo
             $model = new TypeContact();
             $model->type_contact = $typeName;
 
@@ -419,30 +519,26 @@ class ContactsController extends Controller
     }
 
     // ============================================
-    // VER CONTACTO - MODAL (PANEL LATERAL)
+    // VER CONTACTO - MODAL
     // ============================================
     public function actionViewModal($id)
     {
         try {
             Yii::$app->response->format = Response::FORMAT_HTML;
-            
-            $model = Contacts::find()
-                ->where(['id_contact' => $id])
-                ->with(['company', 'status', 'typeContact'])
-                ->one();
-            
-            if (!$model) {
-                return $this->renderPartial('_view_modal', ['error' => 'Contacto no encontrado']);
-            }
 
             $user = Yii::$app->user->identity;
             $empresaId = Yii::$app->session->get('empresa_id');
 
-            if ($user->isSuperAdmin() && !empty($empresaId) && $model->id_company != $empresaId) {
-                return $this->renderPartial('_view_modal', ['error' => 'No tienes permiso para ver este contacto.']);
+            $model = Contacts::find()
+                ->where(['id_contact' => $id])
+                ->with(['company', 'status', 'typeContact'])
+                ->one();
+
+            if (!$model) {
+                return $this->renderPartial('_view_modal', ['error' => 'Contacto no encontrado']);
             }
 
-            if (!$user->isSuperAdmin() && $model->id_company != $user->id_company) {
+            if (!$this->canAccessContact($model, $user, $empresaId)) {
                 return $this->renderPartial('_view_modal', ['error' => 'No tienes permiso para ver este contacto.']);
             }
 
@@ -466,25 +562,20 @@ class ContactsController extends Controller
     {
         try {
             Yii::$app->response->format = Response::FORMAT_HTML;
-            
+
             $user = Yii::$app->user->identity;
             $empresaId = Yii::$app->session->get('empresa_id');
 
             $model = Contacts::find()->where(['id_contact' => $id])->one();
-            
+
             if (!$model) {
                 return $this->renderPartial('_update_modal', ['error' => 'Contacto no encontrado']);
             }
 
-            if ($user->isSuperAdmin() && !empty($empresaId) && $model->id_company != $empresaId) {
+            if (!$this->canAccessContact($model, $user, $empresaId)) {
                 return $this->renderPartial('_update_modal', ['error' => 'No tienes permiso para editar este contacto.']);
             }
 
-            if (!$user->isSuperAdmin() && $model->id_company != $user->id_company) {
-                return $this->renderPartial('_update_modal', ['error' => 'No tienes permiso para editar este contacto.']);
-            }
-
-            // 🔥 Solo Activo/Inactivo
             $statusList = Status::find()
                 ->select(['status', 'id_status'])
                 ->where(['in', 'status', self::CONTACT_STATUS_LIST])
@@ -505,33 +596,60 @@ class ContactsController extends Controller
                     ->column();
             }
 
-            if (Yii::$app->request->isPost && $model->load(Yii::$app->request->post())) {
-                try {
-                    if ($model->save()) {
-                        return $this->renderPartial('_update_modal', [
-                            'model' => $model,
-                            'statusList' => $statusList,
-                            'typeList' => $typeList,
-                            'companyList' => $companyList,
-                            'success' => 'Contacto actualizado exitosamente'
-                        ]);
-                    } else {
-                        return $this->renderPartial('_update_modal', [
-                            'model' => $model,
-                            'statusList' => $statusList,
-                            'typeList' => $typeList,
-                            'companyList' => $companyList,
-                            'error' => 'Error al actualizar: ' . implode(', ', $model->getFirstErrors())
-                        ]);
-                    }
-                } catch (\Exception $e) {
+            if (Yii::$app->request->isPost) {
+                $post = Yii::$app->request->post();
+
+                $typeResult = $this->processNewTypeContact($post);
+
+                if (!$typeResult['success']) {
                     return $this->renderPartial('_update_modal', [
                         'model' => $model,
                         'statusList' => $statusList,
                         'typeList' => $typeList,
                         'companyList' => $companyList,
-                        'error' => 'Error al actualizar: ' . $e->getMessage()
+                        'error' => $typeResult['error']
                     ]);
+                }
+
+                $post['Contacts']['id_type_contact'] = $typeResult['id_type_contact'];
+
+                if ($model->load($post)) {
+                    try {
+                        // 🔥 FORZAR id_company según rol
+                        if ($user->isSuperAdmin()) {
+                            if (!empty($empresaId)) {
+                                $model->id_company = (int) $empresaId;
+                            }
+                        } else {
+                            $model->id_company = (int) $user->id_company;
+                        }
+
+                        if ($model->save()) {
+                            return $this->renderPartial('_update_modal', [
+                                'model' => $model,
+                                'statusList' => $statusList,
+                                'typeList' => $typeList,
+                                'companyList' => $companyList,
+                                'success' => 'Contacto actualizado exitosamente'
+                            ]);
+                        } else {
+                            return $this->renderPartial('_update_modal', [
+                                'model' => $model,
+                                'statusList' => $statusList,
+                                'typeList' => $typeList,
+                                'companyList' => $companyList,
+                                'error' => 'Error al actualizar: ' . implode(', ', $model->getFirstErrors())
+                            ]);
+                        }
+                    } catch (\Exception $e) {
+                        return $this->renderPartial('_update_modal', [
+                            'model' => $model,
+                            'statusList' => $statusList,
+                            'typeList' => $typeList,
+                            'companyList' => $companyList,
+                            'error' => 'Error al actualizar: ' . $e->getMessage()
+                        ]);
+                    }
                 }
             }
 
@@ -560,12 +678,7 @@ class ContactsController extends Controller
             $user = Yii::$app->user->identity;
             $empresaId = Yii::$app->session->get('empresa_id');
 
-            if ($user->isSuperAdmin() && !empty($empresaId) && $model->id_company != $empresaId) {
-                Yii::$app->session->setFlash('error', 'No tienes permiso para ver este contacto.');
-                return $this->redirect(['index']);
-            }
-
-            if (!$user->isSuperAdmin() && $model->id_company != $user->id_company) {
+            if (!$this->canAccessContact($model, $user, $empresaId)) {
                 Yii::$app->session->setFlash('error', 'No tienes permiso para ver este contacto.');
                 return $this->redirect(['index']);
             }
@@ -601,40 +714,50 @@ class ContactsController extends Controller
             return $this->redirect(['empresa/index']);
         }
 
-        if ($user->isSuperAdmin()) {
-            if (!empty($empresaId)) {
-                $model->id_company = $empresaId;
-            }
-        } elseif ($user && !empty($user->id_company)) {
-            $model->id_company = $user->id_company;
-        }
+        // 🔥 ASIGNAR id_company efectivo
+        $model->id_company = $this->getEffectiveCompanyId($user, $empresaId);
 
         $statusActivo = Status::find()->where(['status' => 'Activo'])->one();
         if ($statusActivo) {
             $model->id_status = $statusActivo->id_status;
         }
 
-        if ($model->load(Yii::$app->request->post())) {
-            try {
-                if ($model->save()) {
-                    Yii::$app->session->setFlash('success', 'Contacto creado exitosamente.');
-                    return $this->redirect(['view', 'id' => $model->id_contact]);
-                } else {
-                    $errors = $model->getErrors();
-                    $errorMessages = [];
-                    foreach ($errors as $attribute => $errorList) {
-                        $label = $model->getAttributeLabel($attribute);
-                        $errorMessages[] = $label . ': ' . implode(', ', $errorList);
+        if (Yii::$app->request->isPost) {
+            $post = Yii::$app->request->post();
+
+            $typeResult = $this->processNewTypeContact($post);
+
+            if (!$typeResult['success']) {
+                Yii::$app->session->setFlash('error', $typeResult['error']);
+                return $this->redirect(['create']);
+            }
+
+            $post['Contacts']['id_type_contact'] = $typeResult['id_type_contact'];
+
+            if ($model->load($post)) {
+                // 🔥 FORZAR id_company según rol
+                $model->id_company = $this->getEffectiveCompanyId($user, $empresaId);
+
+                try {
+                    if ($model->save()) {
+                        Yii::$app->session->setFlash('success', 'Contacto creado exitosamente.');
+                        return $this->redirect(['index']);
+                    } else {
+                        $errors = $model->getErrors();
+                        $errorMessages = [];
+                        foreach ($errors as $attribute => $errorList) {
+                            $label = $model->getAttributeLabel($attribute);
+                            $errorMessages[] = $label . ': ' . implode(', ', $errorList);
+                        }
+                        Yii::$app->session->setFlash('error', 'Error al guardar el contacto:<br>' . implode('<br>', $errorMessages));
                     }
-                    Yii::$app->session->setFlash('error', 'Error al guardar el contacto:<br>' . implode('<br>', $errorMessages));
+                } catch (\Exception $e) {
+                    Yii::error('Error en actionCreate: ' . $e->getMessage(), 'contacts');
+                    Yii::$app->session->setFlash('error', 'Error al crear el contacto: ' . $e->getMessage());
                 }
-            } catch (\Exception $e) {
-                Yii::error('Error en actionCreate: ' . $e->getMessage(), 'contacts');
-                Yii::$app->session->setFlash('error', 'Error al crear el contacto: ' . $e->getMessage());
             }
         }
 
-        // 🔥 Solo Activo/Inactivo
         $statusList = Status::find()
             ->select(['status', 'id_status'])
             ->where(['in', 'status', self::CONTACT_STATUS_LIST])
@@ -666,33 +789,50 @@ class ContactsController extends Controller
             $user = Yii::$app->user->identity;
             $empresaId = Yii::$app->session->get('empresa_id');
 
-            if ($user->isSuperAdmin() && !empty($empresaId) && $model->id_company != $empresaId) {
+            if (!$this->canAccessContact($model, $user, $empresaId)) {
                 Yii::$app->session->setFlash('error', 'No tienes permiso para editar este contacto.');
                 return $this->redirect(['index']);
             }
 
-            if (!$user->isSuperAdmin() && $model->id_company != $user->id_company) {
-                Yii::$app->session->setFlash('error', 'No tienes permiso para editar este contacto.');
-                return $this->redirect(['index']);
-            }
+            if (Yii::$app->request->isPost) {
+                $post = Yii::$app->request->post();
 
-            if ($model->load(Yii::$app->request->post())) {
-                try {
-                    if ($model->save()) {
-                        Yii::$app->session->setFlash('success', 'Contacto actualizado exitosamente.');
-                        return $this->redirect(['view', 'id' => $model->id_contact]);
-                    } else {
-                        $errors = $model->getErrors();
-                        $errorMessages = [];
-                        foreach ($errors as $attribute => $errorList) {
-                            $label = $model->getAttributeLabel($attribute);
-                            $errorMessages[] = $label . ': ' . implode(', ', $errorList);
+                $typeResult = $this->processNewTypeContact($post);
+
+                if (!$typeResult['success']) {
+                    Yii::$app->session->setFlash('error', $typeResult['error']);
+                    return $this->redirect(['update', 'id' => $id]);
+                }
+
+                $post['Contacts']['id_type_contact'] = $typeResult['id_type_contact'];
+
+                if ($model->load($post)) {
+                    try {
+                        // 🔥 FORZAR id_company según rol
+                        if ($user->isSuperAdmin()) {
+                            if (!empty($empresaId)) {
+                                $model->id_company = (int) $empresaId;
+                            }
+                        } else {
+                            $model->id_company = (int) $user->id_company;
                         }
-                        Yii::$app->session->setFlash('error', 'Error al actualizar el contacto:<br>' . implode('<br>', $errorMessages));
+
+                        if ($model->save()) {
+                            Yii::$app->session->setFlash('success', 'Contacto actualizado exitosamente.');
+                            return $this->redirect(['index']);
+                        } else {
+                            $errors = $model->getErrors();
+                            $errorMessages = [];
+                            foreach ($errors as $attribute => $errorList) {
+                                $label = $model->getAttributeLabel($attribute);
+                                $errorMessages[] = $label . ': ' . implode(', ', $errorList);
+                            }
+                            Yii::$app->session->setFlash('error', 'Error al actualizar el contacto:<br>' . implode('<br>', $errorMessages));
+                        }
+                    } catch (\Exception $e) {
+                        Yii::error('Error en actionUpdate: ' . $e->getMessage(), 'contacts');
+                        Yii::$app->session->setFlash('error', 'Error al actualizar el contacto: ' . $e->getMessage());
                     }
-                } catch (\Exception $e) {
-                    Yii::error('Error en actionUpdate: ' . $e->getMessage(), 'contacts');
-                    Yii::$app->session->setFlash('error', 'Error al actualizar el contacto: ' . $e->getMessage());
                 }
             }
 
@@ -727,7 +867,7 @@ class ContactsController extends Controller
     }
 
     // ============================================
-    // 🔥 MOVER A PAPELERA (Cambio a Inactivo)
+    // MOVER A PAPELERA
     // ============================================
     public function actionDelete($id)
     {
@@ -742,12 +882,7 @@ class ContactsController extends Controller
 
             $model = $this->findModel($id);
 
-            if ($user->isSuperAdmin() && !empty($empresaId) && $model->id_company != $empresaId) {
-                Yii::$app->session->setFlash('error', 'No tienes permiso para eliminar este contacto.');
-                return $this->redirect(['index']);
-            }
-
-            if (!$user->isSuperAdmin() && $model->id_company != $user->id_company) {
+            if (!$this->canAccessContact($model, $user, $empresaId)) {
                 Yii::$app->session->setFlash('error', 'No tienes permiso para eliminar este contacto.');
                 return $this->redirect(['index']);
             }

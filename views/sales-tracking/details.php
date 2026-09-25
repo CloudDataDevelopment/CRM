@@ -8,22 +8,17 @@ $this->title = 'Detalles de Seguimiento - #' . $model->id_sales_tracking;
 $this->params['breadcrumbs'][] = ['label' => 'Seguimientos', 'url' => ['index']];
 $this->params['breadcrumbs'][] = $this->title;
 
-// Registrar CSS
 $this->registerCssFile('@web/css/sales-tracking.css', ['depends' => [\yii\bootstrap5\BootstrapAsset::class]]);
 $this->registerCssFile('@web/css/quote-details.css', ['depends' => [\yii\bootstrap5\BootstrapAsset::class], 'position' => \yii\web\View::POS_HEAD]);
 $this->registerCssFile('@web/css/leads.css', ['depends' => [\yii\bootstrap5\BootstrapAsset::class]]);
 $this->registerCssFile('@web/css/dashboard.css', ['depends' => [\yii\bootstrap5\BootstrapAsset::class]]);
 
-// ============================================
-// DATOS DEL SEGUIMIENTO
-// ============================================
 $lead = $model->lead;
 $leadName = $lead ? $lead->name . ' ' . $lead->lastname : 'Lead no disponible';
 $leadPhone = $lead ? $lead->phone : 'Sin teléfono';
 $leadStatus = $lead ? $lead->getStatusName() : 'Sin estado';
 $leadBadgeClass = $lead ? $lead->getStatusBadgeClass() : 'secondary';
 
-// 🔥 Usar el método del modelo que ya verifica isAgent()
 $agentName = $model->getAgentName();
 
 $statusName = $model->getStatusName();
@@ -47,19 +42,15 @@ $statusIcons = [
     'secondary' => 'fa-circle',
 ];
 
-// ============================================
-// SEGUIMIENTOS DEL LEAD
-// ============================================
 $trackings = $lead ? $lead->salesTrackings ?? [] : [];
 $trackingsCount = count($trackings);
 ?>
 
+<!-- 🔥 CONTENEDOR PRINCIPAL CON SOMBRA -->
 <div class="quote-details">
-    <div class="container-fluid">
-        
-        <!-- ============================================ -->
+    <div class="quote-details-wrapper">
+
         <!-- HEADER -->
-        <!-- ============================================ -->
         <div class="leads-header">
             <div>
                 <div class="breadcrumb-custom">
@@ -85,22 +76,16 @@ $trackingsCount = count($trackings);
             </div>
         </div>
 
-        <!-- ============================================ -->
         <!-- CONTENIDO PRINCIPAL -->
-        <!-- ============================================ -->
         <div class="row g-3">
-            
-            <!-- COLUMNA IZQUIERDA -->
+
             <div class="col-lg-4">
-                
-                <!-- Resumen del Seguimiento -->
                 <div class="card details-card">
                     <div class="card-header">
                         <h5 class="mb-0"><i class="fas fa-phone"></i> Resumen del Seguimiento</h5>
                     </div>
                     <div class="card-body">
                         <div class="info-grid">
-
                             <div class="info-item">
                                 <span class="info-label"><i class="fas fa-calendar-alt"></i> Fecha</span>
                                 <span class="info-value"><?= date('d/m/Y', strtotime($model->date_s)) ?></span>
@@ -133,7 +118,6 @@ $trackingsCount = count($trackings);
                     </div>
                 </div>
 
-                <!-- Lead Asociado -->
                 <div class="card details-card mt-3">
                     <div class="card-header">
                         <h5 class="mb-0"><i class="fas fa-user"></i> Lead Asociado</h5>
@@ -175,7 +159,6 @@ $trackingsCount = count($trackings);
                     </div>
                 </div>
 
-                <!-- Acciones Rápidas -->
                 <div class="card details-card mt-3">
                     <div class="card-header">
                         <h5 class="mb-0"><i class="fas fa-bolt"></i> Acciones Rápidas</h5>
@@ -195,10 +178,7 @@ $trackingsCount = count($trackings);
                 </div>
             </div>
 
-            <!-- COLUMNA DERECHA -->
             <div class="col-lg-8">
-                
-                <!-- Observaciones -->
                 <?php if (!empty($model->comments)): ?>
                 <div class="card details-card">
                     <div class="card-header">
@@ -210,7 +190,6 @@ $trackingsCount = count($trackings);
                 </div>
                 <?php endif; ?>
 
-                <!-- Historial de Seguimientos -->
                 <div class="card details-card <?= !empty($model->comments) ? 'mt-3' : '' ?>">
                     <div class="card-header d-flex justify-content-between align-items-center">
                         <h5 class="mb-0"><i class="fas fa-history"></i> Historial de Seguimientos del Lead</h5>
@@ -238,7 +217,7 @@ $trackingsCount = count($trackings);
                                 <tbody>
                                     <?php if (!empty($trackings)): ?>
                                         <?php foreach ($trackings as $index => $tracking): ?>
-                                            <?php 
+                                            <?php
                                             $isCurrent = ($tracking->id_sales_tracking == $model->id_sales_tracking);
                                             $rowClass = $isCurrent ? 'table-info' : '';
                                             ?>
@@ -300,9 +279,8 @@ $trackingsCount = count($trackings);
                     </div>
                     <?php endif; ?>
                 </div>
-
             </div>
         </div>
 
-    </div>
-</div>
+    </div><!-- /.quote-details-wrapper -->
+</div><!-- /.quote-details -->
