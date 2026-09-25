@@ -62,7 +62,7 @@ $whatsappLink = $phone ? 'https://wa.me/' . preg_replace('/[^0-9]/', '', $phone)
                 <div class="breadcrumb-custom">
                     <span>CRM</span><span class="separator">›</span>
                     <span>Administracion de leads</span><span class="separator">›</span>
-                    <span>Leads</span><span class="separator">›</span>
+                    <span>Gestor de leads</span><span class="separator">›</span>
                     <span class="current">Detalles</span>
                 </div>
                 <h1 class="page-title">
