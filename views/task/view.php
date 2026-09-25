@@ -32,7 +32,6 @@ $badgeClass    = $model->getStatusBadgeClass();
                 </h1>
             </div>
             <div class="header-actions">
-                <?= Html::a('<i class="fas fa-edit"></i> Editar', ['update', 'id' => $model->id_task], ['class' => 'btn btn-primary btn-sm btn-header-action']) ?>
                 <?= Html::a('<i class="fas fa-arrow-left"></i> Volver', ['index'], ['class' => 'btn btn-secondary btn-sm btn-header-action']) ?>
             </div>
         </div>
