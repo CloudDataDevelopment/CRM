@@ -16,12 +16,12 @@ class Quote extends ActiveRecord
     {
         return [
             [['date_quote', 'hour_quote'], 'safe'],
-            [['pending_payment', 'total_amount', 'id_lead'], 'integer'],
+            [['total_amount', 'id_lead'], 'integer'],
             [['id_status'], 'integer'],
-            [['down_payment'], 'integer', 'message' => 'El enganche debe ser un número entero'],
             [['comments'], 'string', 'max' => 5000],
             [['id_lead', 'date_quote', 'total_amount', 'id_status'], 'required'],
             [['id_status'], 'exist', 'skipOnError' => true, 'targetClass' => Status::class, 'targetAttribute' => ['id_status' => 'id_status']],
+            [['total_amount'], 'integer', 'min' => 0],
         ];
     }
 
@@ -32,8 +32,6 @@ class Quote extends ActiveRecord
             'date_quote' => 'Fecha',
             'hour_quote' => 'Hora',
             'id_status' => 'Estado',
-            'pending_payment' => 'Pago Pendiente',
-            'down_payment' => 'Pago Inicial',
             'comments' => 'Observaciones',
             'total_amount' => 'Monto Total',
             'id_lead' => 'Lead',
@@ -47,14 +45,26 @@ class Quote extends ActiveRecord
         }
 
         $this->total_amount = (int) $this->total_amount;
-        $this->down_payment = (int) $this->down_payment;
 
-        $pagado = $this->down_payment;
-        $pendiente = $this->total_amount - $pagado;
-        $this->pending_payment = $pendiente < 0 ? 0 : $pendiente;
+        // 🔥 En INSERT: inicializar pendiente = total_amount
+        if ($insert) {
+            $parsed = $this->parseComments();
+            if (!isset($parsed['pendiente']) || $parsed['pendiente'] === null) {
+                $parsed['pendiente'] = $this->total_amount;
+                $this->writeComments($parsed);
+            }
+        }
 
-        if ($this->pending_payment <= 0 && $this->total_amount > 0) {
-            $statusCompletado = Status::find()->where(['status' => 'completado'])->one();
+        // 🔥 Si el pendiente es 0 → cambiar a "Completado"
+        $pendiente = $this->getRealPending();
+        if ($pendiente <= 0 && $this->total_amount > 0) {
+            $statusCompletado = Status::find()
+                ->where(['or',
+                    ['status' => 'completado'],
+                    ['status' => 'Completado'],
+                ])
+                ->one();
+            
             if ($statusCompletado && $this->id_status != $statusCompletado->id_status) {
                 $this->id_status = $statusCompletado->id_status;
             }
@@ -83,72 +93,144 @@ class Quote extends ActiveRecord
     }
 
     // ============================================
-    // HELPERS
+    // 🔥 PARSEO DEL CAMPO comments
     // ============================================
 
     /**
-     * Devuelve las notas en texto plano.
-     * Si el valor guardado tiene formato JSON antiguo, extrae solo "notas".
+     * Parsea comments como JSON. Estructura:
+     * {"notas": "...", "pendiente": 80000}
      */
-    public function getNotes()
+    private function parseComments()
     {
         if (empty($this->comments)) {
-            return '';
+            return ['notas' => '', 'pendiente' => null];
         }
 
         $decoded = json_decode($this->comments, true);
+
         if (json_last_error() === JSON_ERROR_NONE && is_array($decoded)) {
-            return $decoded['notas'] ?? '';
+            return [
+                'notas' => $decoded['notas'] ?? '',
+                'pendiente' => isset($decoded['pendiente']) ? (int)$decoded['pendiente'] : null,
+            ];
         }
 
-        return $this->comments;
+        // Formato antiguo: solo texto plano
+        return ['notas' => $this->comments, 'pendiente' => null];
     }
 
     /**
-     * Setter de notas (texto plano).
+     * Escribe la estructura JSON en comments.
      */
-    public function setNotes($value)
+    private function writeComments($data)
     {
-        $this->comments = $value;
+        $notas = $data['notas'] ?? '';
+        $pendiente = $data['pendiente'];
+
+        if (empty($notas) && $pendiente === null) {
+            $this->comments = null;
+            return;
+        }
+
+        $this->comments = json_encode([
+            'notas' => $notas,
+            'pendiente' => $pendiente,
+        ], JSON_UNESCAPED_UNICODE);
     }
 
-    // Compatibilidad con métodos antiguos (devuelven vacío)
-    public function getPayments()
-    {
-        return [];
-    }
+    // ============================================
+    // 🔥 HELPERS DE PAGO
+    // ============================================
 
-    public function getPaymentsTotal()
-    {
-        return 0;
-    }
-
-    public function getTotalPaid()
-    {
-        return (int) $this->down_payment;
-    }
-
+    /**
+     * 🔥 Saldo pendiente actual.
+     */
     public function getRealPending()
     {
-        $pendiente = (int) $this->total_amount - $this->getTotalPaid();
-        return $pendiente < 0 ? 0 : $pendiente;
+        $parsed = $this->parseComments();
+        
+        // Si no hay pendiente definido, usar total_amount
+        if ($parsed['pendiente'] === null) {
+            return (int) $this->total_amount;
+        }
+        
+        return max(0, (int) $parsed['pendiente']);
     }
 
+    /**
+     * 🔥 Total pagado = total - pendiente.
+     */
+    public function getTotalPaid()
+    {
+        return max(0, (int) $this->total_amount - $this->getRealPending());
+    }
+
+    /**
+     * 🔥 Porcentaje pagado.
+     */
     public function getPaymentPercentage()
     {
         if ($this->total_amount <= 0) return 0;
         return round(($this->getTotalPaid() / $this->total_amount) * 100, 1);
     }
 
+    /**
+     * 🔥 ¿Está totalmente pagada?
+     */
     public function isFullyPaid()
     {
-        return $this->getRealPending() <= 0;
+        return $this->getRealPending() <= 0 && $this->total_amount > 0;
     }
 
-    public function getPaymentsCount()
+    /**
+     * 🔥 Registra un pago: reduce el pendiente.
+     * @return int Monto aplicado
+     */
+    public function registerPayment($monto)
     {
-        return 0;
+        $monto = (int) $monto;
+        if ($monto <= 0) return 0;
+
+        $pendienteActual = $this->getRealPending();
+
+        // No permitir pagar más del pendiente
+        if ($monto > $pendienteActual) {
+            $monto = $pendienteActual;
+        }
+
+        $nuevoPendiente = $pendienteActual - $monto;
+        if ($nuevoPendiente < 0) $nuevoPendiente = 0;
+
+        // Guardar en comments
+        $parsed = $this->parseComments();
+        $parsed['pendiente'] = $nuevoPendiente;
+        $this->writeComments($parsed);
+
+        return $monto;
     }
+
+    /**
+     * 🔥 Notas (texto plano).
+     */
+    public function getNotes()
+    {
+        $parsed = $this->parseComments();
+        return $parsed['notas'];
+    }
+
+    public function setNotes($value)
+    {
+        $parsed = $this->parseComments();
+        $parsed['notas'] = $value;
+        $this->writeComments($parsed);
+    }
+
+    /**
+     * 🔥 Métodos de compatibilidad.
+     */
+    public function getPayments() { return []; }
+    public function getPaymentsTotal() { return 0; }
+    public function getPaymentsCount() { return 0; }
 
     // ============================================
     // MÉTODOS DE ESTADO
@@ -191,7 +273,7 @@ class Quote extends ActiveRecord
 
     public function getFormattedPending()
     {
-        return '$' . number_format($this->pending_payment, 0, '.', ',');
+        return '$' . number_format($this->getRealPending(), 0, '.', ',');
     }
 
     public static function getStatusOptions()

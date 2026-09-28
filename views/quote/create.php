@@ -6,12 +6,11 @@ use yii\helpers\Url;
 
 $this->title = 'Nueva Cotización';
 $this->params['breadcrumbs'][] = ['label' => 'Cotizaciones', 'url' => ['index']];
-$this->params['breadcrumbs'][] = $this->title;
 
 $this->registerCssFile('@web/css/leads.css', ['depends' => [\yii\bootstrap5\BootstrapAsset::class]]);
 $this->registerCssFile('@web/css/quote.css', ['depends' => [\yii\bootstrap5\BootstrapAsset::class], 'position' => \yii\web\View::POS_HEAD]);
 
-// 🔥 LEAD PRESELECCIONADO (si viene desde /quote/create?leadId=5)
+// LEAD PRESELECCIONADO
 $lead = isset($lead) ? $lead : null;
 $leadId = isset($leadId) ? $leadId : null;
 
@@ -24,9 +23,7 @@ if ($lead) {
 }
 $this->params['breadcrumbs'][] = $this->title;
 
-// ============================================
 // FUNCIÓN AUXILIAR PARA BADGE
-// ============================================
 if (!function_exists('getBadgeClass')) {
     function getBadgeClass($statusName) {
         $badges = [
@@ -48,7 +45,6 @@ $isAgent = isset($isAgent) ? $isAgent : false;
 $isSuperAdmin = isset($isSuperAdmin) ? $isSuperAdmin : false;
 ?>
 
-<!-- 🔥 CONTENEDOR PRINCIPAL CON SOMBRA -->
 <div class="quote-create">
     <div class="quote-wrapper">
 
@@ -136,7 +132,6 @@ $isSuperAdmin = isset($isSuperAdmin) ? $isSuperAdmin : false;
                             </div>
                             <?= Html::activeHiddenInput($model, 'id_lead', ['value' => $lead->id_lead]) ?>
                         <?php else: ?>
-                            <!-- SELECTOR DE LEAD -->
                             <?= $form->field($model, 'id_lead')->dropDownList(
                                 $leadsList,
                                 ['prompt' => 'Seleccione un lead...', 'class' => 'form-select']
@@ -158,7 +153,7 @@ $isSuperAdmin = isset($isSuperAdmin) ? $isSuperAdmin : false;
                             </div>
                         </div>
 
-                        <!-- MONTOS -->
+                        <!-- MONTO TOTAL -->
                         <div class="row">
                             <div class="col-md-6">
                                 <?= $form->field($model, 'total_amount')->textInput([
@@ -168,27 +163,8 @@ $isSuperAdmin = isset($isSuperAdmin) ? $isSuperAdmin : false;
                                     'placeholder' => '0',
                                     'class' => 'form-control',
                                     'id' => 'total-amount-input',
-                                ])->label('Monto Total <span class="text-danger">*</span>') ?>
-                            </div>
-                            <div class="col-md-6">
-                                <?= $form->field($model, 'down_payment')->textInput([
-                                    'type' => 'number',
-                                    'step' => '1',
-                                    'min' => '0',
-                                    'placeholder' => '0',
-                                    'class' => 'form-control',
-                                    'id' => 'down-payment-input',
-                                ])->label('Enganche')
-                                ->hint('Pago inicial (opcional)', ['class' => 'text-muted']) ?>
-                            </div>
-                        </div>
-
-                        <!-- CÁLCULO VISUAL DEL SALDO PENDIENTE -->
-                        <div class="alert alert-info d-flex align-items-center mb-3" role="alert" style="border-radius: 8px; border-left: 4px solid #0091FF; padding: 10px 14px; font-size: 0.85rem;">
-                            <i class="fas fa-calculator me-2" style="font-size: 1rem;"></i>
-                            <div>
-                                <strong>Saldo pendiente:</strong>
-                                <span id="pending-payment-display">$0</span>
+                                ])->label('Monto Total <span class="text-danger">*</span>')
+                                ->hint('Monto total a cobrar por esta cotización', ['class' => 'text-muted']) ?>
                             </div>
                         </div>
 
@@ -230,7 +206,6 @@ $isSuperAdmin = isset($isSuperAdmin) ? $isSuperAdmin : false;
             <div class="col-md-4">
 
                 <?php if ($lead): ?>
-                    <!-- CARD DEL LEAD VINCULADO -->
                     <div class="card details-card mb-3">
                         <div class="card-header">
                             <h5 class="mb-0">
@@ -293,8 +268,8 @@ $isSuperAdmin = isset($isSuperAdmin) ? $isSuperAdmin : false;
                             El <strong>monto total</strong> debe ser mayor a $0.
                         </p>
                         <p class="text-muted small mb-0">
-                            <i class="fas fa-check-circle text-success me-1"></i>
-                            El <strong>enganche</strong> es opcional.
+                            <i class="fas fa-info-circle text-info me-1"></i>
+                            Los pagos se registran después desde <strong>"Pagos"</strong>.
                         </p>
                     </div>
                 </div>
@@ -328,49 +303,5 @@ $isSuperAdmin = isset($isSuperAdmin) ? $isSuperAdmin : false;
             </div>
         </div>
 
-    </div><!-- /.quote-wrapper -->
-</div><!-- /.quote-create -->
-
-<script>
-// ============================================
-// 🔥 CÁLCULO DE SALDO PENDIENTE EN VIVO
-// ============================================
-(function() {
-    var totalInput = document.getElementById('total-amount-input');
-    var downInput = document.getElementById('down-payment-input');
-    var display = document.getElementById('pending-payment-display');
-
-    function updatePending() {
-        if (!display) return;
-
-        var total = parseInt(totalInput ? totalInput.value : 0) || 0;
-        var down = parseInt(downInput ? downInput.value : 0) || 0;
-        var pending = total - down;
-
-        if (pending < 0) pending = 0;
-
-        // Formatear con separador de miles
-        var formatted = '$' + pending.toLocaleString('es-MX');
-
-        display.textContent = formatted;
-
-        // Cambiar color según el estado
-        if (pending === 0 && total > 0) {
-            display.style.color = '#1cc88a'; // verde
-            display.style.fontWeight = '700';
-        } else if (pending > 0) {
-            display.style.color = '#f6c23e'; // amarillo
-            display.style.fontWeight = '700';
-        } else {
-            display.style.color = '#6c757d'; // gris
-            display.style.fontWeight = '500';
-        }
-    }
-
-    if (totalInput) totalInput.addEventListener('input', updatePending);
-    if (downInput) downInput.addEventListener('input', updatePending);
-
-    // Inicializar
-    updatePending();
-})();
-</script>
+    </div>
+</div>

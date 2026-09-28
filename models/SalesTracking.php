@@ -160,6 +160,70 @@ class SalesTracking extends ActiveRecord
     }
 
     // ============================================
+    // 🔥 MÉTODOS AGREGADOS (SOLUCIÓN AL ERROR)
+    // ============================================
+    
+    /**
+     * 🔥 Obtiene el nombre completo del agente asignado
+     * @return string
+     */
+    public function getAgentName()
+    {
+        if ($this->user) {
+            return trim($this->user->name . ' ' . $this->user->lastname1);
+        }
+        return 'Sin asignar';
+    }
+
+    /**
+     * 🔥 Obtiene el nombre completo del lead
+     * @return string
+     */
+    public function getLeadName()
+    {
+        if ($this->lead) {
+            return trim($this->lead->name . ' ' . $this->lead->lastname);
+        }
+        return 'Lead no disponible';
+    }
+
+    /**
+     * 🔥 Obtiene el teléfono del lead
+     * @return string
+     */
+    public function getLeadPhone()
+    {
+        if ($this->lead) {
+            return $this->lead->phone;
+        }
+        return 'Sin teléfono';
+    }
+
+    /**
+     * 🔥 Obtiene la fecha formateada
+     * @return string
+     */
+    public function getFormattedDate()
+    {
+        if ($this->date_s) {
+            return date('d/m/Y', strtotime($this->date_s));
+        }
+        return 'Sin fecha';
+    }
+
+    /**
+     * 🔥 Obtiene la hora formateada
+     * @return string
+     */
+    public function getFormattedHour()
+    {
+        if ($this->hour) {
+            return date('H:i', strtotime($this->hour));
+        }
+        return '';
+    }
+
+    // ============================================
     // MÉTODOS ESTÁTICOS
     // ============================================
     

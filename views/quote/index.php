@@ -25,7 +25,6 @@ $this->registerJsFile('https://code.jquery.com/jquery-3.6.0.min.js', ['position'
 $quotes = isset($quotes) ? $quotes : [];
 $dataProvider = isset($dataProvider) ? $dataProvider : null;
 $totalQuotes = isset($totalQuotes) ? $totalQuotes : 0;
-$totalPendientes = isset($totalPendientes) ? $totalPendientes : 0;
 $totalCompletados = isset($totalCompletados) ? $totalCompletados : 0;
 $totalCancelados = isset($totalCancelados) ? $totalCancelados : 0;
 $montoCompletados = isset($montoCompletados) ? $montoCompletados : 0;
@@ -46,6 +45,14 @@ $totalCount = $dataProvider ? $dataProvider->getTotalCount() : 0;
 $currentCount = $dataProvider ? $dataProvider->getCount() : 0;
 $pageCount = $dataProvider ? $dataProvider->getPagination()->getPageCount() : 1;
 $currentPage = $dataProvider ? $dataProvider->getPagination()->getPage() + 1 : 1;
+
+// Calcular total pendientes como "no completados"
+$totalPendientes = 0;
+foreach ($quotes as $q) {
+    if (strtolower($q->getStatusName()) !== 'completado') {
+        $totalPendientes++;
+    }
+}
 ?>
 
 <div class="quote-container">
@@ -480,31 +487,23 @@ function inicializar() {
             });
     }
 
-    // ============================================
-    // 🔥 LISTENER GLOBAL PARA CERRAR PANEL
-    // Detecta clics en [data-panel-close]
-    // ============================================
+    // LISTENER GLOBAL PARA CERRAR PANEL
     document.addEventListener('click', function(e) {
         var btn = e.target.closest('[data-panel-close]');
         if (btn) {
             e.preventDefault();
             e.stopPropagation();
-            console.log('🔴 Cierre solicitado por [data-panel-close]');
             closePanel();
         }
     }, true);
 
-    // ============================================
-    // 🔥 LISTENER GLOBAL PARA NAVEGAR Y CERRAR
-    // Detecta clics en [data-panel-close-go="url"]
-    // ============================================
+    // LISTENER GLOBAL PARA NAVEGAR Y CERRAR
     document.addEventListener('click', function(e) {
         var btn = e.target.closest('[data-panel-close-go]');
         if (btn) {
             e.preventDefault();
             e.stopPropagation();
             var url = btn.getAttribute('data-panel-close-go');
-            console.log('🔴 Cierre + navegación solicitada:', url);
             closePanel(function() {
                 window.location.href = url;
             });

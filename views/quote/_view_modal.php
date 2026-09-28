@@ -61,11 +61,9 @@ $leadBadgeClass = $model->lead ? $model->lead->getStatusBadgeClass() : 'secondar
 
 $statusName = $model->getStatusName();
 $badgeClass = $model->getStatusBadgeClass();
-$total = $model->total_amount ?? 0;
-$downPayment = $model->down_payment ?? 0;
-$pending = $total - $downPayment;
+$total = (int) $model->total_amount;
 
-// 🔥 Obtener notas en texto plano (sin JSON)
+// Notas
 $notas = $model->getNotes();
 
 $statusColors = [
@@ -141,10 +139,12 @@ $statusIcons = [
                 <span class="info-label"><i class="fas fa-calendar-alt"></i> Fecha</span>
                 <span class="info-value"><?= date('d/m/Y', strtotime($model->date_quote)) ?></span>
             </div>
+            <?php if (!empty($model->hour_quote)): ?>
             <div class="info-row">
                 <span class="info-label"><i class="fas fa-clock"></i> Hora</span>
                 <span class="info-value"><?= date('H:i', strtotime($model->hour_quote)) ?></span>
             </div>
+            <?php endif; ?>
             <div class="info-row">
                 <span class="info-label"><i class="fas fa-tag"></i> Estado</span>
                 <span class="info-value">
@@ -164,16 +164,6 @@ $statusIcons = [
                 <span class="info-label"><i class="fas fa-dollar-sign"></i> Total</span>
                 <span class="info-value" style="font-size: 1.1rem; font-weight: 700; color: #1cc88a;">
                     $<?= number_format($total, 0, '.', ',') ?>
-                </span>
-            </div>
-            <div class="info-row">
-                <span class="info-label"><i class="fas fa-hand-holding-usd"></i> Pagado</span>
-                <span class="info-value">$<?= number_format($downPayment, 0, '.', ',') ?></span>
-            </div>
-            <div class="info-row">
-                <span class="info-label"><i class="fas fa-hourglass-half"></i> Pendiente</span>
-                <span class="info-value" style="color: <?= $pending > 0 ? '#e74a3b' : '#1cc88a' ?>; font-weight: 600;">
-                    $<?= number_format($pending, 0, '.', ',') ?>
                 </span>
             </div>
         </div>
@@ -201,4 +191,4 @@ $statusIcons = [
             <i class="fas fa-times"></i> Cerrar
         </button>
     </div>
-</div>
+</div>  

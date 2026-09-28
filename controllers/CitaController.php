@@ -11,7 +11,6 @@ use app\components\ErrorManager;
 
 class CitaController extends Controller
 {
-    // Lista de citas
     public function actionIndex()
     {
         try {

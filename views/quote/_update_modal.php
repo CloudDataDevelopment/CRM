@@ -52,7 +52,96 @@ if (!$model) {
         </div>';
     return;
 }
+
+// 🔥 Datos del lead para mostrar en modo solo lectura
+$lead = $model->lead;
+$leadName = $lead ? $lead->name . ' ' . $lead->lastname : 'Lead no disponible';
+$leadPhone = $lead ? $lead->phone : '';
+$leadStatus = $lead ? $lead->getStatusName() : '';
+$leadBadgeClass = $lead ? $lead->getStatusBadgeClass() : 'secondary';
 ?>
+
+<!-- 🔥 Estilos para flechas de selects + tarjeta de lead bloqueado -->
+<style>
+    /* Flecha en los selects del panel */
+    .edit-panel-content .form-select,
+    .edit-panel-content select.form-control {
+        appearance: none;
+        -webkit-appearance: none;
+        -moz-appearance: none;
+        background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3e%3cpath fill='none' stroke='%23343a40' stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M2 5l6 6 6-6'/%3e%3c/svg%3e") !important;
+        background-repeat: no-repeat !important;
+        background-position: right 0.75rem center !important;
+        background-size: 16px 12px !important;
+        padding-right: 2.25rem !important;
+        border: 1px solid #ced4da;
+        border-radius: 6px;
+        transition: border-color 0.15s ease-in-out, box-shadow 0.15s ease-in-out;
+    }
+
+    .edit-panel-content .form-select:focus {
+        border-color: #86b7fe;
+        outline: 0;
+        box-shadow: 0 0 0 0.25rem rgba(13, 110, 253, 0.25);
+    }
+
+    /* 🔥 Tarjeta de lead bloqueado */
+    .lead-locked-card {
+        background: linear-gradient(135deg, #f8f9fc 0%, #eef2ff 100%);
+        border: 1px solid #d1d9f0;
+        border-left: 4px solid #4e73df;
+        border-radius: 8px;
+        padding: 12px 14px;
+        margin-bottom: 16px;
+    }
+
+    .lead-locked-card .lead-header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        margin-bottom: 6px;
+    }
+
+    .lead-locked-card .lead-name {
+        font-weight: 700;
+        color: #2c3e50;
+        font-size: 0.9rem;
+        display: flex;
+        align-items: center;
+        gap: 6px;
+    }
+
+    .lead-locked-card .lead-name i {
+        color: #4e73df;
+    }
+
+    .lead-locked-card .lead-info {
+        font-size: 0.75rem;
+        color: #6c757d;
+        display: flex;
+        flex-wrap: wrap;
+        gap: 10px;
+        margin-top: 4px;
+    }
+
+    .lead-locked-card .lead-info span {
+        display: inline-flex;
+        align-items: center;
+        gap: 4px;
+    }
+
+    .lead-locked-card .lock-badge {
+        display: inline-flex;
+        align-items: center;
+        gap: 4px;
+        background: #fff3cd;
+        color: #856404;
+        font-size: 0.65rem;
+        padding: 3px 8px;
+        border-radius: 12px;
+        font-weight: 600;
+    }
+</style>
 
 <div class="edit-panel-content" id="edit-panel-content">
 
@@ -87,11 +176,75 @@ if (!$model) {
             ],
         ]); ?>
 
-        <?= $form->field($model, 'id_lead')->dropDownList($leadsList, ['prompt' => 'Seleccione un lead...', 'class' => 'form-select form-select-sm', 'id' => 'quote-id_lead'])->label('Lead <span class="text-danger">*</span>') ?>
-        <?= $form->field($model, 'total_amount')->textInput(['type' => 'number', 'step' => '1', 'class' => 'form-control form-control-sm', 'placeholder' => 'Ej: 1500000', 'id' => 'quote-total_amount'])->label('Monto Total <span class="text-danger">*</span>') ?>
-        <?= $form->field($model, 'down_payment')->textInput(['type' => 'number', 'step' => '1', 'class' => 'form-control form-control-sm', 'placeholder' => 'Ej: 500000', 'id' => 'quote-down_payment'])->label('Pago Inicial') ?>
-        <?= $form->field($model, 'id_status')->dropDownList($statusOptions, ['prompt' => 'Seleccione un estado...', 'class' => 'form-select form-select-sm', 'id' => 'quote-id_status'])->label('Estado <span class="text-danger">*</span>') ?>
-        <?= $form->field($model, 'comments')->textarea(['rows' => 3, 'class' => 'form-control form-control-sm', 'placeholder' => 'Observaciones adicionales...', 'id' => 'quote-comments', 'value' => $model->getNotes()])->label('Observaciones') ?>
+        <!-- 🔥 LEAD BLOQUEADO (solo lectura) -->
+        <div class="form-group">
+            <label class="control-label">Lead</label>
+
+            <div class="lead-locked-card">
+                <div class="lead-header">
+                    <span class="lead-name">
+                        <i class="fas fa-user-circle"></i>
+                        <?= Html::encode($leadName) ?>
+                    </span>
+                </div>
+
+                <?php if ($lead): ?>
+                    <div class="lead-info">
+                        <?php if ($leadPhone): ?>
+                            <span>
+                                <i class="fas fa-phone"></i>
+                                <?= Html::encode($leadPhone) ?>
+                            </span>
+                        <?php endif; ?>
+
+                        <?php if ($leadStatus): ?>
+                            <span>
+                                <i class="fas fa-tag"></i>
+                                <span class="badge bg-<?= $leadBadgeClass ?>" style="font-size: 0.65rem;">
+                                    <?= Html::encode($leadStatus) ?>
+                                </span>
+                            </span>
+                        <?php endif; ?>
+                    </div>
+                <?php endif; ?>
+
+                <small class="text-muted d-block mt-2" style="font-size: 0.7rem;">
+                    <i class="fas fa-info-circle"></i>
+                    El lead no puede modificarse desde aquí.
+                </small>
+            </div>
+
+            <!-- 🔥 Campo oculto para que el POST siga enviando el id_lead -->
+            <?= Html::activeHiddenInput($model, 'id_lead', ['value' => $model->id_lead]) ?>
+        </div>
+
+        <!-- MONTO TOTAL -->
+        <?= $form->field($model, 'total_amount')->textInput([
+            'type' => 'number',
+            'step' => '1',
+            'class' => 'form-control',
+            'placeholder' => 'Ej: 1500000',
+            'id' => 'quote-total_amount'
+        ])->label('Monto Total <span class="text-danger">*</span>') ?>
+
+        <!-- ESTADO (dropdown con flecha) -->
+        <?= $form->field($model, 'id_status')->dropDownList(
+            $statusOptions,
+            [
+                'prompt' => 'Seleccione un estado...',
+                'class' => 'form-select',
+                'id' => 'quote-id_status'
+            ]
+        )->label('Estado <span class="text-danger">*</span>') ?>
+
+        <!-- OBSERVACIONES -->
+        <?= $form->field($model, 'comments')->textarea([
+            'rows' => 3,
+            'class' => 'form-control',
+            'placeholder' => 'Observaciones adicionales...',
+            'id' => 'quote-comments',
+            'value' => $model->getNotes()
+        ])->label('Observaciones') ?>
 
         <?php ActiveForm::end(); ?>
     </div>
@@ -103,16 +256,11 @@ if (!$model) {
 </div>
 
 <script>
-// ============================================
-// 🔥 SUBMIT FORM - Auto-ejecutable
-// NO redefine window.closePanel (el padre lo maneja)
-// ============================================
 (function() {
     function bindSaveButton() {
         var btn = document.getElementById('btn-save-quote');
         if (!btn) return;
 
-        // Clonar para eliminar listeners previos
         var newBtn = btn.cloneNode(true);
         btn.parentNode.replaceChild(newBtn, btn);
 
@@ -139,7 +287,6 @@ if (!$model) {
                 var newContent = temp.querySelector('.edit-panel-content');
 
                 if (container && newContent) {
-                    // 🔥 CAPTURAR DATOS ANTES DE REEMPLAZAR
                     var datosActualizados = null;
                     var form2 = newContent.querySelector('#update-quote-form');
 
@@ -155,22 +302,18 @@ if (!$model) {
                         };
                     }
 
-                    // Reemplazar contenido
                     container.parentNode.replaceChild(newContent, container);
 
-                    // Re-ejecutar scripts del nuevo contenido
                     newContent.querySelectorAll('script').forEach(function(s) {
                         var ns = document.createElement('script');
                         ns.textContent = s.textContent;
                         document.body.appendChild(ns);
                     });
 
-                    // 🔥 NOTIFICAR AL PADRE PARA ACTUALIZACIÓN EN TIEMPO REAL
                     if (datosActualizados && typeof window.onQuoteUpdated === 'function') {
                         window.onQuoteUpdated(datosActualizados);
                     }
 
-                    // Auto-ocultar alerta
                     setTimeout(function() {
                         var a = document.querySelector('.alert-success');
                         if (a) {
@@ -180,7 +323,6 @@ if (!$model) {
                         }
                     }, 3000);
 
-                    // Re-bind
                     bindSaveButton();
                 } else {
                     location.reload();

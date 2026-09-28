@@ -1,6 +1,7 @@
 <?php
 
 use yii\helpers\Html;
+use yii\helpers\Url;
 use yii\widgets\ActiveForm;
 
 $this->title = 'Editar Seguimiento';
@@ -88,7 +89,7 @@ $lead = \app\models\Lead::findOne($model->id_lead);
 
                     <?php $form = ActiveForm::begin(); ?>
 
-                    <!-- 🔥 CAMPO id_status (en lugar de status_sales) -->
+                    <!-- Campo id_status -->
                     <?= $form->field($model, 'id_status')->dropDownList(
                         $statusOptions,
                         ['prompt' => 'Seleccione un estado...']
@@ -112,15 +113,25 @@ $lead = \app\models\Lead::findOne($model->id_lead);
                                 'class' => 'btn btn-warning btn-lg'
                             ]) ?>
                         </div>
-                        <div class="text-center mt-2">
-                            <?= Html::a('<i class="fas fa-arrow-left"></i> Regresar al lead', 
-                                ['lead/view', 'id' => $model->id_lead], 
-                                ['class' => 'btn btn-default']
-                            ) ?>
-                        </div>
                     </div>
 
                     <?php ActiveForm::end(); ?>
+
+                    <!-- 🔥 Botón Regresar FUERA del form -->
+                    <div class="text-center mt-3">
+                        <?php if ($model->id_lead): ?>
+                            <a href="<?= Url::to(['/lead/details', 'id' => $model->id_lead]) ?>" 
+                               class="btn btn-secondary">
+                                <i class="fas fa-arrow-left"></i> Regresar al lead
+                            </a>
+                        <?php else: ?>
+                            <a href="<?= Url::to(['/sales-tracking/index']) ?>" 
+                               class="btn btn-secondary">
+                                <i class="fas fa-arrow-left"></i> Regresar a Seguimientos
+                            </a>
+                        <?php endif; ?>
+                    </div>
+
                 </div>
             </div>
         </div>

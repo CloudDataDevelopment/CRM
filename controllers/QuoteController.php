@@ -29,8 +29,6 @@ class QuoteController extends Controller
                     'delete'         => ['POST', 'GET'],
                     'restore'        => ['POST', 'GET'],
                     'update-status'  => ['POST'],
-                    'add-payment'    => ['POST'],
-                    'remove-payment' => ['POST', 'GET'],
                 ],
             ],
         ];
@@ -444,183 +442,6 @@ class QuoteController extends Controller
     }
 
     // ============================================
-    // HISTORIAL DE PAGOS
-    // ============================================
-    public function actionPayments($id)
-    {
-        try {
-            $user = Yii::$app->user->identity;
-            $empresaId = Yii::$app->session->get('empresa_id');
-
-            $model = Quote::find()->with(['lead', 'status'])->where(['id_quote' => $id])->one();
-
-            if (!$model) {
-                Yii::$app->session->setFlash('error', 'Cotización no encontrada.');
-                return $this->redirect(['index']);
-            }
-
-            if (!$model->lead) {
-                Yii::$app->session->setFlash('error', 'La cotización no tiene un lead asociado.');
-                return $this->redirect(['index']);
-            }
-
-            if ($user->isAgent() && $model->lead->id_user != $user->id_user) {
-                Yii::$app->session->setFlash('error', 'No tienes permiso para ver esta cotización.');
-                return $this->redirect(['index']);
-            }
-
-            if ($user->isSuperAdmin() && !empty($empresaId) && $model->lead->id_company != $empresaId) {
-                Yii::$app->session->setFlash('error', 'No tienes permiso para ver esta cotización.');
-                return $this->redirect(['index']);
-            }
-
-            if ($user->isAdmin() && !$user->isSuperAdmin() && $model->lead->id_company != $user->id_company) {
-                Yii::$app->session->setFlash('error', 'No tienes permiso para ver esta cotización.');
-                return $this->redirect(['index']);
-            }
-
-            return $this->render('payments', ['model' => $model]);
-
-        } catch (\Exception $e) {
-            Yii::error('Error en actionPayments: ' . $e->getMessage(), 'quote-controller');
-            Yii::$app->session->setFlash('error', 'Error al cargar los pagos.');
-            return $this->redirect(['index']);
-        }
-    }
-
-    // ============================================
-    // REGISTRAR PAGO PARCIAL (AJAX - JSON)
-    // ============================================
-    public function actionAddPayment($id)
-    {
-        Yii::$app->response->format = Response::FORMAT_JSON;
-
-        try {
-            $user = Yii::$app->user->identity;
-            $empresaId = Yii::$app->session->get('empresa_id');
-
-            $model = Quote::find()->with(['lead'])->where(['id_quote' => $id])->one();
-
-            if (!$model) return ['success' => false, 'message' => 'Cotización no encontrada.'];
-            if (!$model->lead) return ['success' => false, 'message' => 'La cotización no tiene un lead asociado.'];
-
-            if ($user->isAgent() && $model->lead->id_user != $user->id_user) {
-                return ['success' => false, 'message' => 'No tienes permiso.'];
-            }
-            if ($user->isSuperAdmin() && !empty($empresaId) && $model->lead->id_company != $empresaId) {
-                return ['success' => false, 'message' => 'No tienes permiso.'];
-            }
-            if ($user->isAdmin() && !$user->isSuperAdmin() && $model->lead->id_company != $user->id_company) {
-                return ['success' => false, 'message' => 'No tienes permiso.'];
-            }
-
-            $monto = (int) Yii::$app->request->post('monto', 0);
-            $metodo = Yii::$app->request->post('metodo', '');
-            $referencia = Yii::$app->request->post('referencia', '');
-            $fecha = Yii::$app->request->post('fecha', date('Y-m-d'));
-            $comentarios = Yii::$app->request->post('comentarios', '');
-
-            if ($monto <= 0) return ['success' => false, 'message' => 'El monto debe ser mayor a 0.'];
-
-            if ($model->isFullyPaid()) {
-                return ['success' => false, 'message' => 'Esta cotización ya está pagada en su totalidad.'];
-            }
-
-            $pendiente = $model->getRealPending();
-
-            if ($monto > $pendiente) {
-                return [
-                    'success' => false,
-                    'message' => 'El monto ($' . number_format($monto, 0, '.', ',') . 
-                                 ') excede el pendiente ($' . number_format($pendiente, 0, '.', ',') . ').'
-                ];
-            }
-
-            $model->addPayment($monto, $metodo, $referencia, $fecha, $comentarios);
-
-            if ($model->save(false)) {
-                $nuevoPendiente = $model->getRealPending();
-
-                return [
-                    'success' => true,
-                    'message' => 'Pago registrado exitosamente.',
-                    'nuevo_pendiente' => $nuevoPendiente,
-                    'completado' => $nuevoPendiente <= 0,
-                ];
-            }
-
-            return ['success' => false, 'message' => 'Error al guardar el pago.'];
-
-        } catch (\Exception $e) {
-            Yii::error('Error al registrar pago: ' . $e->getMessage(), 'quote');
-            return ['success' => false, 'message' => 'Error: ' . $e->getMessage()];
-        }
-    }
-
-    // ============================================
-    // ELIMINAR PAGO PARCIAL
-    // ============================================
-    public function actionRemovePayment($id, $index)
-    {
-        try {
-            $user = Yii::$app->user->identity;
-            $empresaId = Yii::$app->session->get('empresa_id');
-
-            $model = Quote::find()->with(['lead'])->where(['id_quote' => $id])->one();
-
-            if (!$model) {
-                Yii::$app->session->setFlash('error', 'Cotización no encontrada.');
-                return $this->redirect(['index']);
-            }
-
-            if (!$model->lead) {
-                Yii::$app->session->setFlash('error', 'La cotización no tiene un lead asociado.');
-                return $this->redirect(['index']);
-            }
-
-            if ($user->isAgent() && $model->lead->id_user != $user->id_user) {
-                Yii::$app->session->setFlash('error', 'No tienes permiso.');
-                return $this->redirect(['index']);
-            }
-
-            if ($user->isSuperAdmin() && !empty($empresaId) && $model->lead->id_company != $empresaId) {
-                Yii::$app->session->setFlash('error', 'No tienes permiso.');
-                return $this->redirect(['index']);
-            }
-
-            if ($user->isAdmin() && !$user->isSuperAdmin() && $model->lead->id_company != $user->id_company) {
-                Yii::$app->session->setFlash('error', 'No tienes permiso.');
-                return $this->redirect(['index']);
-            }
-
-            if ($model->removePayment((int) $index)) {
-                
-                if ($model->save(false)) {
-                    if (!$model->isFullyPaid()) {
-                        $idPendiente = $this->getPendingStatusId();
-                        if ($idPendiente && $model->id_status != $idPendiente) {
-                            $model->id_status = $idPendiente;
-                            $model->save(false);
-                        }
-                    }
-                    
-                    Yii::$app->session->setFlash('success', 'Pago eliminado. Saldo pendiente actualizado.');
-                } else {
-                    Yii::$app->session->setFlash('error', 'Error al actualizar el saldo.');
-                }
-            } else {
-                Yii::$app->session->setFlash('error', 'Pago no encontrado.');
-            }
-
-        } catch (\Exception $e) {
-            Yii::error('Error al eliminar pago: ' . $e->getMessage(), 'quote');
-            Yii::$app->session->setFlash('error', 'Error al eliminar el pago.');
-        }
-
-        return $this->redirect(['payments', 'id' => $id]);
-    }
-
-    // ============================================
     // VER COTIZACIÓN - MODAL
     // ============================================
     public function actionViewModal($id)
@@ -685,7 +506,9 @@ class QuoteController extends Controller
                 return $this->renderPartial('_update_modal', ['error' => 'No tienes permiso para editar esta cotización.']);
             }
 
-            // Listas para selects
+            // 🔥 Guardar el id_lead original para restaurarlo después del POST
+            $idLeadOriginal = $model->id_lead;
+
             $leadsQuery = Lead::find();
             
             if ($user->isAgent()) {
@@ -710,8 +533,10 @@ class QuoteController extends Controller
             // 🔥 GUARDAR
             if (Yii::$app->request->isPost && $model->load(Yii::$app->request->post())) {
                 try {
-                    $model->total_amount = (int)$model->total_amount;
-                    $model->down_payment = (int)$model->down_payment;
+                    $model->total_amount = (int) $model->total_amount;
+
+                    // 🔥 SEGURIDAD: Forzar que el id_lead no cambie
+                    $model->id_lead = $idLeadOriginal;
                     
                     if ($model->save()) {
                         return $this->renderPartial('_update_modal', [
@@ -877,10 +702,9 @@ class QuoteController extends Controller
                 return $this->redirect(['empresa/index']);
             }
 
+            // 🔥 Solo inicializar campos que existen en la tabla
             $model->date_quote = date('Y-m-d');
             $model->hour_quote = date('H:i');
-            $model->down_payment = 0;
-            $model->pending_payment = 0;
             $model->total_amount = 0;
 
             $idPendiente = $this->getPendingStatusId();
@@ -917,19 +741,11 @@ class QuoteController extends Controller
                     }
 
                     $model->total_amount = (int) $model->total_amount;
-                    $model->down_payment = (int) $model->down_payment;
 
                     if ($model->total_amount <= 0) {
                         Yii::$app->session->setFlash('error', 'El monto total debe ser mayor a 0.');
                         return $this->redirect(['create']);
                     }
-
-                    if ($model->down_payment > $model->total_amount) {
-                        Yii::$app->session->setFlash('error', 'El enganche no puede ser mayor que el monto total.');
-                        return $this->redirect(['create']);
-                    }
-
-                    if ($model->down_payment < 0) $model->down_payment = 0;
 
                     if (empty($model->id_status) && $idPendiente) $model->id_status = $idPendiente;
 
@@ -1042,8 +858,7 @@ class QuoteController extends Controller
 
             if ($model->load(Yii::$app->request->post())) {
                 try {
-                    $model->total_amount = (int)$model->total_amount;
-                    $model->down_payment = (int)$model->down_payment;
+                    $model->total_amount = (int) $model->total_amount;
                     
                     if ($model->save()) {
                         Yii::$app->session->setFlash('success', 'Cotización actualizada exitosamente.');
