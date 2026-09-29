@@ -349,12 +349,22 @@ if ($selectedAgentId !== null && $selectedAgentId !== '') {
                                                 </td>
                                                 <td class="text-center">
                                                     <div class="d-flex gap-1 justify-content-center">
-                                                        <button class="btn btn-danger btn-sm btn-action" 
-                                                                title="Desasignar"
-                                                                onclick="unassignLead(<?= $lead->id_lead ?>, '<?= Html::encode($lead->name . ' ' . $lead->lastname) ?>')">
-                                                            <i class="fas fa-user-slash"></i>
-                                                        </button>
-                                                        <?= Html::a('<i class="fas fa-eye"></i>', ['lead/view', 'id' => $lead->id_lead], [
+                                                        <!-- 🔥 BOTÓN DESASIGNAR (usa form POST) -->
+                                                        <?= Html::beginForm($unassignUrl, 'post', [
+                                                            'class' => 'action-form d-inline',
+                                                            'data-lead-name' => $lead->name . ' ' . $lead->lastname,
+                                                        ]) ?>
+                                                            <?= Html::hiddenInput('lead_id', $lead->id_lead) ?>
+                                                            <?= Html::submitButton('<i class="fas fa-user-slash"></i>', [
+                                                                'class' => 'btn btn-danger btn-sm btn-action unassign-btn',
+                                                                'title' => 'Desasignar',
+                                                                'data' => [
+                                                                    'confirm' => '¿Desasignar el lead "' . $lead->name . ' ' . $lead->lastname . '" del agente?',
+                                                                ],
+                                                            ]) ?>
+                                                        <?= Html::endForm() ?>
+
+                                                        <?= Html::a('<i class="fas fa-eye"></i>', ['lead/details', 'id' => $lead->id_lead], [
                                                             'class' => 'btn btn-info btn-sm btn-action',
                                                             'title' => 'Ver lead',
                                                             'target' => '_blank'
@@ -432,32 +442,17 @@ $(document).ready(function() {
     });
 
     // ============================================
-    // DESASIGNAR LEAD
+    // 🔥 CONFIRMAR DESASIGNAR (mejor UX)
     // ============================================
-    window.unassignLead = function(leadId, leadName) {
-        if (confirm('¿Desasignar el lead "' + leadName + '" del agente?')) {
-            var csrfToken = $('meta[name="csrf-token"]').attr('content');
-            var csrfParam = $('meta[name="csrf-param"]').attr('content');
+    $(document).on('click', '.unassign-btn', function(e) {
+        var $form = $(this).closest('form');
+        var leadName = $form.data('lead-name') || 'este lead';
 
-            var form = $('<form>', {
-                'method': 'POST',
-                'action': '<?= $unassignUrl ?>'
-            });
-            form.append($('<input>', {
-                'type': 'hidden',
-                'name': 'lead_id',
-                'value': leadId
-            }));
-            if (csrfParam && csrfToken) {
-                form.append($('<input>', {
-                    'type': 'hidden',
-                    'name': csrfParam,
-                    'value': csrfToken
-                }));
-            }
-            form.appendTo('body');
-            form.submit();
+        if (!confirm('¿Desasignar el lead "' + leadName + '" del agente?')) {
+            e.preventDefault();
+            return false;
         }
-    };
+        // Si confirma, el form se envía normalmente (POST con CSRF)
+    });
 });
 </script>

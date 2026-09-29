@@ -94,8 +94,6 @@ class SalesController extends Controller
             ->where(['not in', 'l.id_status', [1, 10]])
             ->andWhere(['not in', 'q.id_status', [10]]);
 
-        // Si está filtrando por "Cancelado", buscar SOLO cancelados
-        // Si no, buscar los vendidos (completado/pagada/aprobada)
         if ($filtrandoCancelado) {
             if ($idStatusCancelado) {
                 $subQueryVendidos->andWhere(['q.id_status' => $idStatusCancelado]);
@@ -109,7 +107,6 @@ class SalesController extends Controller
                 $subQueryVendidos->andWhere(['0' => '1']);
             }
             
-            // Si hay un filtro de estado distinto a cancelado, aplicarlo
             if ($statusModelFilter && !$filtrandoCancelado) {
                 $subQueryVendidos->andWhere(['q.id_status' => $statusModelFilter->id_status]);
             }
@@ -186,13 +183,12 @@ class SalesController extends Controller
         // 🔥 OBTENER VENTAS PAGINADAS
         $sales = $dataProvider->getModels();
 
-        // Cargar la relación lead manualmente (porque usamos leftJoin literal)
         foreach ($sales as $sale) {
             $sale->populateRelation('lead', $sale->getLead()->one());
         }
 
         // ============================================
-        // 🔥 TODAS LAS VENTAS FILTRADAS (para métricas y últimas ventas)
+        // 🔥 TODAS LAS VENTAS FILTRADAS
         // ============================================
         $todasLasVentas = Quote::find()
             ->alias('q')
@@ -206,7 +202,7 @@ class SalesController extends Controller
         }
 
         // ============================================
-        // 🔥 SUBQUERY PARA PERDIDOS (SIEMPRE, para métricas globales)
+        // 🔥 SUBQUERY PARA PERDIDOS
         // ============================================
         $subQueryPerdidos = Quote::find()
             ->alias('q')
@@ -221,7 +217,6 @@ class SalesController extends Controller
             $subQueryPerdidos->andWhere(['0' => '1']);
         }
 
-        // FILTROS POR ROL Y EMPRESA para perdidos
         if ($user->isSuperAdmin()) {
             if (!empty($empresaId)) {
                 $subQueryPerdidos->andWhere(['l.id_company' => $empresaId]);
@@ -244,11 +239,7 @@ class SalesController extends Controller
 
         // ============================================
         // 🔥 CALCULAR ESTADÍSTICAS DE VENDIDOS
-        // 🔥 Importante: usar subquery "base" sin el filtro de estado
-        //    para que las métricas siempre reflejen los totales reales
         // ============================================
-        
-        // Subquery SIN filtro de estado (para métricas)
         $subQueryVendidosMetricas = Quote::find()
             ->alias('q')
             ->select(['q.id_quote'])
@@ -287,7 +278,11 @@ class SalesController extends Controller
 
         foreach ($ventasParaMetricas as $sale) {
             $montoVendidos += (int)$sale->total_amount;
-            $pending = (int)$sale->pending_payment;
+            
+            // 🔥 Calcular pendiente usando el método del modelo
+            // (no existe columna pending_payment en la BD)
+            $pending = $sale->getRealPending();
+            
             if ($pending > 0) {
                 $totalPending += $pending;
                 $totalPendientesPago++;
@@ -317,12 +312,9 @@ class SalesController extends Controller
         if ($idStatusAprobada) $statusList[$idStatusAprobada] = 'Aprobada';
         if ($idStatusCancelado) $statusList[$idStatusCancelado] = 'Cancelado';
 
-        // Últimas 5 ventas (solo si no está filtrando por cancelado)
         if ($filtrandoCancelado) {
-            // Si filtra por cancelado, mostrar los últimos cancelados
             $ultimasVentas = array_slice($perdidos, 0, 5);
         } else {
-            // Si no, mostrar las últimas ventas exitosas
             $ultimasVentas = array_slice($ventasParaMetricas, 0, 5);
         }
 
@@ -359,7 +351,6 @@ class SalesController extends Controller
             return $this->redirect(['empresa/index']);
         }
 
-        // Verificar que sea una cotización vendida
         $statusCompletado = Status::find()->where(['status' => 'completado'])->one();
         $statusPagada = Status::find()->where(['status' => 'pagada'])->one();
         $statusAprobada = Status::find()->where(['status' => 'aprobada'])->one();
@@ -416,7 +407,6 @@ class SalesController extends Controller
             return $this->redirect(['empresa/index']);
         }
 
-        // Verificar que sea una cotización vendida
         $statusCompletado = Status::find()->where(['status' => 'completado'])->one();
         $statusPagada = Status::find()->where(['status' => 'pagada'])->one();
         $statusAprobada = Status::find()->where(['status' => 'aprobada'])->one();
@@ -456,10 +446,8 @@ class SalesController extends Controller
         }
 
         if ($model->load(Yii::$app->request->post())) {
-            $model->pending_payment = (int)$model->total_amount - (int)$model->down_payment;
-            if ($model->pending_payment < 0) {
-                $model->pending_payment = 0;
-            }
+            // 🔥 NO asignar pending_payment (no existe la columna)
+            // El pendiente se calcula al vuelo con getRealPending()
             
             if ($model->save()) {
                 Yii::$app->session->setFlash('success', 'Cotización actualizada exitosamente.');

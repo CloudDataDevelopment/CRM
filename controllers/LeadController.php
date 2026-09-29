@@ -11,7 +11,7 @@ use app\models\SalesTracking;
 use app\models\Quote;
 use app\models\Status;
 use app\models\User;
-use app\models\Report;  // 🔥 NUEVO: Import para evaluaciones
+use app\models\Report;
 use app\components\ErrorManager;
 
 class LeadController extends Controller
@@ -20,7 +20,6 @@ class LeadController extends Controller
 
     /**
      * 🔥 Obtiene el ID del status "Nuevo" de forma dinámica.
-     * Si no existe, lo crea automáticamente.
      */
     protected function getStatusNuevoId()
     {
@@ -39,6 +38,24 @@ class LeadController extends Controller
         return $status->id_status;
     }
 
+    /**
+     * 🔥 Obtiene el ID del status "Inactivo" (papelera).
+     */
+    protected function getStatusInactivoId()
+    {
+        $status = Status::find()->where(['status' => 'Inactivo'])->one();
+        return $status ? $status->id_status : null;
+    }
+
+    /**
+     * 🔥 Obtiene el ID del status "Cancelado".
+     */
+    protected function getStatusCanceladoId()
+    {
+        $status = Status::find()->where(['status' => 'Cancelado'])->one();
+        return $status ? $status->id_status : null;
+    }
+
     // ============================================
     // LISTA DE LEADS CON PAGINACIÓN
     // ============================================
@@ -47,8 +64,8 @@ class LeadController extends Controller
         try {
             $user = Yii::$app->user->identity;
             
-            // 🔥 ESTADOS PERMITIDOS (UNIFICADOS)
-            $estadosPermitidos = ['Nuevo', 'Contactado', 'Procesando', 'Completado', 'Cancelado'];
+            // 🔥 ESTADOS PERMITIDOS (SIN CANCELADO)
+            $estadosPermitidos = ['Nuevo', 'Contactado', 'Procesando', 'Completado'];
             
             // 🔥 OBTENER LA EMPRESA SELECCIONADA EN SESIÓN
             $empresaId = Yii::$app->session->get('empresa_id');
@@ -64,8 +81,13 @@ class LeadController extends Controller
             $fecha_inicio = Yii::$app->request->get('fecha_inicio');
             $fecha_fin = Yii::$app->request->get('fecha_fin');
             
-            // IDs a excluir (papelera)
-            $excludeIds = [1, 10];
+            // 🔥 EXCLUIR PAPELERA (Inactivo) Y CANCELADOS
+            $idPapelera = $this->getStatusInactivoId();
+            $idCancelado = $this->getStatusCanceladoId();
+            
+            $excludeIds = [];
+            if ($idPapelera) $excludeIds[] = $idPapelera;
+            if ($idCancelado) $excludeIds[] = $idCancelado;
             
             // ============================================
             // 🔥 HELPER: Aplica filtro por rol/empresa
@@ -90,9 +112,13 @@ class LeadController extends Controller
             // ============================================
             // 🔥 CONSULTA CON DATAPROVIDER PARA PAGINACIÓN
             // ============================================
-            $query = Lead::find()
-                ->where(['not in', 'Lead.id_status', $excludeIds])
+            $query = Lead::findWithDeleted()
                 ->orderBy(['Lead.created_at' => SORT_DESC]);
+            
+            // 🔥 EXCLUIR PAPELERA Y CANCELADOS
+            if (!empty($excludeIds)) {
+                $query->andWhere(['not in', 'Lead.id_status', $excludeIds]);
+            }
             
             // 🔥 FILTROS POR ROL Y EMPRESA
             $applyLeadFilter($query);
@@ -181,22 +207,23 @@ class LeadController extends Controller
             $statusNuevo      = Status::find()->where(['status' => 'Nuevo'])->one();
             $statusContactado = Status::find()->where(['status' => 'Contactado'])->one();
             $statusProcesando = Status::find()->where(['status' => 'Procesando'])->one();
-            $statusCancelado  = Status::find()->where(['status' => 'Cancelado'])->one();
             
             $idStatusNuevo      = $statusNuevo      ? $statusNuevo->id_status      : null;
             $idStatusContactado = $statusContactado ? $statusContactado->id_status : null;
             $idStatusProcesando = $statusProcesando ? $statusProcesando->id_status : null;
-            $idStatusCancelado  = $statusCancelado  ? $statusCancelado->id_status  : null;
             
-            // TOTAL LEADS
-            $totalLeadsQuery = Lead::find()->where(['not in', 'Lead.id_status', $excludeIds]);
+            // TOTAL LEADS (excluyendo papelera y cancelados)
+            $totalLeadsQuery = Lead::findWithDeleted();
+            if (!empty($excludeIds)) {
+                $totalLeadsQuery->andWhere(['not in', 'Lead.id_status', $excludeIds]);
+            }
             $applyLeadFilter($totalLeadsQuery);
             $totalLeads = $totalLeadsQuery->count();
             
             // NUEVO
             $nuevoCount = 0;
             if ($idStatusNuevo) {
-                $queryNuevo = Lead::find()->where(['Lead.id_status' => $idStatusNuevo]);
+                $queryNuevo = Lead::findWithDeleted()->where(['Lead.id_status' => $idStatusNuevo]);
                 $applyLeadFilter($queryNuevo);
                 $nuevoCount = $queryNuevo->count();
             }
@@ -204,7 +231,7 @@ class LeadController extends Controller
             // CONTACTADO
             $contactadoCount = 0;
             if ($idStatusContactado) {
-                $queryContactado = Lead::find()->where(['Lead.id_status' => $idStatusContactado]);
+                $queryContactado = Lead::findWithDeleted()->where(['Lead.id_status' => $idStatusContactado]);
                 $applyLeadFilter($queryContactado);
                 $contactadoCount = $queryContactado->count();
             }
@@ -212,17 +239,9 @@ class LeadController extends Controller
             // PROCESANDO
             $procesandoCount = 0;
             if ($idStatusProcesando) {
-                $queryProcesando = Lead::find()->where(['Lead.id_status' => $idStatusProcesando]);
+                $queryProcesando = Lead::findWithDeleted()->where(['Lead.id_status' => $idStatusProcesando]);
                 $applyLeadFilter($queryProcesando);
                 $procesandoCount = $queryProcesando->count();
-            }
-            
-            // CANCELADO
-            $canceladoCount = 0;
-            if ($idStatusCancelado) {
-                $queryCancelado = Lead::find()->where(['Lead.id_status' => $idStatusCancelado]);
-                $applyLeadFilter($queryCancelado);
-                $canceladoCount = $queryCancelado->count();
             }
             
             // PORCENTAJES
@@ -231,17 +250,16 @@ class LeadController extends Controller
             $porcentajeNuevo      = round(($nuevoCount / $totalParaPorcentajes) * 100, 1);
             $porcentajeContactado = round(($contactadoCount / $totalParaPorcentajes) * 100, 1);
             $porcentajeProcesando = round(($procesandoCount / $totalParaPorcentajes) * 100, 1);
-            $porcentajeCancelado  = round(($canceladoCount / $totalParaPorcentajes) * 100, 1);
             
             // ALIAS PARA COMPATIBILIDAD CON LA VISTA
             $nuevosMes   = $nuevoCount;
             $contactados = $contactadoCount;
             $enProceso   = $procesandoCount;
-            $perdidos    = $canceladoCount;
             $calificados = 0;
             $convertidos = 0;
+            $perdidos    = 0;
 
-            // EMBUDO DE LEADS POR ETAPAS
+            // EMBUDO DE LEADS POR ETAPAS (SIN CANCELADOS)
             $nuevoProspecto = $nuevoCount;
             $contactado     = $contactadoCount;
             $calificado     = 0;
@@ -265,9 +283,11 @@ class LeadController extends Controller
             try {
                 $trackingsQuery = SalesTracking::find()
                     ->alias('st')
-                    ->leftJoin('Lead l', 'st.id_lead = l.id_lead')
-                    ->where(['not in', 'l.id_status', $excludeIds])
-                    ->andWhere(['<>', 'l.id_status', 1]);
+                    ->leftJoin('Lead l', 'st.id_lead = l.id_lead');
+                
+                if (!empty($excludeIds)) {
+                    $trackingsQuery->andWhere(['not in', 'l.id_status', $excludeIds]);
+                }
                 
                 if ($user && $user->isAgent()) {
                     $trackingsQuery->andWhere(['l.id_user' => $user->id_user]);
@@ -310,9 +330,11 @@ class LeadController extends Controller
                     $quotesQuery = Quote::find()
                         ->alias('q')
                         ->leftJoin('Lead l', 'q.id_lead = l.id_lead')
-                        ->where(['q.id_status' => $statusPendiente->id_status])
-                        ->andWhere(['not in', 'l.id_status', $excludeIds])
-                        ->andWhere(['<>', 'l.id_status', 1]);
+                        ->where(['q.id_status' => $statusPendiente->id_status]);
+                    
+                    if (!empty($excludeIds)) {
+                        $quotesQuery->andWhere(['not in', 'l.id_status', $excludeIds]);
+                    }
                     
                     if ($user && $user->isAgent()) {
                         $quotesQuery->andWhere(['l.id_user' => $user->id_user]);
@@ -356,10 +378,12 @@ class LeadController extends Controller
                 $proximosTrackingsQuery = SalesTracking::find()
                     ->alias('st')
                     ->leftJoin('Lead l', 'st.id_lead = l.id_lead')
-                    ->where(['not in', 'l.id_status', $excludeIds])
-                    ->andWhere(['<>', 'l.id_status', 1])
                     ->andWhere(['IS NOT', 'st.date_f', null])
                     ->andWhere(['>', 'st.date_f', $fechaHoy]);
+                
+                if (!empty($excludeIds)) {
+                    $proximosTrackingsQuery->andWhere(['not in', 'l.id_status', $excludeIds]);
+                }
                 
                 if ($user && $user->isAgent()) {
                     $proximosTrackingsQuery->andWhere(['l.id_user' => $user->id_user]);
@@ -438,7 +462,7 @@ class LeadController extends Controller
                     'nuevo'      => $porcentajeNuevo,
                     'contactado' => $porcentajeContactado,
                     'procesando' => $porcentajeProcesando,
-                    'cancelado'  => $porcentajeCancelado,
+                    'cancelado'  => 0,
                 ],
                 'actividadesRecientes' => $actividadesRecientes,
                 'proximasActividades' => $proximasActividades,
@@ -448,7 +472,7 @@ class LeadController extends Controller
         } catch (\Exception $e) {
             ErrorManager::handle($e, 'Error al cargar los leads');
             return $this->render('index', [
-                'dataProvider' => new ActiveDataProvider(['query' => Lead::find()->where(['0' => '1'])]),
+                'dataProvider' => new ActiveDataProvider(['query' => Lead::findWithDeleted()->where(['0' => '1'])]),
                 'leads' => [],
                 'search' => '',
                 'status' => '',
@@ -457,7 +481,7 @@ class LeadController extends Controller
                 'isAdmin' => false,
                 'isAgent' => false,
                 'statusList' => [],
-                'estadosPermitidos' => ['Nuevo', 'Contactado', 'Procesando', 'Completado', 'Cancelado'],
+                'estadosPermitidos' => ['Nuevo', 'Contactado', 'Procesando', 'Completado'],
                 'totalLeads' => 0,
                 'nuevosMes' => 0,
                 'contactados' => 0,
@@ -481,7 +505,7 @@ class LeadController extends Controller
         try {
             Yii::$app->response->format = \yii\web\Response::FORMAT_HTML;
             
-            $model = Lead::find()
+            $model = Lead::findWithDeleted()
                 ->where(['id_lead' => $id])
                 ->with('salesTrackings')
                 ->one();
@@ -519,9 +543,9 @@ class LeadController extends Controller
             $isModal = Yii::$app->request->get('modal', false);
             $isAjax = Yii::$app->request->isAjax;
             
-            $estadosPermitidos = ['Nuevo', 'Contactado', 'Procesando', 'Completado', 'Cancelado'];
+            $estadosPermitidos = ['Nuevo', 'Contactado', 'Procesando', 'Completado'];
             
-            $model = Lead::find()
+            $model = Lead::findWithDeleted()
                 ->where(['id_lead' => $id])
                 ->one();
 
@@ -573,17 +597,6 @@ class LeadController extends Controller
                     Yii::$app->session->setFlash('error', 'No tienes permiso para editar este lead.');
                     return $this->redirect(['index']);
                 }
-            }
-
-            if ($model->id_status == 10) {
-                if ($isModal || $isAjax) {
-                    return $this->renderPartial('_update_modal', [
-                        'model' => null,
-                        'error' => 'No puedes editar un lead en la papelera.'
-                    ]);
-                }
-                Yii::$app->session->setFlash('error', 'No puedes editar un lead cancelado.');
-                return $this->redirect(['trash']);
             }
 
             $returnUrl = Yii::$app->request->get('return', 'index');
@@ -695,7 +708,16 @@ class LeadController extends Controller
                 return $this->redirect(['index']);
             }
             
-            $query = Lead::find()->where(['Lead.id_status' => 10]);
+            $idPapelera = $this->getStatusInactivoId();
+            
+            if (!$idPapelera) {
+                Yii::$app->session->setFlash('warning', 'No se encontró el estado "Inactivo".');
+                return $this->redirect(['index']);
+            }
+            
+            // 🔥 USAR findWithDeleted() porque find() filtra por Cancelado
+            $query = Lead::findWithDeleted()
+                ->where(['Lead.id_status' => $idPapelera]);
             
             if ($user->isSuperAdmin()) {
                 if (!empty($empresaId)) {
@@ -728,7 +750,7 @@ class LeadController extends Controller
             $user = Yii::$app->user->identity;
             $empresaId = Yii::$app->session->get('empresa_id');
             
-            $model = Lead::find()
+            $model = Lead::findWithDeleted()
                 ->where(['id_lead' => $id])
                 ->with('salesTrackings')
                 ->one();
@@ -755,11 +777,7 @@ class LeadController extends Controller
                 }
             }
 
-            if ($model->id_status == 10) {
-                Yii::$app->session->setFlash('warning', 'Este lead está en la papelera.');
-            }
-
-            $estadosPermitidos = ['Nuevo', 'Contactado', 'Procesando', 'Completado', 'Cancelado'];
+            $estadosPermitidos = ['Nuevo', 'Contactado', 'Procesando', 'Completado'];
             $statusList = Status::find()
                 ->where(['in', 'status', $estadosPermitidos])
                 ->select(['status', 'id_status'])
@@ -791,7 +809,7 @@ class LeadController extends Controller
                 return $this->redirect(['index']);
             }
             
-            $model = Lead::find()
+            $model = Lead::findWithDeleted()
                 ->where(['id_lead' => $id])
                 ->one();
             
@@ -806,14 +824,23 @@ class LeadController extends Controller
                     return $this->redirect(['index']);
                 }
                 
-                if ($model->id_status == 10) {
+                $idPapelera = $this->getStatusInactivoId();
+                
+                if (!$idPapelera) {
+                    Yii::$app->session->setFlash('error', 'No se encontró el estado "Inactivo".');
+                    return $this->redirect(['index']);
+                }
+                
+                if ($model->id_status == $idPapelera) {
                     Yii::$app->session->setFlash('info', 'Este lead ya está en la papelera.');
                     return $this->redirect(['index']);
                 }
                 
-                $model->id_status = 10;
-                if ($model->save()) {
+                $model->id_status = $idPapelera;
+                if ($model->save(false)) {
                     Yii::$app->session->setFlash('success', 'Lead movido a la papelera.');
+                } else {
+                    Yii::$app->session->setFlash('error', 'Error al mover el lead a la papelera.');
                 }
             }
         } catch (\Exception $e) {
@@ -837,7 +864,7 @@ class LeadController extends Controller
                 return $this->redirect(['index']);
             }
             
-            $model = Lead::find()
+            $model = Lead::findWithDeleted()
                 ->where(['id_lead' => $id])
                 ->one();
             
@@ -852,14 +879,18 @@ class LeadController extends Controller
                     return $this->redirect(['trash']);
                 }
                 
-                if ($model->id_status != 10) {
+                $idPapelera = $this->getStatusInactivoId();
+                
+                if ($model->id_status != $idPapelera) {
                     Yii::$app->session->setFlash('info', 'Este lead no está en la papelera.');
                     return $this->redirect(['index']);
                 }
                 
                 $model->id_status = $this->getStatusNuevoId();
-                if ($model->save()) {
+                if ($model->save(false)) {
                     Yii::$app->session->setFlash('success', 'Lead restaurado exitosamente con estado "Nuevo".');
+                } else {
+                    Yii::$app->session->setFlash('error', 'Error al restaurar el lead.');
                 }
             }
         } catch (\Exception $e) {
@@ -878,7 +909,7 @@ class LeadController extends Controller
             $user = Yii::$app->user->identity;
             $empresaId = Yii::$app->session->get('empresa_id');
             
-            $model = Lead::find()
+            $model = Lead::findWithDeleted()
                 ->where(['id_lead' => $id])
                 ->one();
 
@@ -904,11 +935,6 @@ class LeadController extends Controller
                 }
             }
 
-            if ($model->id_status == 10) {
-                Yii::$app->session->setFlash('error', 'No puedes cambiar el estado de un lead cancelado.');
-                return $this->redirect(['view', 'id' => $id]);
-            }
-
             $statusModel = Status::find()->where(['status' => $status])->one();
             if (!$statusModel) {
                 Yii::$app->session->setFlash('error', 'Estado no válido.');
@@ -918,7 +944,7 @@ class LeadController extends Controller
             $oldStatus = $model->getStatusName();
             $model->id_status = $statusModel->id_status;
             
-            if ($model->save()) {
+            if ($model->save(false)) {
                 Yii::$app->session->removeAllFlashes();
                 Yii::$app->session->setFlash('success', 'Estado actualizado de "' . $oldStatus . '" a "' . $status . '"');
                 
@@ -951,7 +977,7 @@ class LeadController extends Controller
     {
         $model = new Lead();
 
-        $estadosPermitidos = ['Nuevo', 'Contactado', 'Procesando', 'Completado', 'Cancelado'];
+        $estadosPermitidos = ['Nuevo', 'Contactado', 'Procesando', 'Completado'];
         $idStatusNuevo = $this->getStatusNuevoId();
 
         $model->created_at = date('Y-m-d');
@@ -975,7 +1001,11 @@ class LeadController extends Controller
                 }
                 
                 $model->id_status = $idStatusNuevo;
-                $model->created_at = date('Y-m-d');
+                
+                // 🔥 Validar created_at
+                if (empty($model->created_at) || $model->created_at === '0000-00-00') {
+                    $model->created_at = date('Y-m-d');
+                }
                 
                 if ($user && $user->isAgent()) {
                     $model->id_user = $user->id_user;
@@ -1006,8 +1036,18 @@ class LeadController extends Controller
         $user = Yii::$app->user->identity;
         $empresaId = Yii::$app->session->get('empresa_id');
         
-        $ultimosLeads = Lead::find()
-            ->where(['not in', 'Lead.id_status', [1, 10]]);
+        $idPapelera = $this->getStatusInactivoId();
+        $idCancelado = $this->getStatusCanceladoId();
+        
+        $excludeIds = [];
+        if ($idPapelera) $excludeIds[] = $idPapelera;
+        if ($idCancelado) $excludeIds[] = $idCancelado;
+        
+        $ultimosLeads = Lead::findWithDeleted();
+        
+        if (!empty($excludeIds)) {
+            $ultimosLeads->andWhere(['not in', 'Lead.id_status', $excludeIds]);
+        }
         
         if ($user && $user->isAgent()) {
             $ultimosLeads->andWhere(['Lead.id_user' => $user->id_user]);
@@ -1037,7 +1077,6 @@ class LeadController extends Controller
 
     // ============================================
     // DETALLES DEL LEAD (Vista completa)
-    // 🔥 INCLUYE EVALUACIONES
     // ============================================
     public function actionDetails($id)
     {
@@ -1045,7 +1084,7 @@ class LeadController extends Controller
             $user = Yii::$app->user->identity;
             $empresaId = Yii::$app->session->get('empresa_id');
             
-            $model = Lead::find()
+            $model = Lead::findWithDeleted()
                 ->where(['id_lead' => $id])
                 ->with(['salesTrackings', 'quotes', 'user', 'company', 'status'])
                 ->one();
@@ -1077,8 +1116,6 @@ class LeadController extends Controller
 
             // ============================================
             // 🔥 CARGAR EVALUACIONES DEL LEAD
-            // Usa la relación getReports() definida en Lead.php
-            // La FK está en Reports.id_lead
             // ============================================
             $evaluaciones = $model->getReports()
                 ->with(['status', 'user'])
@@ -1114,10 +1151,10 @@ class LeadController extends Controller
             $statusColor = $statusColors[trim($statusName)] ?? '#6c757d';
 
             $createdAt = strtotime($model->created_at);
-            $daysSince = floor((time() - $createdAt) / (60 * 60 * 24));
+            $daysSince = $createdAt ? floor((time() - $createdAt) / (60 * 60 * 24)) : 0;
 
             $statusList = Status::find()
-                ->where(['in', 'status', ['Nuevo', 'Contactado', 'Procesando', 'Completado', 'Cancelado']])
+                ->where(['in', 'status', ['Nuevo', 'Contactado', 'Procesando', 'Completado']])
                 ->select(['status', 'id_status'])
                 ->indexBy('id_status')
                 ->column();

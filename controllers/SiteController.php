@@ -68,6 +68,17 @@ class SiteController extends Controller
         ];
     }
 
+    // ============================================
+    // 🔥 HELPER: Verificar si el usuario es Admin/SuperAdmin
+    // ============================================
+    private function canManageProfile($user)
+    {
+        if (!$user) {
+            return false;
+        }
+        return $user->isAdmin() || $user->isSuperAdmin();
+    }
+
     public function actionIndex()
     {
         try {
@@ -192,6 +203,13 @@ class SiteController extends Controller
         }
 
         $user = Yii::$app->user->identity;
+
+        // 🔥 BLOQUEO A NIVEL SERVIDOR: Solo SuperAdmin puede registrar usuarios
+        if (!$user->isSuperAdmin()) {
+            Yii::$app->session->setFlash('error', 'No tienes permiso para registrar usuarios.');
+            return $this->redirect(['dashboard/index']);
+        }
+
         $isSuperAdmin = false;
         $isAdmin = false;
 
@@ -242,37 +260,22 @@ class SiteController extends Controller
             $backLabel = 'Volver al Dashboard';
             $showCompanyField = true;
 
-        } elseif ($isAdmin && $isFromCrm) {
-            $useSimpleLayout = false;
-            $hideSidebar = false;
-            $layout = 'main';
-
-            $rolesList = RegisterForm::getLimitedRolesList();
-            $headerColor = 'bg-primary';
-            $backUrl = ['/user-management/index'];
-            $backLabel = 'Volver a Usuarios';
-            $showCompanyField = false;
-
         } else {
             $useSimpleLayout = false;
             $hideSidebar = false;
             $layout = 'main';
 
-            $rolesList = RegisterForm::getLimitedRolesList();
-            $headerColor = 'bg-secondary';
+            $rolesList = RegisterForm::getFullRolesList();
+            $headerColor = 'bg-danger';
             $backUrl = ['/dashboard/index'];
             $backLabel = 'Volver al Dashboard';
-            $showCompanyField = false;
+            $showCompanyField = true;
         }
 
         $this->layout = $layout;
         $this->view->params['hideSidebar'] = $hideSidebar;
 
         $model = new RegisterForm();
-
-        if (!$isSuperAdmin && $isAdmin) {
-            $model->id_role = 2;
-        }
 
         $companiesList = RegisterForm::getCompaniesList();
 
@@ -299,7 +302,7 @@ class SiteController extends Controller
             'model' => $model,
             'isSuperAdmin' => $isSuperAdmin,
             'isAdmin' => $isAdmin,
-            'roleName' => $isSuperAdmin ? 'Super Administrador' : ($isAdmin ? 'Administrador' : 'Usuario'),
+            'roleName' => $isSuperAdmin ? 'Super Administrador' : 'Administrador',
             'rolesList' => $rolesList,
             'headerColor' => $headerColor,
             'backUrl' => $backUrl,
@@ -425,7 +428,8 @@ class SiteController extends Controller
     }
 
     // ============================================
-    // 🔥 ACTUALIZAR PERFIL (AJAX) — incluye username
+    // 🔥 ACTUALIZAR PERFIL (AJAX)
+    // 🔥 BLOQUEO: Solo Admin/SuperAdmin
     // ============================================
     public function actionUpdateProfile()
     {
@@ -438,6 +442,15 @@ class SiteController extends Controller
                 return ['success' => false, 'message' => 'Sesión expirada.'];
             }
 
+            // 🔥 BLOQUEO A NIVEL SERVIDOR: Solo Admin/SuperAdmin
+            if (!$this->canManageProfile($user)) {
+                Yii::warning('Intento de actualización de perfil sin permiso. User ID: ' . $user->id_user, 'security');
+                return [
+                    'success' => false,
+                    'message' => 'No tienes permiso para editar tu perfil. Contacta a tu administrador.'
+                ];
+            }
+
             if (Yii::$app->request->isPost) {
                 $post = Yii::$app->request->post();
 
@@ -448,11 +461,11 @@ class SiteController extends Controller
                 $user->email     = trim($post['email'] ?? $user->email);
                 $user->phone     = trim($post['phone'] ?? $user->phone);
 
-                // 🔥 USERNAME (nuevo)
+                // 🔥 USERNAME
                 if (isset($post['username']) && trim($post['username']) !== '') {
                     $newUsername = trim($post['username']);
 
-                    // Validar formato: letras, números, punto, guion y guion bajo
+                    // Validar formato
                     if (!preg_match('/^[a-zA-Z0-9._-]{3,50}$/', $newUsername)) {
                         return [
                             'success' => false,
@@ -503,6 +516,7 @@ class SiteController extends Controller
 
     // ============================================
     // 🔥 CAMBIAR CONTRASEÑA (AJAX)
+    // 🔥 BLOQUEO: Solo Admin/SuperAdmin
     // ============================================
     public function actionChangePassword()
     {
@@ -513,6 +527,15 @@ class SiteController extends Controller
 
             if (!$user) {
                 return ['success' => false, 'message' => 'Sesión expirada.'];
+            }
+
+            // 🔥 BLOQUEO A NIVEL SERVIDOR: Solo Admin/SuperAdmin
+            if (!$this->canManageProfile($user)) {
+                Yii::warning('Intento de cambio de contraseña sin permiso. User ID: ' . $user->id_user, 'security');
+                return [
+                    'success' => false,
+                    'message' => 'No tienes permiso para cambiar tu contraseña. Contacta a tu administrador.'
+                ];
             }
 
             if (Yii::$app->request->isPost) {

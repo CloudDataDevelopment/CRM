@@ -5,6 +5,7 @@ namespace app\controllers;
 use Yii;
 use yii\web\Controller;
 use yii\web\NotFoundHttpException;
+use yii\web\Response;
 use yii\filters\VerbFilter;
 use yii\data\ActiveDataProvider;
 use app\models\User;
@@ -23,8 +24,10 @@ class UserManagementController extends Controller
             'verbs' => [
                 'class' => VerbFilter::className(),
                 'actions' => [
-                    'delete' => ['POST'],
-                    'toggle-status' => ['POST'],
+                    'delete'          => ['POST'],
+                    'toggle-status'   => ['POST'],
+                    'change-role'     => ['POST'],
+                    'change-password' => ['POST'],
                 ],
             ],
         ];
@@ -41,7 +44,6 @@ class UserManagementController extends Controller
                 return 'role_type';
             }
 
-            // Buscar en orden de preferencia
             $candidates = ['name', 'role_type', 'type', 'description', 'role_name'];
             foreach ($candidates as $col) {
                 if (isset($schema->columns[$col])) {
@@ -49,7 +51,6 @@ class UserManagementController extends Controller
                 }
             }
 
-            // Si ninguna existe, devolver la primera columna string que no sea PK
             foreach ($schema->columns as $col) {
                 if ($col->type === 'string' && !$col->isPrimaryKey) {
                     return $col->name;
@@ -64,7 +65,7 @@ class UserManagementController extends Controller
     }
 
     // ============================================
-    // 🔥 OBTENER LISTA DE ROLES (con fallback seguro)
+    // 🔥 OBTENER LISTA DE ROLES
     // ============================================
     private function getRolesList()
     {
@@ -84,7 +85,6 @@ class UserManagementController extends Controller
             Yii::warning('Error al cargar roles: ' . $e->getMessage(), 'user-management');
         }
 
-        // 🔥 Fallback si la tabla Role está vacía o falla
         return [
             1 => 'Super Administrador',
             2 => 'Administrador',
@@ -325,6 +325,7 @@ class UserManagementController extends Controller
             return $this->render('view', [
                 'model' => $model,
                 'isSuperAdmin' => $user->isSuperAdmin(),
+                'isAdmin' => $user->isAdmin(),
             ]);
 
         } catch (NotFoundHttpException $e) {
@@ -507,5 +508,142 @@ class UserManagementController extends Controller
         }
 
         return $this->redirect(['index']);
+    }
+
+    // ============================================
+    // 🔥 CAMBIAR CONTRASEÑA DE OTRO USUARIO (AJAX)
+    // Solo Admin/SuperAdmin pueden cambiar la contraseña de otros usuarios.
+    // ============================================
+    public function actionChangePassword()
+    {
+        Yii::$app->response->format = Response::FORMAT_JSON;
+
+        try {
+            $currentUser = Yii::$app->user->identity;
+
+            if (!$currentUser) {
+                return ['success' => false, 'message' => 'Sesión expirada.'];
+            }
+
+            // 🔥 BLOQUEO A NIVEL SERVIDOR: Solo Admin/SuperAdmin
+            if (!$currentUser->isAdmin() && !$currentUser->isSuperAdmin()) {
+                Yii::warning(
+                    'Intento sin permiso de cambiar contraseña. User ID: ' . $currentUser->id_user,
+                    'security'
+                );
+                return [
+                    'success' => false,
+                    'message' => 'No tienes permiso para cambiar contraseñas.'
+                ];
+            }
+
+            if (!Yii::$app->request->isPost) {
+                return ['success' => false, 'message' => 'Método no permitido.'];
+            }
+
+            $post = Yii::$app->request->post();
+            $userId          = (int) ($post['user_id'] ?? 0);
+            $newPassword     = $post['new_password'] ?? '';
+            $confirmPassword = $post['confirm_password'] ?? '';
+
+            if (!$userId) {
+                return ['success' => false, 'message' => 'Usuario no especificado.'];
+            }
+
+            $user = User::findOne($userId);
+
+            if (!$user) {
+                return ['success' => false, 'message' => 'Usuario no encontrado.'];
+            }
+
+            // 🔥 No puede cambiar su propia contraseña desde aquí
+            if ($user->id_user == $currentUser->id_user) {
+                return [
+                    'success' => false,
+                    'message' => 'Usa "Mi Perfil" para cambiar tu propia contraseña.'
+                ];
+            }
+
+            // 🔥 Solo SuperAdmin puede cambiar contraseña de SuperAdmins
+            if ($user->isSuperAdmin() && !$currentUser->isSuperAdmin()) {
+                return [
+                    'success' => false,
+                    'message' => 'No puedes cambiar la contraseña de un Super Administrador.'
+                ];
+            }
+
+            // 🔥 Admin normal solo puede cambiar a usuarios de su propia empresa
+            if (!$currentUser->isSuperAdmin() && $user->id_company != $currentUser->id_company) {
+                return [
+                    'success' => false,
+                    'message' => 'No tienes permiso para modificar este usuario.'
+                ];
+            }
+
+            // 🔥 Validaciones de contraseña
+            if (empty($newPassword) || empty($confirmPassword)) {
+                return [
+                    'success' => false,
+                    'message' => 'Debes ingresar y confirmar la nueva contraseña.'
+                ];
+            }
+
+            if ($newPassword !== $confirmPassword) {
+                return ['success' => false, 'message' => 'Las contraseñas no coinciden.'];
+            }
+
+            if (strlen($newPassword) < 4) {
+                return [
+                    'success' => false,
+                    'message' => 'La contraseña debe tener al menos 4 caracteres.'
+                ];
+            }
+
+            // 🔥 Actualizar contraseña
+            $user->setPassword($newPassword);
+
+            if ($user->save()) {
+                // 🔥 Sincronizar con Authentication
+                try {
+                    $auth = Authentication::find()
+                        ->where(['id_user' => $user->id_user])
+                        ->one();
+                    if ($auth) {
+                        $auth->password = $user->password;
+                        $auth->save(false);
+                    }
+                } catch (\Exception $e) {
+                    Yii::warning(
+                        'Error al sincronizar password en Authentication: ' . $e->getMessage(),
+                        'security'
+                    );
+                }
+
+                Yii::info(
+                    'Contraseña cambiada por ' . $currentUser->username .
+                    ' al usuario ' . $user->username,
+                    'security'
+                );
+
+                return [
+                    'success' => true,
+                    'message' => 'Contraseña actualizada exitosamente para "' . $user->username . '".'
+                ];
+            }
+
+            $errors = [];
+            foreach ($user->getErrors() as $attribute => $errorList) {
+                $errors[] = $user->getAttributeLabel($attribute) . ': ' . implode(', ', $errorList);
+            }
+
+            return [
+                'success' => false,
+                'message' => 'Error al guardar: ' . implode(' | ', $errors)
+            ];
+
+        } catch (\Exception $e) {
+            Yii::error('Error en actionChangePassword: ' . $e->getMessage(), 'user-management');
+            return ['success' => false, 'message' => 'Error: ' . $e->getMessage()];
+        }
     }
 }

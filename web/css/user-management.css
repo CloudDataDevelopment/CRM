@@ -637,3 +637,504 @@
         font-size: 0.7rem;
     }
 }
+/* ============================================ */
+/* VISTA DE DETALLE (VIEW)                      */
+/* ============================================ */
+
+.user-management-view {
+    width: 100%;
+    padding: 0;
+    background: transparent;
+}
+
+.user-view-wrapper {
+    background: #ffffff;
+    border-radius: 12px;
+    padding: 20px 25px 25px 25px;
+    box-shadow: 0 2px 12px rgba(0, 0, 0, 0.08);
+    border: none;
+    width: 100%;
+}
+
+.user-view-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    padding-bottom: 15px;
+    margin-bottom: 20px;
+    border-bottom: 2px solid #e9ecef;
+    flex-wrap: wrap;
+    gap: 10px;
+}
+
+.user-view-header .breadcrumb-custom {
+    font-size: 0.75rem;
+    color: #6c757d;
+    margin-bottom: 5px;
+}
+
+.user-view-header .breadcrumb-custom .separator {
+    margin: 0 6px;
+    color: #adb5bd;
+}
+
+.user-view-header .breadcrumb-custom .current {
+    color: #000000;
+    font-weight: 600;
+}
+
+.user-view-header .breadcrumb-custom a {
+    color: #6c757d;
+    text-decoration: none;
+}
+
+.user-view-header .breadcrumb-custom a:hover {
+    color: #0a48e2;
+}
+
+.user-view-header .page-title {
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: #2c3e50;
+    margin: 0;
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 8px;
+}
+
+.user-view-header .page-title small {
+    font-size: 0.75rem;
+    font-weight: 400;
+    color: #6c757d;
+    margin-left: 5px;
+}
+
+.user-view-header .header-actions {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+    align-items: center;
+    flex-shrink: 0;
+}
+
+.user-view-header .header-actions .btn {
+    min-width: 100px;
+    text-align: center;
+    padding: 6px 16px;
+    border-radius: 6px;
+    font-size: 0.8rem;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    transition: all 0.3s ease;
+}
+
+/* ============================================ */
+/* CARDS DE LA VISTA VIEW                       */
+/* ============================================ */
+
+.user-profile-card,
+.user-info-card,
+.user-auth-card,
+.user-actions-card,
+.user-summary-card {
+    border: 2px solid #000 !important;
+    border-radius: 10px;
+    overflow: hidden;
+    background: #ffffff;
+    box-shadow: 0 1px 8px rgba(0, 0, 0, 0.05);
+    transition: all 0.3s ease;
+}
+
+.user-profile-card:hover,
+.user-info-card:hover,
+.user-auth-card:hover,
+.user-actions-card:hover,
+.user-summary-card:hover {
+    box-shadow: 0 3px 15px rgba(0, 0, 0, 0.08);
+}
+
+.user-info-card .card-header,
+.user-auth-card .card-header,
+.user-actions-card .card-header,
+.user-summary-card .card-header {
+    background: #f8f9fa;
+    border-bottom: 2px solid #000 !important;
+    padding: 10px 15px;
+    font-weight: 600;
+    font-size: 0.85rem;
+    color: #2c3e50;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.user-info-card .card-body,
+.user-auth-card .card-body,
+.user-actions-card .card-body,
+.user-summary-card .card-body {
+    padding: 15px;
+}
+
+.user-profile-card .card-body {
+    padding: 20px;
+}
+
+/* ============================================ */
+/* PERFIL HEADER                                */
+/* ============================================ */
+
+.user-profile-header {
+    display: flex;
+    align-items: center;
+    gap: 20px;
+    flex-wrap: wrap;
+}
+
+.user-avatar-large {
+    width: 90px;
+    height: 90px;
+    min-width: 90px;
+    border-radius: 50%;
+    background: #11223F;
+    color: #ffffff;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 700;
+    font-size: 2.2rem;
+    text-transform: uppercase;
+    box-shadow: 0 4px 15px rgba(17, 34, 63, 0.25);
+    flex-shrink: 0;
+    user-select: none;
+}
+
+.user-profile-info {
+    flex: 1;
+    min-width: 0;
+}
+
+.user-profile-info h3 {
+    font-size: 1.3rem;
+    font-weight: 700;
+    color: #2c3e50;
+    margin: 0 0 4px 0;
+    word-break: break-word;
+}
+
+.user-profile-username {
+    font-size: 0.85rem;
+    color: #6c757d;
+    margin-bottom: 10px;
+}
+
+.user-profile-username i {
+    color: #adb5bd;
+    margin-right: 4px;
+}
+
+.user-profile-badges {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+}
+
+/* ============================================ */
+/* BADGES DE ROL Y ESTADO                       */
+/* ============================================ */
+
+.badge-role {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    padding: 4px 12px;
+    border-radius: 20px;
+    font-size: 0.7rem;
+    font-weight: 600;
+    color: #ffffff;
+    white-space: nowrap;
+}
+
+.badge-role.bg-danger { background: #dc3545 !important; }
+.badge-role.bg-warning { background: #f6c23e !important; color: #1a2332 !important; }
+.badge-role.bg-info { background: #36b9cc !important; }
+.badge-role.bg-success { background: #1cc88a !important; }
+.badge-role.bg-secondary { background: #6c757d !important; }
+
+.badge-status-active,
+.badge-status-inactive {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    padding: 4px 12px;
+    border-radius: 20px;
+    font-size: 0.7rem;
+    font-weight: 600;
+    white-space: nowrap;
+}
+
+.badge-status-active {
+    background: #d1fae5;
+    color: #065f46;
+}
+
+.badge-status-active i {
+    font-size: 0.5rem;
+    color: #10b981;
+}
+
+.badge-status-inactive {
+    background: #fde8e8;
+    color: #991b1b;
+}
+
+.badge-status-inactive i {
+    font-size: 0.5rem;
+    color: #ef4444;
+}
+
+/* ============================================ */
+/* INFO GRID (VIEW)                             */
+/* ============================================ */
+
+.user-view-wrapper .info-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 8px 15px;
+}
+
+.user-view-wrapper .info-item {
+    display: flex;
+    flex-direction: column;
+    padding: 6px 0;
+    border-bottom: 1px solid #f5f6f8;
+}
+
+.user-view-wrapper .info-item:last-child {
+    border-bottom: none;
+}
+
+.user-view-wrapper .info-item .info-label {
+    font-size: 0.7rem;
+    color: #8a94a6;
+    font-weight: 500;
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    margin-bottom: 2px;
+}
+
+.user-view-wrapper .info-item .info-label i {
+    width: 14px;
+    font-size: 0.7rem;
+    color: #adb5bd;
+}
+
+.user-view-wrapper .info-item .info-value {
+    font-size: 0.85rem;
+    color: #1a2332;
+    font-weight: 500;
+    word-break: break-word;
+}
+
+.user-view-wrapper .info-item .info-value a {
+    color: #0a48e2;
+    text-decoration: none;
+}
+
+.user-view-wrapper .info-item .info-value a:hover {
+    text-decoration: underline;
+}
+
+/* ============================================ */
+/* BOTONES DE ACCIÓN (VIEW)                     */
+/* ============================================ */
+
+.user-actions-card .d-grid {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.user-actions-card .btn {
+    padding: 8px 16px;
+    font-size: 0.8rem;
+    border-radius: 6px;
+    font-weight: 500;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    transition: all 0.3s ease;
+    width: 100%;
+}
+
+.user-actions-card .btn:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 3px 10px rgba(0, 0, 0, 0.12);
+}
+
+/* ============================================ */
+/* RESUMEN RÁPIDO (VIEW)                        */
+/* ============================================ */
+
+.summary-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 8px 0;
+    border-bottom: 1px dashed #f0f0f0;
+    font-size: 0.82rem;
+}
+
+.summary-item:last-child {
+    border-bottom: none;
+}
+
+.summary-item .summary-label {
+    color: #6c757d;
+    font-weight: 500;
+}
+
+.summary-item .summary-value {
+    color: #2c3e50;
+    font-weight: 600;
+    text-align: right;
+}
+
+/* ============================================ */
+/* COMPANY TAG (por si se usa en algún lado)   */
+/* ============================================ */
+
+.company-tag {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    font-size: 0.75rem;
+    color: #495057;
+    padding: 3px 10px;
+    background: #f0f4ff;
+    border-radius: 12px;
+    font-weight: 500;
+}
+
+.company-tag i {
+    color: #0a48e2;
+    font-size: 0.7rem;
+}
+
+/* ============================================ */
+/* RESPONSIVE (VIEW)                            */
+/* ============================================ */
+
+@media (max-width: 768px) {
+    .user-view-wrapper {
+        padding: 15px;
+        border-radius: 10px;
+    }
+
+    .user-view-header {
+        flex-direction: column;
+        align-items: stretch;
+        gap: 10px;
+    }
+
+    .user-view-header .page-title {
+        font-size: 1.2rem;
+    }
+
+    .user-view-header .page-title small {
+        display: block;
+        margin-left: 0;
+        margin-top: 2px;
+        font-size: 0.7rem;
+    }
+
+    .user-view-header .header-actions .btn {
+        min-width: 80px;
+        font-size: 0.7rem;
+        padding: 5px 12px;
+    }
+
+    .user-profile-header {
+        flex-direction: column;
+        text-align: center;
+        gap: 12px;
+    }
+
+    .user-avatar-large {
+        width: 75px;
+        height: 75px;
+        min-width: 75px;
+        font-size: 1.8rem;
+    }
+
+    .user-profile-info h3 {
+        font-size: 1.1rem;
+    }
+
+    .user-profile-badges {
+        justify-content: center;
+    }
+
+    .user-view-wrapper .info-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .user-info-card .card-header,
+    .user-auth-card .card-header,
+    .user-actions-card .card-header,
+    .user-summary-card .card-header {
+        font-size: 0.78rem;
+        padding: 8px 12px;
+    }
+
+    .user-actions-card .btn {
+        font-size: 0.75rem;
+        padding: 7px 14px;
+    }
+}
+
+@media (max-width: 576px) {
+    .user-view-wrapper {
+        padding: 10px;
+        border-radius: 8px;
+    }
+
+    .user-view-header .page-title {
+        font-size: 1rem;
+    }
+
+    .user-view-header .breadcrumb-custom {
+        font-size: 0.65rem;
+    }
+
+    .user-avatar-large {
+        width: 65px;
+        height: 65px;
+        min-width: 65px;
+        font-size: 1.5rem;
+    }
+
+    .user-profile-info h3 {
+        font-size: 1rem;
+    }
+
+    .badge-role,
+    .badge-status-active,
+    .badge-status-inactive {
+        font-size: 0.62rem;
+        padding: 3px 10px;
+    }
+
+    .user-view-wrapper .info-item .info-value {
+        font-size: 0.78rem;
+    }
+
+    .summary-item {
+        font-size: 0.75rem;
+        padding: 6px 0;
+    }
+}

@@ -312,11 +312,12 @@ $this->beginPage();
                                         'class' => 'nav-link' . (Yii::$app->controller->id == 'user-management' ? ' active' : '')
                                     ]) ?>
                                 </li>
-                                <?php if ($isAdminUser): ?>
+                                <?php /* 🔥 Solo SuperAdmin puede registrar usuarios */ ?>
+                                <?php if ($isSuperAdmin): ?>
                                     <li class="nav-item searchable-item">
                                         <?= Html::a('<i class="fas fa-user-plus"></i> <span>Registrar Usuario</span>', ['/site/register'], [
-                                        'class' => 'nav-link' . (Yii::$app->controller->id == 'site' && Yii::$app->controller->action->id == 'register' ? ' active' : '')
-                                    ]) ?>
+                                            'class' => 'nav-link' . (Yii::$app->controller->id == 'site' && Yii::$app->controller->action->id == 'register' ? ' active' : '')
+                                        ]) ?>
                                     </li>
                                 <?php endif; ?>
                             </ul>

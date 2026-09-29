@@ -737,7 +737,6 @@
 
 /* ============================================
    8. OBJETIVOS Y PROGRESS
-   (Barra horizontal larga y delgada)
    ============================================ */
 .goal-card .card-body {
     display: flex;
@@ -752,14 +751,12 @@
     font-size: 0.72rem !important;
 }
 
-/* 🔥 Header con badges a la derecha */
 .goal-card .card-header .header-right-badges {
     display: flex;
     align-items: center;
     gap: 6px;
 }
 
-/* 🔥 Badge del porcentaje destacado */
 .goal-card .card-header .badge-percent {
     font-size: 0.75rem !important;
     font-weight: 800 !important;
@@ -770,7 +767,6 @@
     border-radius: 8px;
 }
 
-/* 🔥 Barra horizontal larga y delgada */
 .progress-custom {
     height: 18px !important;
     border-radius: 9px;
@@ -784,33 +780,15 @@
 .progress-custom .progress-bar {
     border-radius: 9px;
     transition: width 1.2s ease;
-    font-size: 0 !important;    /* oculta cualquier texto interno */
+    font-size: 0 !important;
     color: transparent;
     min-width: 0;
-}
-
-.meta-label {
-    font-size: 0.62rem !important;
-    font-weight: 700;
-    letter-spacing: 0.3px;
-    margin-bottom: 2px;
-}
-
-.meta-value {
-    font-size: 1rem !important;
-    font-weight: 800;
-    letter-spacing: -0.3px;
 }
 
 .meta-footer {
     font-size: 0.75rem !important;
     margin-top: 0.8rem;
     font-weight: 500;
-}
-
-.goal-card .row.g-1 .p-1 {
-    padding: 0.7rem 0.5rem !important;
-    border-radius: 8px !important;
 }
 
 /* ============================================
@@ -1279,7 +1257,148 @@
 }
 
 /* ============================================
-   15. RESPONSIVE
+   15. 🔥 CUADROS DE META EN FILAS HORIZONTALES
+   ============================================ */
+
+.meta-rows {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    width: 100%;
+}
+
+.meta-row {
+    display: grid;
+    grid-template-columns: 130px 1fr 150px;
+    align-items: center;
+    gap: 12px;
+    padding: 8px 12px;
+    background: #f8f9fa;
+    border-radius: 8px;
+    transition: all 0.25s ease;
+    border-left: 4px solid transparent;
+}
+
+.meta-row:hover {
+    background: #f0f4ff;
+    transform: translateX(2px);
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+}
+
+.meta-row-meta {
+    border-left-color: #4e73df;
+}
+
+.meta-row-alcanzado {
+    border-left-color: #1cc88a;
+}
+
+.meta-row-restante {
+    border-left-color: #f6c23e;
+}
+
+.meta-row-label {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 0.72rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    color: #6c757d;
+    white-space: nowrap;
+}
+
+.meta-row-label i {
+    font-size: 0.78rem;
+    color: #adb5bd;
+}
+
+.meta-row-meta .meta-row-label i {
+    color: #4e73df;
+}
+
+.meta-row-alcanzado .meta-row-label i {
+    color: #1cc88a;
+}
+
+.meta-row-restante .meta-row-label i {
+    color: #f6c23e;
+}
+
+.meta-row-value {
+    font-size: 1.4rem;
+    font-weight: 800;
+    color: #2c3e50;
+    letter-spacing: -0.6px;
+    line-height: 1.1;
+    white-space: nowrap;
+    text-align: right;
+    padding-right: 8px;
+    font-variant-numeric: tabular-nums;
+}
+
+.meta-row-progress {
+    min-width: 120px;
+}
+
+.meta-progress {
+    height: 8px;
+    border-radius: 4px;
+    background: #e9ecef;
+    overflow: hidden;
+    margin: 0;
+    box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.05);
+}
+
+/* 🔥 Barra base: solo el degradado de rayas, SIN color forzado */
+.meta-progress .progress-bar {
+    border-radius: 4px;
+    transition: width 1.2s ease;
+    background-size: 1rem 1rem;
+    background-image: linear-gradient(
+        45deg,
+        rgba(255, 255, 255, 0.15) 25%,
+        transparent 25%,
+        transparent 50%,
+        rgba(255, 255, 255, 0.15) 50%,
+        rgba(255, 255, 255, 0.15) 75%,
+        transparent 75%,
+        transparent
+    );
+}
+
+/* 🔥 Colores específicos por fila (sobrescriben el bg-* de Bootstrap
+   para garantizar consistencia visual) */
+.meta-row-meta       .meta-progress .progress-bar { background-color: #4e73df !important; } /* 🔵 Azul   */
+.meta-row-alcanzado  .meta-progress .progress-bar { background-color: #1cc88a !important; } /* 🟢 Verde  */
+.meta-row-restante   .meta-progress .progress-bar { background-color: #f6c23e !important; } /* 🟡 Amarillo */
+
+.meta-progress .progress-bar.progress-bar-animated {
+    animation: meta-progress-bar-stripes 1s linear infinite;
+}
+
+@keyframes meta-progress-bar-stripes {
+    0% {
+        background-position-x: 1rem;
+    }
+}
+
+.btn-edit-meta {
+    padding: 3px 8px !important;
+    font-size: 0.7rem !important;
+    border-radius: 6px;
+    line-height: 1;
+    transition: all 0.2s ease;
+}
+
+.btn-edit-meta:hover {
+    transform: scale(1.05);
+    background: #e9ecef;
+}
+
+/* ============================================
+   16. RESPONSIVE
    ============================================ */
 
 @media (max-width: 992px) {
@@ -1329,13 +1448,21 @@
     .activity-stack-meta { font-size: 0.55rem; gap: 8px; }
 
     .goal-card .card-body { min-height: 210px !important; padding: 0.9rem 0.9rem !important; }
-    .goal-card .meta-value { font-size: 0.92rem !important; }
     .progress-custom { height: 16px !important; }
     .goal-card .card-header .badge-percent { font-size: 0.7rem !important; }
 
     .total-value { font-size: 1.9rem; }
     .total-sale-card .card-body,
     .total-profit-card .card-body { max-height: 130px; }
+
+    /* Meta rows responsive */
+    .meta-row {
+        grid-template-columns: 110px 1fr 120px;
+        padding: 7px 10px;
+    }
+    .meta-row-value {
+        font-size: 1.25rem;
+    }
 }
 
 @media (max-width: 768px) {
@@ -1377,8 +1504,6 @@
     .task-lead { display: block; margin-left: 0; margin-top: 2px; }
 
     .goal-card .card-body { min-height: 200px !important; padding: 0.8rem 0.8rem !important; }
-    .goal-card .meta-value { font-size: 0.88rem !important; }
-    .goal-card .meta-label { font-size: 0.58rem !important; }
     .goal-card .meta-footer { font-size: 0.7rem !important; }
     .progress-custom { height: 15px !important; }
     .goal-card .card-header .badge-percent { font-size: 0.65rem !important; }
@@ -1399,6 +1524,25 @@
     .total-profit-card .card-body { max-height: 120px; padding: 0.7rem 1.2rem !important; }
     .total-mini-value { font-size: 0.72rem; }
     .total-label { font-size: 0.62rem; }
+
+    /* Meta rows responsive */
+    .meta-row {
+        grid-template-columns: 90px 1fr 80px;
+        gap: 8px;
+        padding: 6px 8px;
+    }
+    .meta-row-value {
+        font-size: 1rem;
+    }
+    .meta-row-label {
+        font-size: 0.62rem;
+    }
+    .meta-row-label i {
+        font-size: 0.68rem;
+    }
+    .meta-progress {
+        height: 6px;
+    }
 }
 
 @media (max-width: 576px) {
@@ -1444,10 +1588,7 @@
     .dashboard-header .breadcrumb-custom { font-size: 0.65rem; }
 
     .goal-card .card-body { min-height: 190px !important; padding: 0.7rem 0.7rem !important; }
-    .goal-card .meta-value { font-size: 0.82rem !important; }
-    .goal-card .meta-label { font-size: 0.55rem !important; }
     .progress-custom { height: 14px !important; margin-bottom: 0.8rem; }
-    .goal-card .row.g-1 .p-1 { padding: 0.6rem 0.4rem !important; }
     .goal-card .card-header .badge-percent { font-size: 0.6rem !important; padding: 0.25rem 0.5rem !important; }
 
     .total-value { font-size: 1.4rem; }
@@ -1461,4 +1602,28 @@
     .total-mini-label { font-size: 0.5rem; }
     .total-mini-value { font-size: 0.68rem; }
     .total-mini-grid { gap: 6px; margin-top: 6px; padding-top: 6px; }
+
+    /* Meta rows responsive - stack vertical */
+    .meta-row {
+        grid-template-columns: 1fr auto;
+        grid-template-rows: auto auto;
+        gap: 4px 8px;
+        padding: 8px 10px;
+    }
+    .meta-row-label {
+        grid-column: 1;
+        grid-row: 1;
+        font-size: 0.6rem;
+    }
+    .meta-row-value {
+        grid-column: 2;
+        grid-row: 1;
+        font-size: 1rem;
+        padding-right: 0;
+    }
+    .meta-row-progress {
+        grid-column: 1 / -1;
+        grid-row: 2;
+        min-width: 0;
+    }
 }

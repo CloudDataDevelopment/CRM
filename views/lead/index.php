@@ -28,8 +28,8 @@ $status = isset($status) ? $status : '';
 $fecha_inicio = isset($fecha_inicio) ? $fecha_inicio : '';
 $fecha_fin = isset($fecha_fin) ? $fecha_fin : '';
 
-// 🔥 ESTADOS PERMITIDOS
-$estadosPermitidos = isset($estadosPermitidos) ? $estadosPermitidos : ['Nuevo', 'Contactado', 'Procesando', 'Cancelado'];
+// 🔥 ESTADOS PERMITIDOS (SIN CANCELADO)
+$estadosPermitidos = isset($estadosPermitidos) ? $estadosPermitidos : ['Nuevo', 'Contactado', 'Procesando', 'Completado'];
 
 // 🔥 Porcentajes
 $porcentajes = isset($porcentajes) ? $porcentajes : [
@@ -68,16 +68,9 @@ $metricas = [
         'value' => $enProceso ?? 0,
         'porcentaje' => $porcentajes['procesando'] ?? 0,
     ],
-    [
-        'class' => 'danger',
-        'icon' => 'times-circle',
-        'label' => 'Cancelado',
-        'value' => $perdidos ?? 0,
-        'porcentaje' => $porcentajes['cancelado'] ?? 0,
-    ],
 ];
 
-// 🔥 Configuración del embudo
+// 🔥 Configuración del embudo (SIN CANCELADOS)
 $embudo = isset($embudo) ? $embudo : ['nuevo' => 0, 'contactado' => 0, 'calificado' => 0, 'ganado' => 0, 'total' => 0];
 
 $etapas = [
@@ -108,20 +101,26 @@ $etapas = [
         'descripcion' => 'Leads en proceso',
         'border_size' => '10px',
     ],
-    [
-        'label' => 'Cancelado',
-        'count' => $perdidos ?? 0,
-        'color' => '#dc3545',
-        'icon' => 'fa-times-circle',
-        'width' => 44,
-        'descripcion' => 'Leads cancelados',
-        'border_size' => '8px',
-    ],
 ];
 
 // Variables de actividades
 $actividadesRecientes = isset($actividadesRecientes) ? $actividadesRecientes : [];
 $proximasActividades = isset($proximasActividades) ? $proximasActividades : [];
+
+/**
+ * 🔥 Helper local para formatear fechas de forma segura
+ * Evita mostrar "-0001" o fechas inválidas
+ */
+$formatDate = function($date, $format = 'd/m/Y') {
+    if (empty($date) || $date === '0000-00-00' || $date === '0000-00-00 00:00:00') {
+        return '—';
+    }
+    $ts = strtotime($date);
+    if ($ts === false || $ts === 0) {
+        return '—';
+    }
+    return date($format, $ts);
+};
 ?>
 
 <!-- 🔥 CONTENEDOR PRINCIPAL CON SOMBRA -->
@@ -262,7 +261,7 @@ $proximasActividades = isset($proximasActividades) ? $proximasActividades : [];
                                                         <?= $lead->getStatusName() ?>
                                                     </span>
                                                 </td>
-                                                <td class="td-fecha"><?= date('d/m/Y', strtotime($lead->created_at)) ?></td>
+                                                <td class="td-fecha"><?= $formatDate($lead->created_at) ?></td>
                                                 <td class="td-comments"><?= StringHelper::truncate(Html::encode($lead->comments), 50, '...') ?></td>
                                                 <td class="text-center">
                                                     <div class="d-flex gap-1 justify-content-center">
@@ -274,7 +273,7 @@ $proximasActividades = isset($proximasActividades) ? $proximasActividades : [];
                                                                 <i class="fas fa-edit"></i>
                                                             </button>
                                                         <?php endif; ?>
-                                                        <?php if ($isAdmin && !$lead->isDeleted()): ?>
+                                                        <?php if ($isAdmin): ?>
                                                             <?= Html::a('<i class="fas fa-trash"></i>', ['delete', 'id' => $lead->id_lead], [
                                                                 'class' => 'btn btn-danger btn-sm btn-action',
                                                                 'title' => 'Eliminar',
@@ -344,7 +343,7 @@ $proximasActividades = isset($proximasActividades) ? $proximasActividades : [];
                                                 <div class="activity-content">
                                                     <div class="activity-title"><strong><?= Html::encode($actividad['lead_name'] ?? 'Lead') ?></strong> <span class="badge bg-<?= $actividad['badge_color'] ?? 'secondary' ?>"><?= $actividad['status'] ?? 'Sin estado' ?></span></div>
                                                     <div class="activity-description"><?= Html::encode($actividad['description'] ?? 'Actividad registrada') ?></div>
-                                                    <div class="activity-meta"><span class="activity-date"><i class="far fa-calendar-alt"></i> <?= isset($actividad['date']) ? date('d/m/Y H:i', strtotime($actividad['date'])) : '' ?></span></div>
+                                                    <div class="activity-meta"><span class="activity-date"><i class="far fa-calendar-alt"></i> <?= isset($actividad['date']) ? $formatDate($actividad['date'], 'd/m/Y H:i') : '' ?></span></div>
                                                 </div>
                                             </div>
                                         <?php endforeach; ?>
@@ -374,7 +373,7 @@ $proximasActividades = isset($proximasActividades) ? $proximasActividades : [];
                                                 <div class="activity-content">
                                                     <div class="activity-title"><strong><?= Html::encode($actividad['lead_name'] ?? 'Lead') ?></strong> <span class="badge bg-<?= $actividad['badge_color'] ?? 'warning' ?>"><?= $actividad['status'] ?? 'Pendiente' ?></span></div>
                                                     <div class="activity-description"><?= Html::encode($actividad['description'] ?? 'Actividad programada') ?></div>
-                                                    <div class="activity-meta"><span class="activity-date text-warning"><i class="far fa-clock"></i> <?= isset($actividad['date']) ? date('d/m/Y H:i', strtotime($actividad['date'])) : '' ?></span></div>
+                                                    <div class="activity-meta"><span class="activity-date text-warning"><i class="far fa-clock"></i> <?= isset($actividad['date']) ? $formatDate($actividad['date'], 'd/m/Y H:i') : '' ?></span></div>
                                                 </div>
                                             </div>
                                         <?php endforeach; ?>
@@ -776,7 +775,6 @@ function inicializar() {
 
     // ============================================
     // 🔥 LISTENER GLOBAL PARA CERRAR PANEL
-    // Detecta clics en [data-panel-close] (cualquier modal)
     // ============================================
     document.addEventListener('click', function(e) {
         var btn = e.target.closest('[data-panel-close]');
@@ -790,7 +788,6 @@ function inicializar() {
 
     // ============================================
     // 🔥 LISTENER GLOBAL PARA NAVEGAR Y CERRAR
-    // Detecta clics en [data-panel-close-go="url"]
     // ============================================
     document.addEventListener('click', function(e) {
         var btn = e.target.closest('[data-panel-close-go]');

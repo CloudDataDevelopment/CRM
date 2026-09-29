@@ -8,12 +8,24 @@ $this->params['breadcrumbs'][] = $this->title;
 
 $this->registerCssFile('@web/css/profile.css', ['depends' => [\yii\bootstrap5\BootstrapAsset::class]]);
 
+// 🔥 DATOS DEL USUARIO
 $initial = strtoupper(substr($user->name ?? 'U', 0, 1));
 $fullName = trim(($user->name ?? '') . ' ' . ($user->lastname1 ?? '') . ' ' . ($user->lastname2 ?? ''));
 $roleName = $auth && $auth->role ? $auth->role->role_type : 'Usuario';
 $statusName = $auth && $auth->status ? $auth->status->status : 'Sin Estado';
 $companyName = $auth && $auth->company ? $auth->company->name : 'Sin Empresa';
 $createdAt = $user->created_at ?? null;
+
+// 🔥 PERMISOS
+$userIsAdmin = $user->isAdmin();       // Admin o SuperAdmin
+$userIsSuperAdmin = $user->isSuperAdmin();
+$userIsAgent = $user->isAgent();
+
+// 🔥 ¿Puede editar su información personal?
+$canEditProfile = $userIsAdmin;
+
+// 🔥 ¿Puede cambiar su contraseña?
+$canChangePassword = $userIsAdmin;
 ?>
 
 <div class="profile-index">
@@ -133,17 +145,28 @@ $createdAt = $user->created_at ?? null;
 
             <!-- COLUMNA DERECHA -->
             <div class="col-md-8">
+
+                <?php 
+                // 🔥 TABS DINÁMICOS
+                // Solo mostrar "Cambiar Contraseña" si puede
+                $showPasswordTab = $canChangePassword;
+                $totalTabs = $showPasswordTab ? 2 : 1;
+                ?>
+
                 <ul class="nav nav-tabs profile-tabs" id="profileTabs" role="tablist">
                     <li class="nav-item" role="presentation">
                         <button class="nav-link active" id="info-tab" data-bs-toggle="tab" data-bs-target="#info" type="button" role="tab">
                             <i class="fas fa-user-circle"></i> Mi Información
                         </button>
                     </li>
+
+                    <?php if ($showPasswordTab): ?>
                     <li class="nav-item" role="presentation">
                         <button class="nav-link" id="password-tab" data-bs-toggle="tab" data-bs-target="#password" type="button" role="tab">
                             <i class="fas fa-key"></i> Cambiar Contraseña
                         </button>
                     </li>
+                    <?php endif; ?>
                 </ul>
 
                 <div class="tab-content profile-tab-content">
@@ -156,10 +179,12 @@ $createdAt = $user->created_at ?? null;
                                     <i class="fas fa-user-circle text-primary"></i>
                                     <span>Mi Información</span>
                                 </div>
-                                <!-- 🔥 BOTÓN EDITAR (solo visible en modo lectura) -->
-                                <button type="button" class="btn-edit-profile" id="btn-edit-profile">
-                                    <i class="fas fa-pencil-alt"></i> Editar Información
-                                </button>
+                                <!-- 🔥 BOTÓN EDITAR (solo si tiene permiso) -->
+                                <?php if ($canEditProfile): ?>
+                                    <button type="button" class="btn-edit-profile" id="btn-edit-profile">
+                                        <i class="fas fa-pencil-alt"></i> Editar Información
+                                    </button>
+                                <?php endif; ?>
                             </div>
                             <div class="card-body">
 
@@ -237,15 +262,23 @@ $createdAt = $user->created_at ?? null;
                                             <span class="info-grid-value"><?= Html::encode($user->phone ?: '—') ?></span>
                                         </div>
                                     </div>
+
+                                    <?php if (!$canEditProfile): ?>
+                                        <div class="alert alert-info mt-3 mb-0">
+                                            <i class="fas fa-info-circle"></i>
+                                            Solo los <strong>Administradores</strong> pueden editar la información personal.
+                                            Contacta a tu administrador si necesitas actualizar tus datos.
+                                        </div>
+                                    <?php endif; ?>
                                 </div>
 
-                                <!-- MODO EDICIÓN (oculto por defecto) -->
+                                <!-- MODO EDICIÓN (solo si tiene permiso) -->
+                                <?php if ($canEditProfile): ?>
                                 <div id="personal-edit-mode" style="display: none;">
                                     <form id="profile-form" method="post" action="<?= Url::to(['site/update-profile']) ?>">
                                         <?= Html::hiddenInput(Yii::$app->request->csrfParam, Yii::$app->request->csrfToken) ?>
 
                                         <div class="row g-3">
-                                            <!-- 🔥 USERNAME EDITABLE -->
                                             <div class="col-md-6">
                                                 <label class="form-label">
                                                     <i class="fas fa-at text-primary me-1"></i>
@@ -305,12 +338,14 @@ $createdAt = $user->created_at ?? null;
                                         </div>
                                     </form>
                                 </div>
+                                <?php endif; ?>
 
                             </div>
                         </div>
                     </div>
 
-                    <!-- TAB 2: CAMBIAR CONTRASEÑA -->
+                    <!-- TAB 2: CAMBIAR CONTRASEÑA (solo si tiene permiso) -->
+                    <?php if ($showPasswordTab): ?>
                     <div class="tab-pane fade" id="password" role="tabpanel">
                         <div class="card dashboard-card">
                             <div class="card-header">
@@ -350,6 +385,7 @@ $createdAt = $user->created_at ?? null;
                             </div>
                         </div>
                     </div>
+                    <?php endif; ?>
 
                 </div>
             </div>
@@ -368,13 +404,12 @@ document.addEventListener('DOMContentLoaded', function () {
     var readMode = document.getElementById('personal-read-mode');
     var editMode = document.getElementById('personal-edit-mode');
 
-    if (btnEdit) {
+    if (btnEdit && readMode && editMode) {
         btnEdit.addEventListener('click', function () {
             readMode.style.display = 'none';
             editMode.style.display = 'block';
             btnEdit.style.display = 'none';
 
-            // Enfocar el primer input
             var firstInput = editMode.querySelector('input[name="name"]');
             if (firstInput) firstInput.focus();
         });
@@ -388,13 +423,11 @@ document.addEventListener('DOMContentLoaded', function () {
         btnCancel.addEventListener('click', function () {
             readMode.style.display = 'block';
             editMode.style.display = 'none';
-            btnEdit.style.display = 'inline-flex';
+            if (btnEdit) btnEdit.style.display = 'inline-flex';
 
-            // Ocultar alerta si existe
             var alert = document.getElementById('profile-alert');
             if (alert) alert.style.display = 'none';
 
-            // Resetear el formulario
             var form = document.getElementById('profile-form');
             if (form) form.reset();
         });
@@ -448,7 +481,7 @@ document.addEventListener('DOMContentLoaded', function () {
     }
 
     // ============================================
-    // CAMBIAR CONTRASEÑA
+    // CAMBIAR CONTRASEÑA (solo si existe el form)
     // ============================================
     var passwordForm = document.getElementById('password-form');
     if (passwordForm) {

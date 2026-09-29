@@ -45,6 +45,13 @@ $metaUtilidadBase = isset($metaUtilidadBase) ? $metaUtilidadBase : 200000;
 
 // 🔥 Datos para gráfica de comparación
 $perdidoData = isset($perdidoData) ? $perdidoData : [];
+
+// 🔥 Cálculos auxiliares para las barras dentro de los cuadros
+$porcentajeRestanteVentas = max(0, 100 - $porcentajeAlcanzado);
+$porcentajeRestanteUtilidad = max(0, 100 - $porcentajeUtilidadAlcanzado);
+
+// 🔥 CSRF Token
+$csrfToken = Yii::$app->request->csrfToken;
 ?>
 
 <div class="dashboard-index">
@@ -300,11 +307,6 @@ $perdidoData = isset($perdidoData) ? $perdidoData : [];
                             <?php endif; ?>
                         </div>
                     </div>
-                    <div class="card-footer text-center">
-                        <?= Html::a('Ver todos los seguimientos <i class="fas fa-arrow-right"></i>', ['/sales-tracking/index'], [
-                            'class' => 'btn btn-link btn-sm activity-footer-link'
-                        ]) ?>
-                    </div>
                 </div>
             </div>
         </div>
@@ -361,11 +363,6 @@ $perdidoData = isset($perdidoData) ? $perdidoData : [];
                                 </div>
                             <?php endif; ?>
                         </div>
-                    </div>
-                    <div class="card-footer text-center">
-                        <?= Html::a('Ver todos los seguimientos <i class="fas fa-arrow-right"></i>', ['/sales-tracking/index'], [
-                            'class' => 'btn btn-link btn-sm activity-footer-link'
-                        ]) ?>
                     </div>
                 </div>
             </div>
@@ -440,59 +437,85 @@ $perdidoData = isset($perdidoData) ? $perdidoData : [];
                             <span><?= $esAdminOSuperAdmin ? 'Meta de Ventas' : 'Mi Meta de Ventas' ?> - <?= date('F Y') ?></span>
                         </div>
                         <div class="header-right-badges">
-                            <?php /* 🔥 Badge de agentes: SOLO para admin/superadmin */ ?>
                             <?php if ($esAdminOSuperAdmin && $cantidadAgentes > 0): ?>
                                 <span class="badge bg-info text-white">
                                     <i class="fas fa-users"></i> <?= $cantidadAgentes ?> agentes
                                 </span>
                             <?php endif; ?>
-                            <span class="badge bg-primary">
-                                $<?= number_format($metaMensual, 0, '.', ',') ?>
-                            </span>
                             <span class="badge-percent <?= $metaAlcanzada ? 'bg-success' : ($porcentajeAlcanzado >= 50 ? 'bg-warning text-dark' : 'bg-danger') ?>">
                                 <?= $porcentajeAlcanzado ?>%
                             </span>
+                            <?php if ($esAdminOSuperAdmin): ?>
+                                <button type="button" class="btn btn-sm btn-outline-secondary btn-edit-meta" 
+                                        data-bs-toggle="modal" data-bs-target="#goalModal"
+                                        title="Editar meta">
+                                    <i class="fas fa-edit"></i>
+                                </button>
+                            <?php endif; ?>
                         </div>
                     </div>
                     <div class="card-body">
-                        <!-- Barra horizontal larga -->
-                        <div class="progress-custom mb-2">
-                            <div class="progress-bar progress-bar-dynamic <?= $porcentajeAlcanzado >= 100 ? 'bg-success' : ($porcentajeAlcanzado >= 50 ? 'bg-primary' : 'bg-warning') ?>"
-                                 data-width="<?= min($porcentajeAlcanzado, 100) ?>">
+                        <div class="meta-rows">
+
+                            <!-- 🔥 META (AZUL) -->
+                            <div class="meta-row meta-row-meta">
+                                <div class="meta-row-label">
+                                    <i class="fas fa-bullseye"></i>
+                                    <span>Meta</span>
+                                </div>
+                                <div class="meta-row-value">
+                                    $<?= number_format($metaMensual, 0, '.', ',') ?>
+                                </div>
+                                <div class="meta-row-progress">
+                                    <div class="progress meta-progress">
+                                        <div class="progress-bar bg-primary progress-bar-striped progress-bar-animated"
+                                             style="width: 100%;">
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- 🔥 ALCANZADO (VERDE) -->
+                            <div class="meta-row meta-row-alcanzado">
+                                <div class="meta-row-label">
+                                    <i class="fas fa-chart-line"></i>
+                                    <span>Alcanzado</span>
+                                </div>
+                                <div class="meta-row-value text-primary">
+                                    $<?= number_format($ventasMesActual, 0, '.', ',') ?>
+                                </div>
+                                <div class="meta-row-progress">
+                                    <div class="progress meta-progress">
+                                        <div class="progress-bar bg-success progress-bar-striped progress-bar-animated"
+                                             style="width: <?= min($porcentajeAlcanzado, 100) ?>%;">
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- 🔥 RESTANTE (AMARILLO) -->
+                            <div class="meta-row meta-row-restante">
+                                <div class="meta-row-label">
+                                    <i class="fas fa-hourglass-half"></i>
+                                    <span>Restante</span>
+                                </div>
+                                <div class="meta-row-value <?= $montoRestante > 0 ? 'text-warning' : 'text-success' ?>">
+                                    $<?= number_format($montoRestante, 0, '.', ',') ?>
+                                </div>
+                                <div class="meta-row-progress">
+                                    <div class="progress meta-progress">
+                                        <div class="progress-bar bg-warning progress-bar-striped progress-bar-animated"
+                                             style="width: <?= min($porcentajeRestanteVentas, 100) ?>%;">
+                                        </div>
+                                    </div>
+                                </div>
                             </div>
                         </div>
 
-                        <div class="row g-1">
-                            <div class="col-4">
-                                <div class="p-1 bg-light rounded-2 text-center">
-                                    <div class="text-muted meta-label">Meta</div>
-                                    <div class="fw-bold meta-value">
-                                        $<?= number_format($metaMensual, 0, '.', ',') ?>
-                                    </div>
-                                </div>
-                            </div>
-                            <div class="col-4">
-                                <div class="p-1 bg-light rounded-2 text-center">
-                                    <div class="text-muted meta-label">Alcanzado</div>
-                                    <div class="fw-bold text-primary meta-value">
-                                        $<?= number_format($ventasMesActual, 0, '.', ',') ?>
-                                    </div>
-                                </div>
-                            </div>
-                            <div class="col-4">
-                                <div class="p-1 bg-light rounded-2 text-center">
-                                    <div class="text-muted meta-label">Restante</div>
-                                    <div class="fw-bold <?= $montoRestante > 0 ? 'text-warning' : 'text-success' ?> meta-value">
-                                        $<?= number_format($montoRestante, 0, '.', ',') ?>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-
-                        <div class="mt-2 text-center meta-footer">
+                        <div class="mt-3 text-center meta-footer">
                             <span class="text-muted">
                                 <i class="fas fa-chart-line"></i>
-                                Progreso: <?= $porcentajeAlcanzado ?>%
+                                Progreso: <strong><?= $porcentajeAlcanzado ?>%</strong>
                                 <?php if ($metaAlcanzada): ?>
                                     <span class="text-success ms-2">
                                         <i class="fas fa-trophy"></i> ¡Meta alcanzada!
@@ -519,52 +542,73 @@ $perdidoData = isset($perdidoData) ? $perdidoData : [];
                                 <span>Meta de Utilidad - <?= date('F Y') ?></span>
                             </div>
                             <div class="header-right-badges">
-                                <span class="badge bg-success">
-                                    $<?= number_format($metaUtilidadMensual, 0, '.', ',') ?>
-                                </span>
                                 <span class="badge-percent <?= $metaUtilidadAlcanzada ? 'bg-success' : ($porcentajeUtilidadAlcanzado >= 50 ? 'bg-warning text-dark' : 'bg-danger') ?>">
                                     <?= $porcentajeUtilidadAlcanzado ?>%
                                 </span>
                             </div>
                         </div>
                         <div class="card-body">
-                            <div class="progress-custom mb-2">
-                                <div class="progress-bar progress-bar-dynamic <?= $porcentajeUtilidadAlcanzado >= 100 ? 'bg-success' : ($porcentajeUtilidadAlcanzado >= 50 ? 'bg-info' : 'bg-danger') ?>"
-                                     data-width="<?= min($porcentajeUtilidadAlcanzado, 100) ?>">
+                            <div class="meta-rows">
+
+                                <!-- 🔥 META (AZUL) -->
+                                <div class="meta-row meta-row-meta">
+                                    <div class="meta-row-label">
+                                        <i class="fas fa-bullseye"></i>
+                                        <span>Meta</span>
+                                    </div>
+                                    <div class="meta-row-value">
+                                        $<?= number_format($metaUtilidadMensual, 0, '.', ',') ?>
+                                    </div>
+                                    <div class="meta-row-progress">
+                                        <div class="progress meta-progress">
+                                            <div class="progress-bar bg-primary progress-bar-striped progress-bar-animated"
+                                                 style="width: 100%;">
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <!-- 🔥 ALCANZADO (VERDE) -->
+                                <div class="meta-row meta-row-alcanzado">
+                                    <div class="meta-row-label">
+                                        <i class="fas fa-chart-line"></i>
+                                        <span>Alcanzado</span>
+                                    </div>
+                                    <div class="meta-row-value text-success">
+                                        $<?= number_format($utilidadMesActual, 0, '.', ',') ?>
+                                    </div>
+                                    <div class="meta-row-progress">
+                                        <div class="progress meta-progress">
+                                            <div class="progress-bar bg-success progress-bar-striped progress-bar-animated"
+                                                 style="width: <?= min($porcentajeUtilidadAlcanzado, 100) ?>%;">
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <!-- 🔥 RESTANTE (AMARILLO) -->
+                                <div class="meta-row meta-row-restante">
+                                    <div class="meta-row-label">
+                                        <i class="fas fa-hourglass-half"></i>
+                                        <span>Restante</span>
+                                    </div>
+                                    <div class="meta-row-value <?= $utilidadRestante > 0 ? 'text-warning' : 'text-success' ?>">
+                                        $<?= number_format($utilidadRestante, 0, '.', ',') ?>
+                                    </div>
+                                    <div class="meta-row-progress">
+                                        <div class="progress meta-progress">
+                                            <div class="progress-bar bg-warning progress-bar-striped progress-bar-animated"
+                                                 style="width: <?= min($porcentajeRestanteUtilidad, 100) ?>%;">
+                                            </div>
+                                        </div>
+                                    </div>
                                 </div>
                             </div>
 
-                            <div class="row g-1">
-                                <div class="col-4">
-                                    <div class="p-1 bg-light rounded-2 text-center">
-                                        <div class="text-muted meta-label">Meta</div>
-                                        <div class="fw-bold meta-value">
-                                            $<?= number_format($metaUtilidadMensual, 0, '.', ',') ?>
-                                        </div>
-                                    </div>
-                                </div>
-                                <div class="col-4">
-                                    <div class="p-1 bg-light rounded-2 text-center">
-                                        <div class="text-muted meta-label">Alcanzado</div>
-                                        <div class="fw-bold text-success meta-value">
-                                            $<?= number_format($utilidadMesActual, 0, '.', ',') ?>
-                                        </div>
-                                    </div>
-                                </div>
-                                <div class="col-4">
-                                    <div class="p-1 bg-light rounded-2 text-center">
-                                        <div class="text-muted meta-label">Restante</div>
-                                        <div class="fw-bold <?= $utilidadRestante > 0 ? 'text-warning' : 'text-success' ?> meta-value">
-                                            $<?= number_format($utilidadRestante, 0, '.', ',') ?>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-
-                            <div class="mt-2 text-center meta-footer">
+                            <div class="mt-3 text-center meta-footer">
                                 <span class="text-muted">
                                     <i class="fas fa-chart-line"></i>
-                                    Progreso: <?= $porcentajeUtilidadAlcanzado ?>%
+                                    Progreso: <strong><?= $porcentajeUtilidadAlcanzado ?>%</strong>
                                     <?php if ($metaUtilidadAlcanzada): ?>
                                         <span class="text-success ms-2">
                                             <i class="fas fa-trophy"></i> ¡Meta alcanzada!
@@ -690,6 +734,141 @@ $perdidoData = isset($perdidoData) ? $perdidoData : [];
         </div>
     </div>
 </div>
+
+<?php if ($esAdminOSuperAdmin): ?>
+<!-- 🔥 MODAL EDITAR META -->
+<div class="modal fade" id="goalModal" tabindex="-1" aria-labelledby="goalModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header bg-danger text-white">
+                <h5 class="modal-title" id="goalModalLabel">
+                    <i class="fas fa-bullseye"></i> Editar Meta Mensual
+                </h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <form id="goal-form">
+                <div class="modal-body">
+                    <div class="alert alert-info">
+                        <i class="fas fa-info-circle"></i>
+                        La meta se guarda <strong>por empresa</strong> y aplica a todos los usuarios.
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label">
+                            <i class="fas fa-dollar-sign text-primary"></i>
+                            Meta de Ventas Mensual <span class="text-danger">*</span>
+                        </label>
+                        <div class="input-group">
+                            <span class="input-group-text">$</span>
+                            <input type="number" class="form-control" name="meta_ventas" 
+                                   min="0" step="any"
+                                   value="<?= (int)$metaVentasBase ?>"
+                                   required>
+                        </div>
+                        <small class="text-muted">Meta total de ventas del mes</small>
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label">
+                            <i class="fas fa-chart-line text-success"></i>
+                            Meta de Utilidad Mensual <span class="text-danger">*</span>
+                        </label>
+                        <div class="input-group">
+                            <span class="input-group-text">$</span>
+                            <input type="number" class="form-control" name="meta_utilidad" 
+                                   min="0" step="any"
+                                   value="<?= (int)$metaUtilidadBase ?>"
+                                   required>
+                        </div>
+                        <small class="text-muted">Meta total de utilidad del mes</small>
+                    </div>
+
+                    <div id="goal-alert"></div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+                        <i class="fas fa-times"></i> Cancelar
+                    </button>
+                    <button type="submit" class="btn btn-danger" id="btn-save-goal">
+                        <i class="fas fa-save"></i> Guardar Meta
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<script>
+document.getElementById('goal-form').addEventListener('submit', function(e) {
+    e.preventDefault();
+
+    var form = this;
+    var btn = document.getElementById('btn-save-goal');
+    var alertBox = document.getElementById('goal-alert');
+    var originalText = btn.innerHTML;
+
+    var metaVentas = parseInt(form.querySelector('[name="meta_ventas"]').value) || 0;
+    var metaUtilidad = parseInt(form.querySelector('[name="meta_utilidad"]').value) || 0;
+
+    if (metaVentas <= 0) {
+        alertBox.innerHTML = '<div class="alert alert-danger"><i class="fas fa-exclamation-triangle"></i> La meta de ventas debe ser mayor a 0.</div>';
+        return;
+    }
+
+    if (metaUtilidad <= 0) {
+        alertBox.innerHTML = '<div class="alert alert-danger"><i class="fas fa-exclamation-triangle"></i> La meta de utilidad debe ser mayor a 0.</div>';
+        return;
+    }
+
+    btn.disabled = true;
+    btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Guardando...';
+    alertBox.innerHTML = '';
+
+    var formData = new FormData(form);
+
+    // 🔥 AGREGAR CSRF TOKEN AL FORMDATA
+    formData.append('_csrf', '<?= $csrfToken ?>');
+
+    var url = '<?= Url::to(['/dashboard/update-goal'], true) ?>';
+    console.log('🔵 Enviando a:', url);
+
+    fetch(url, {
+        method: 'POST',
+        body: formData,
+        headers: { 
+            'X-Requested-With': 'XMLHttpRequest'
+        }
+    })
+    .then(function(r) { 
+        console.log('🟢 Respuesta status:', r.status);
+        if (!r.ok) {
+            return r.text().then(function(text) {
+                console.error('🔴 Error HTTP:', r.status, text);
+                throw new Error('HTTP ' + r.status);
+            });
+        }
+        return r.json(); 
+    })
+    .then(function(data) {
+        console.log('🟢 Datos:', data);
+        if (data.success) {
+            alertBox.innerHTML = '<div class="alert alert-success"><i class="fas fa-check-circle"></i> ' + data.message + '</div>';
+            setTimeout(function() { location.reload(); }, 1200);
+        } else {
+            alertBox.innerHTML = '<div class="alert alert-danger"><i class="fas fa-exclamation-triangle"></i> ' + data.message + '</div>';
+            btn.disabled = false;
+            btn.innerHTML = originalText;
+        }
+    })
+    .catch(function(error) {
+        console.error('🔴 Error capturado:', error);
+        alertBox.innerHTML = '<div class="alert alert-danger"><i class="fas fa-exclamation-triangle"></i> ' + error.message + '</div>';
+        btn.disabled = false;
+        btn.innerHTML = originalText;
+    });
+});
+</script>
+<?php endif; ?>
 
 <?php
 // ============================================
@@ -1000,7 +1179,6 @@ document.addEventListener('DOMContentLoaded', function() {
                     suggestedMax: maxComparacion * 1.1,
                     ticks: {
                         font: { size: 9 },
-                        // 🔥 FORMATO: K para miles, M para millones
                         callback: function(value) {
                             if (value >= 1000000) {
                                 var m = value / 1000000;

@@ -23,14 +23,20 @@ class Company extends ActiveRecord
     public function rules()
     {
         return [
-            [['id_company'], 'integer'],
+            [['id_company', 'id_status', 'meta_ventas', 'meta_utilidad'], 'integer'],
             [['name'], 'string', 'max' => 10],
             [['description'], 'string', 'max' => 45],
             [['domain'], 'string', 'max' => 20],
-            [['id_status'], 'integer'],
             [['type'], 'string', 'max' => 10],
             [['name'], 'required', 'message' => 'El nombre de la empresa es obligatorio'],
             [['id_status'], 'exist', 'skipOnError' => true, 'targetClass' => Status::class, 'targetAttribute' => ['id_status' => 'id_status']],
+
+            // 🔥 METAS POR EMPRESA
+            [['meta_ventas'], 'default', 'value' => 500000],
+            [['meta_utilidad'], 'default', 'value' => 200000],
+            [['meta_ventas', 'meta_utilidad'], 'integer', 'min' => 0],
+            [['meta_ventas'], 'required', 'message' => 'La meta de ventas es obligatoria'],
+            [['meta_utilidad'], 'required', 'message' => 'La meta de utilidad es obligatoria'],
 
             // 🔥 SOLO PNG
             [['logoFile'], 'file',
@@ -62,6 +68,8 @@ class Company extends ActiveRecord
             'domain'      => 'Dominio',
             'id_status'   => 'Estado',
             'type'        => 'Tipo',
+            'meta_ventas'   => 'Meta de Ventas Mensual',
+            'meta_utilidad' => 'Meta de Utilidad Mensual',
         ];
     }
 
@@ -156,6 +164,28 @@ class Company extends ActiveRecord
             ->where(['id_status' => $statusActivo->id_status])
             ->orderBy(['name' => SORT_ASC])
             ->all();
+    }
+
+    // ============================================
+    // 🔥 MÉTODOS DE META
+    // ============================================
+
+    /**
+     * 🔥 Obtiene la meta de ventas con fallback.
+     */
+    public function getMetaVentas()
+    {
+        $meta = (int) $this->meta_ventas;
+        return $meta > 0 ? $meta : 500000;
+    }
+
+    /**
+     * 🔥 Obtiene la meta de utilidad con fallback.
+     */
+    public function getMetaUtilidad()
+    {
+        $meta = (int) $this->meta_utilidad;
+        return $meta > 0 ? $meta : 200000;
     }
 
     // ============================================
@@ -344,6 +374,8 @@ class Company extends ActiveRecord
             'id_status' => $this->id_status,
             'status_name' => $this->getStatusName(),
             'isActive' => $this->isActive(),
+            'meta_ventas' => $this->meta_ventas,
+            'meta_utilidad' => $this->meta_utilidad,
         ];
     }
 }

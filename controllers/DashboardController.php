@@ -4,6 +4,8 @@ namespace app\controllers;
 
 use Yii;
 use yii\web\Controller;
+use yii\filters\VerbFilter;
+use yii\web\Response;
 use app\models\Lead;
 use app\models\SalesTracking;
 use app\models\Task;
@@ -11,10 +13,23 @@ use app\models\Status;
 use app\models\Quote;
 use app\models\User;
 use app\models\Authentication;
+use app\models\Company;
 
 class DashboardController extends Controller
 {
     public $layout = 'main';
+
+    public function behaviors()
+    {
+        return [
+            'verbs' => [
+                'class' => VerbFilter::className(),
+                'actions' => [
+                    'update-goal' => ['POST'],
+                ],
+            ],
+        ];
+    }
 
     /**
      * 🔥 Helper: Devuelve los IDs de leads visibles para el usuario actual.
@@ -64,7 +79,6 @@ class DashboardController extends Controller
 
     /**
      * 🔥 Helper: Cuenta cuántos agentes activos tiene la empresa.
-     * Un agente = usuario con Authentication.id_role = 3
      */
     private function getCantidadAgentes($idCompany)
     {
@@ -104,6 +118,89 @@ class DashboardController extends Controller
         return $query;
     }
 
+    /**
+     * 🔥 Obtiene la empresa efectiva del usuario.
+     */
+    private function getEmpresaEfectiva($user, $empresaId)
+    {
+        if ($user->isSuperAdmin()) {
+            if (!empty($empresaId)) {
+                return Company::findOne($empresaId);
+            }
+            return null;
+        }
+
+        if (!empty($user->id_company)) {
+            return Company::findOne($user->id_company);
+        }
+
+        return null;
+    }
+
+    // ============================================
+    // 🔥 ACCIÓN: ACTUALIZAR META (AJAX)
+    // ============================================
+    public function actionUpdateGoal()
+    {
+        Yii::$app->response->format = Response::FORMAT_JSON;
+
+        try {
+            $user = Yii::$app->user->identity;
+
+            if (!$user) {
+                return ['success' => false, 'message' => 'Sesión expirada.'];
+            }
+
+            // 🔥 Solo admin y superadmin pueden cambiar la meta
+            if (!$user->isAdmin() && !$user->isSuperAdmin()) {
+                return ['success' => false, 'message' => 'No tienes permiso para modificar la meta.'];
+            }
+
+            $empresaId = Yii::$app->session->get('empresa_id');
+
+            if ($user->isSuperAdmin()) {
+                if (empty($empresaId)) {
+                    return ['success' => false, 'message' => 'No hay empresa seleccionada.'];
+                }
+                $empresa = Company::findOne($empresaId);
+            } else {
+                $empresa = Company::findOne($user->id_company);
+            }
+
+            if (!$empresa) {
+                return ['success' => false, 'message' => 'Empresa no encontrada.'];
+            }
+
+            $metaVentas   = (int) Yii::$app->request->post('meta_ventas', 0);
+            $metaUtilidad = (int) Yii::$app->request->post('meta_utilidad', 0);
+
+            if ($metaVentas <= 0) {
+                return ['success' => false, 'message' => 'La meta de ventas debe ser mayor a 0.'];
+            }
+
+            if ($metaUtilidad <= 0) {
+                return ['success' => false, 'message' => 'La meta de utilidad debe ser mayor a 0.'];
+            }
+
+            $empresa->meta_ventas   = $metaVentas;
+            $empresa->meta_utilidad = $metaUtilidad;
+
+            if ($empresa->save(false)) {
+                return [
+                    'success' => true,
+                    'message' => 'Meta actualizada exitosamente.',
+                    'meta_ventas' => $empresa->meta_ventas,
+                    'meta_utilidad' => $empresa->meta_utilidad,
+                ];
+            }
+
+            return ['success' => false, 'message' => 'Error al guardar la meta.'];
+        } catch (\Exception $e) {
+            Yii::error('Error en actionUpdateGoal: ' . $e->getMessage(), 'dashboard');
+            return ['success' => false, 'message' => 'Error: ' . $e->getMessage()];
+        }
+    }
+
     public function actionIndex()
     {
         $user = Yii::$app->user->identity;
@@ -130,7 +227,7 @@ class DashboardController extends Controller
         $userIds = $this->getUserIdsForUser($user, $empresaId);
 
         // ============================================
-        // 🔥 EMPRESA EFECTIVA PARA CONTAR AGENTES
+        // 🔥 EMPRESA EFECTIVA PARA CONTAR AGENTES Y METAS
         // ============================================
         if ($user->isSuperAdmin()) {
             $idCompanyEfectiva = $empresaId;
@@ -142,11 +239,23 @@ class DashboardController extends Controller
             $idCompanyEfectiva = null;
         }
 
+        // 🔥 OBTENER EMPRESA EFECTIVA
+        $empresaEfectiva = $this->getEmpresaEfectiva($user, $empresaId);
+
         // ============================================
-        // 🎯 METAS SEGÚN ROL
+        // 🎯 METAS DESDE LA EMPRESA (con fallback)
         // ============================================
-        $metaVentasBase = 500000;      // 🔥 Meta de ventas total de la empresa
-        $metaUtilidadBase = 200000;    // 🔥 Meta de utilidad total de la empresa
+        $metaVentasBase   = 500000;   // fallback
+        $metaUtilidadBase = 200000;   // fallback
+
+        if ($empresaEfectiva) {
+            if (!empty($empresaEfectiva->meta_ventas) && (int)$empresaEfectiva->meta_ventas > 0) {
+                $metaVentasBase = (int) $empresaEfectiva->meta_ventas;
+            }
+            if (!empty($empresaEfectiva->meta_utilidad) && (int)$empresaEfectiva->meta_utilidad > 0) {
+                $metaUtilidadBase = (int) $empresaEfectiva->meta_utilidad;
+            }
+        }
 
         $esAdminOSuperAdmin = $user->isAdmin() || $user->isSuperAdmin();
 
@@ -154,14 +263,14 @@ class DashboardController extends Controller
             // Admin/SuperAdmin: meta COMPLETA
             $metaMensual = $metaVentasBase;
             $metaUtilidadMensual = $metaUtilidadBase;
-            $cantidadAgentes = 1; // No aplica división
+            $cantidadAgentes = 1;
             $mostrarUtilidad = true;
         } else {
             // Agente: meta DIVIDIDA entre el número de agentes
             $cantidadAgentes = $this->getCantidadAgentes($idCompanyEfectiva);
             $metaMensual = $metaVentasBase / $cantidadAgentes;
             $metaUtilidadMensual = $metaUtilidadBase / $cantidadAgentes;
-            $mostrarUtilidad = false; // 🔥 Ocultar utilidad a agentes
+            $mostrarUtilidad = false;
         }
 
         // ============================================
@@ -627,7 +736,7 @@ class DashboardController extends Controller
         }
 
         // ============================================
-        // 🔥 VENTAS DEL MES (para calcular meta)
+        // 🔥 VENTAS DEL MES
         // ============================================
         $mesActual = (int)date('n');
         $anioActual = date('Y');
@@ -655,7 +764,7 @@ class DashboardController extends Controller
         // 🔥 Utilidad del mes
         $utilidadMesActual = $ventasMesActual * $porcentajeUtilidad;
 
-        // 🔥 Cálculos META VENTAS (usando $metaMensual ya calculada según rol)
+        // 🔥 Cálculos META VENTAS
         $porcentajeAlcanzado = $metaMensual > 0 ? round(($ventasMesActual / $metaMensual) * 100, 1) : 0;
         $porcentajeAlcanzado = min($porcentajeAlcanzado, 100);
         $montoRestante = max(0, $metaMensual - $ventasMesActual);
@@ -669,7 +778,6 @@ class DashboardController extends Controller
 
         // ============================================
         // ACTUAL VS TARGET (ÚLTIMOS 6 MESES)
-        // Usa $metaMensual (dividida o completa según rol)
         // ============================================
         $mesesLabels = [];
         $actualData = [];
@@ -963,12 +1071,13 @@ class DashboardController extends Controller
             'utilidadRestante'            => $utilidadRestante,
             'metaUtilidadAlcanzada'       => $metaUtilidadAlcanzada,
 
-            // 🔥 NUEVAS VARIABLES DE ROL
+            // 🔥 NUEVAS VARIABLES DE ROL Y METAS
             'esAdminOSuperAdmin'  => $esAdminOSuperAdmin,
             'mostrarUtilidad'     => $mostrarUtilidad,
             'cantidadAgentes'     => $cantidadAgentes,
             'metaVentasBase'      => $metaVentasBase,
             'metaUtilidadBase'    => $metaUtilidadBase,
+            'empresaEfectiva'     => $empresaEfectiva,
 
             'mesesLabels'       => $mesesLabels,
             'actualData'        => $actualData,

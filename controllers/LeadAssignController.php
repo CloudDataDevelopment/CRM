@@ -20,8 +20,8 @@ class LeadAssignController extends Controller
             'verbs' => [
                 'class' => VerbFilter::className(),
                 'actions' => [
-                    'assign' => ['POST'],
-                    'unassign' => ['POST'],
+                    'assign'      => ['POST'],
+                    'unassign'    => ['POST'],
                     'mass-assign' => ['POST'],
                 ],
             ],
@@ -300,9 +300,10 @@ class LeadAssignController extends Controller
     public function actionUnassign()
     {
         try {
-            $leadId = Yii::$app->request->post('lead_id');
+            $request = Yii::$app->request;
+            $leadId = $request->post('lead_id');
 
-            if (!$leadId) {
+            if (empty($leadId)) {
                 throw new \Exception('Lead requerido.');
             }
 
@@ -312,7 +313,7 @@ class LeadAssignController extends Controller
             }
 
             $user = Yii::$app->user->identity;
-            if (!$user->isAdmin()) {
+            if (!$user || !$user->isAdmin()) {
                 throw new \Exception('No tienes permiso para desasignar leads.');
             }
 
@@ -320,10 +321,15 @@ class LeadAssignController extends Controller
                 throw new \Exception('Este lead no pertenece a tu empresa.');
             }
 
+            // 🔥 Verificar que realmente tenga un agente asignado
+            if (empty($lead->id_user)) {
+                throw new \Exception('Este lead no tiene un agente asignado.');
+            }
+
             if ($lead->unassignAgent()) {
                 Yii::$app->session->setFlash('success', 'Lead desasignado exitosamente.');
             } else {
-                throw new \Exception('Error al desasignar el lead.');
+                throw new \Exception('Error al desasignar el lead. Intenta nuevamente.');
             }
 
         } catch (\Exception $e) {
