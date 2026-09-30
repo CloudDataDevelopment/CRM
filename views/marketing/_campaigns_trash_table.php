@@ -10,9 +10,9 @@ $isAdmin = isset($isAdmin) ? $isAdmin : false;
     <div class="card table-card">
         <div class="card-header">
             <div class="header-left">
-                <i class="fas fa-gift"></i>
-                <span>Listado de Promociones</span>
-                <span class="badge bg-success ms-2"><?= $dataProvider->getTotalCount() ?></span>
+                <i class="fas fa-trash text-danger"></i>
+                <span>Campañas Eliminadas</span>
+                <span class="badge bg-danger ms-2"><?= $dataProvider->getTotalCount() ?></span>
             </div>
             <div class="header-right">
                 <span class="badge bg-secondary">
@@ -37,7 +37,7 @@ $isAdmin = isset($isAdmin) ? $isAdmin : false;
                         <?php if ($dataProvider->getCount() > 0): ?>
                             <?php foreach ($dataProvider->getModels() as $model): ?>
                                 <tr>
-                                    <td><strong><?= Html::encode($model->promotion_name) ?></strong></td>
+                                    <td><strong><?= Html::encode($model->campaign_name) ?></strong></td>
                                     <td>
                                         <?= $model->start_date ? date('d/m/Y', strtotime($model->start_date)) : 'N/A' ?>
                                     </td>
@@ -49,18 +49,14 @@ $isAdmin = isset($isAdmin) ? $isAdmin : false;
                                     </td>
                                     <td class="text-center">
                                         <div class="d-flex gap-1 justify-content-center">
-                                            <?= Html::a('<i class="fas fa-eye"></i>', ['view', 'id' => $model->id_promotion], [
+                                            <?= Html::a('<i class="fas fa-eye"></i>', ['view', 'id' => $model->id_campaign], [
                                                 'class' => 'btn btn-sm marketing-btn-action btn-outline-primary',
                                                 'title' => 'Ver',
                                             ]) ?>
                                             <?php if ($isAdmin): ?>
-                                                <?= Html::a('<i class="fas fa-edit"></i>', ['update', 'id' => $model->id_promotion], [
-                                                    'class' => 'btn btn-sm marketing-btn-action btn-outline-warning',
-                                                    'title' => 'Editar',
-                                                ]) ?>
-                                                <?= Html::a('<i class="fas fa-trash"></i>', ['delete', 'id' => $model->id_promotion], [
-                                                    'class' => 'btn btn-sm marketing-btn-action btn-outline-danger',
-                                                    'title' => 'Eliminar',
+                                                <?= Html::a('<i class="fas fa-undo"></i> Restaurar', ['restore', 'id' => $model->id_campaign], [
+                                                    'class' => 'btn btn-sm marketing-btn-action btn-outline-success',
+                                                    'title' => 'Restaurar campaña',
                                                     'data' => [
                                                         'method' => 'post',
                                                     ],
@@ -73,8 +69,8 @@ $isAdmin = isset($isAdmin) ? $isAdmin : false;
                         <?php else: ?>
                             <tr>
                                 <td colspan="5" class="text-center text-muted py-4">
-                                    <i class="fas fa-inbox fa-2x d-block mb-2"></i>
-                                    No hay promociones registradas
+                                    <i class="fas fa-trash fa-2x d-block mb-2"></i>
+                                    No hay campañas en la papelera
                                 </td>
                             </tr>
                         <?php endif; ?>
@@ -83,30 +79,27 @@ $isAdmin = isset($isAdmin) ? $isAdmin : false;
             </div>
         </div>
 
-        <!-- FOOTER CON PAGINACIÓN -->
-        <div class="card-footer">
-            <div class="row align-items-center">
-                <div class="col-md-6">
-                    <small class="text-muted">
-                        Mostrando <?= $dataProvider->getCount() ?> de <?= $dataProvider->getTotalCount() ?> promociones
-                    </small>
-                </div>
-                <div class="col-md-6">
-                    <?php if ($dataProvider->getTotalCount() > 0): ?>
+        <?php if ($dataProvider->getTotalCount() > 0): ?>
+            <div class="card-footer">
+                <div class="row align-items-center">
+                    <div class="col-md-6">
+                        <small class="text-muted">
+                            Mostrando <?= $dataProvider->getCount() ?> de <?= $dataProvider->getTotalCount() ?> campañas
+                        </small>
+                    </div>
+                    <div class="col-md-6">
                         <?= LinkPager::widget([
                             'pagination' => $dataProvider->getPagination(),
                             'options' => ['class' => 'pagination justify-content-end mb-0'],
                             'linkOptions' => ['class' => 'page-link'],
                             'prevPageLabel' => '<i class="fas fa-chevron-left"></i>',
                             'nextPageLabel' => '<i class="fas fa-chevron-right"></i>',
-                            'firstPageLabel' => '<i class="fas fa-angle-double-left"></i>',
-                            'lastPageLabel' => '<i class="fas fa-angle-double-right"></i>',
                             'maxButtonCount' => 5,
                             'hideOnSinglePage' => false,
                         ]) ?>
-                    <?php endif; ?>
+                    </div>
                 </div>
             </div>
-        </div>
+        <?php endif; ?>
     </div>
 </div>

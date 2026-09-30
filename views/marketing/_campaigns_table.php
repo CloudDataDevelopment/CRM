@@ -62,7 +62,6 @@ $isAdmin = isset($isAdmin) ? $isAdmin : false;
                                                     'class' => 'btn btn-sm marketing-btn-action btn-outline-danger',
                                                     'title' => 'Eliminar',
                                                     'data' => [
-                                                        'confirm' => '¿Estás seguro de eliminar esta campaña?',
                                                         'method' => 'post',
                                                     ],
                                                 ]) ?>

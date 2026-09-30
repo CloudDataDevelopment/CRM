@@ -40,7 +40,6 @@ $badgeClass    = $model->getStatusBadgeClass();
             <div class="col-md-8">
                 <div class="card table-card">
                     <div class="card-body">
-                        <p><strong>ID:</strong> <span class="badge bg-secondary">#<?= $model->id_task ?></span></p>
                         <p><strong>Descripción:</strong></p>
                         <div class="p-2 bg-light rounded">
                             <?= nl2br(Html::encode($model->comments ?? 'Sin descripción')) ?>
@@ -135,21 +134,10 @@ $badgeClass    = $model->getStatusBadgeClass();
                         <h5 class="mb-0"><i class="fas fa-chart-bar me-2"></i> Resumen</h5>
                     </div>
                     <div class="card-body">
-                        <p><strong>ID Tarea:</strong> #<?= $model->id_task ?></p>
                         <p><strong>Estado:</strong>
                             <span class="badge bg-<?= $badgeClass ?>"><?= Html::encode($statusName) ?></span>
                         </p>
                         <p><strong>Fecha Actividad:</strong> <?= Html::encode($model->getTrackingDate()) ?></p>
-                        <?php if ($isAdmin): ?>
-                            <hr>
-                            <?= Html::a('<i class="fas fa-trash"></i> Eliminar', ['delete', 'id' => $model->id_task], [
-                                'class' => 'btn btn-danger btn-sm w-100',
-                                'data' => [
-                                    'confirm' => '¿Eliminar esta tarea?',
-                                    'method' => 'post',
-                                ],
-                            ]) ?>
-                        <?php endif; ?>
                     </div>
                 </div>
             </div>

@@ -38,13 +38,7 @@ $isAdmin = $user->isAdmin() || $user->isSuperAdmin();
                     <?= Html::a('<i class="fas fa-edit"></i> Editar', ['update', 'id' => $model->id], [
                         'class' => 'btn btn-warning btn-sm btn-header-action'
                     ]) ?>
-                    <?= Html::a('<i class="fas fa-trash"></i> Eliminar', ['delete', 'id' => $model->id], [
-                        'class' => 'btn btn-danger btn-sm btn-header-action',
-                        'data' => [
-                            'confirm' => '¿Estás seguro de eliminar este elemento?',
-                            'method' => 'post',
-                        ],
-                    ]) ?>
+
                 <?php endif; ?>
             </div>
         </div>

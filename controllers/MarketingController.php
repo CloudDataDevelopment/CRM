@@ -22,6 +22,12 @@ class MarketingController extends Controller
 
     const MARKETING_STATUS_LIST = ['Activo', 'Programado', 'Suspendido', 'Publicado', 'Inactivo', 'Cancelado'];
 
+    // 🔥 Estado de papelera
+    const TRASH_STATUS = 'Eliminado';
+
+    // 🔥 Estado al restaurar
+    const RESTORE_STATUS = 'Inactivo';
+
     public function behaviors()
     {
         return [
@@ -37,10 +43,29 @@ class MarketingController extends Controller
             'verbs' => [
                 'class' => VerbFilter::class,
                 'actions' => [
-                    'delete' => ['POST'],
+                    'delete'  => ['POST', 'GET'],
+                    'restore' => ['POST', 'GET'],
                 ],
             ],
         ];
+    }
+
+    // ============================================
+    // HELPER: ID del estado "Eliminado" (papelera)
+    // ============================================
+    private function getTrashStatusId()
+    {
+        $status = Status::find()->where(['status' => self::TRASH_STATUS])->one();
+        return $status ? $status->id_status : null;
+    }
+
+    // ============================================
+    // HELPER: ID del estado al restaurar
+    // ============================================
+    private function getRestoreStatusId()
+    {
+        $status = Status::find()->where(['status' => self::RESTORE_STATUS])->one();
+        return $status ? $status->id_status : null;
     }
 
     // ============================================
@@ -57,8 +82,19 @@ class MarketingController extends Controller
                 return $this->redirect(['empresa/index']);
             }
 
+            $trashId = $this->getTrashStatusId();
+
             // ============================================
-            // QUERY BASE PARA CAMPAÑAS (PK: id_campaign)
+            // 🔥 FILTROS
+            // ============================================
+            $search       = Yii::$app->request->get('search', '');
+            $status       = Yii::$app->request->get('status', '');
+            $type         = Yii::$app->request->get('type', '');
+            $fecha_inicio = Yii::$app->request->get('fecha_inicio', '');
+            $fecha_fin    = Yii::$app->request->get('fecha_fin', '');
+
+            // ============================================
+            // 🔥 QUERY BASE PARA CAMPAÑAS (PK: id_campaign)
             // ============================================
             $campaignQuery = Campaign::find()
                 ->alias('c')
@@ -70,8 +106,32 @@ class MarketingController extends Controller
                 $campaignQuery->andWhere(['c.id_company' => $user->id_company]);
             }
 
+            // 🔥 EXCLUIR PAPELERA
+            if ($trashId) {
+                $campaignQuery->andWhere(['<>', 'c.id_status', $trashId]);
+            }
+
+            // 🔥 FILTROS CAMPAÑAS
+            if (!empty($search)) {
+                $campaignQuery->andWhere(['like', 'c.campaign_name', $search]);
+            }
+            if (!empty($status)) {
+                $statusModel = Status::find()->where(['status' => $status])->one();
+                if ($statusModel) {
+                    $campaignQuery->andWhere(['c.id_status' => $statusModel->id_status]);
+                } else {
+                    $campaignQuery->andWhere(['0' => '1']);
+                }
+            }
+            if (!empty($fecha_inicio)) {
+                $campaignQuery->andWhere(['>=', 'c.start_date', $fecha_inicio]);
+            }
+            if (!empty($fecha_fin)) {
+                $campaignQuery->andWhere(['<=', 'c.end_date', $fecha_fin]);
+            }
+
             // ============================================
-            // QUERY BASE PARA PROMOCIONES (PK: id_promotion)
+            // 🔥 QUERY BASE PARA PROMOCIONES (PK: id_promotion)
             // ============================================
             $promotionQuery = Promotion::find()
                 ->alias('p')
@@ -81,6 +141,30 @@ class MarketingController extends Controller
                 $promotionQuery->andWhere(['p.id_company' => $empresaId]);
             } elseif (!$user->isSuperAdmin()) {
                 $promotionQuery->andWhere(['p.id_company' => $user->id_company]);
+            }
+
+            // 🔥 EXCLUIR PAPELERA
+            if ($trashId) {
+                $promotionQuery->andWhere(['<>', 'p.id_status', $trashId]);
+            }
+
+            // 🔥 FILTROS PROMOCIONES
+            if (!empty($search)) {
+                $promotionQuery->andWhere(['like', 'p.promotion_name', $search]);
+            }
+            if (!empty($status)) {
+                $statusModel = Status::find()->where(['status' => $status])->one();
+                if ($statusModel) {
+                    $promotionQuery->andWhere(['p.id_status' => $statusModel->id_status]);
+                } else {
+                    $promotionQuery->andWhere(['0' => '1']);
+                }
+            }
+            if (!empty($fecha_inicio)) {
+                $promotionQuery->andWhere(['>=', 'p.start_date', $fecha_inicio]);
+            }
+            if (!empty($fecha_fin)) {
+                $promotionQuery->andWhere(['<=', 'p.end_date', $fecha_fin]);
             }
 
             // ============================================
@@ -170,7 +254,7 @@ class MarketingController extends Controller
             ]);
 
             // ============================================
-            // TOTALES
+            // TOTALES (SIEMPRE SIN FILTROS, EXCLUYENDO PAPELERA)
             // ============================================
             $totalCampaignsQuery = Campaign::find();
             $totalPromotionsQuery = Promotion::find();
@@ -183,11 +267,16 @@ class MarketingController extends Controller
                 $totalPromotionsQuery->andWhere(['id_company' => $user->id_company]);
             }
 
+            if ($trashId) {
+                $totalCampaignsQuery->andWhere(['<>', 'id_status', $trashId]);
+                $totalPromotionsQuery->andWhere(['<>', 'id_status', $trashId]);
+            }
+
             $totalCampaigns = $totalCampaignsQuery->count();
             $totalPromotions = $totalPromotionsQuery->count();
 
             // ============================================
-            // ACTIVOS
+            // ACTIVOS (SIEMPRE SIN FILTROS, EXCLUYENDO PAPELERA)
             // ============================================
             $statusActivo = Status::find()->where(['status' => 'Activo'])->one();
             $activeCampaigns = 0;
@@ -210,9 +299,34 @@ class MarketingController extends Controller
             }
 
             // ============================================
-            // SEARCH MODEL
+            // 🔥 CONTAR PAPELERA
+            // ============================================
+            $trashCount = 0;
+            if ($trashId) {
+                $trashCampaignsQuery = Campaign::find()->andWhere(['id_status' => $trashId]);
+                $trashPromotionsQuery = Promotion::find()->andWhere(['id_status' => $trashId]);
+
+                if ($user->isSuperAdmin() && !empty($empresaId)) {
+                    $trashCampaignsQuery->andWhere(['id_company' => $empresaId]);
+                    $trashPromotionsQuery->andWhere(['id_company' => $empresaId]);
+                } elseif (!$user->isSuperAdmin()) {
+                    $trashCampaignsQuery->andWhere(['id_company' => $user->id_company]);
+                    $trashPromotionsQuery->andWhere(['id_company' => $user->id_company]);
+                }
+
+                $trashCount = $trashCampaignsQuery->count() + $trashPromotionsQuery->count();
+            }
+
+            // ============================================
+            // SEARCH MODEL Y LISTAS PARA FILTROS
             // ============================================
             $searchModel = new MarketingSearch();
+
+            $statusList = Status::find()
+                ->select(['status', 'id_status'])
+                ->where(['IN', 'status', self::MARKETING_STATUS_LIST])
+                ->indexBy('id_status')
+                ->column();
 
             $canCreate = $user->isAdmin() || $user->isSuperAdmin();
 
@@ -224,11 +338,19 @@ class MarketingController extends Controller
                 'totalPromotions' => $totalPromotions,
                 'activeCampaigns' => $activeCampaigns,
                 'activePromotions' => $activePromotions,
+                'trashCount' => $trashCount,
                 'companyList' => [],
-                'statusList' => [],
+                'statusList' => $statusList,
                 'canCreate' => $canCreate,
                 'isAdmin' => $user->isAdmin(),
                 'isSuperAdmin' => $user->isSuperAdmin(),
+
+                // 🔥 Pasar filtros a la vista
+                'search' => $search,
+                'status' => $status,
+                'type' => $type,
+                'fecha_inicio' => $fecha_inicio,
+                'fecha_fin' => $fecha_fin,
             ]);
 
         } catch (\Exception $e) {
@@ -236,6 +358,192 @@ class MarketingController extends Controller
             Yii::error('❌ [MARKETING] Archivo: ' . $e->getFile() . ':' . $e->getLine(), 'marketing-debug');
             throw $e;
         }
+    }
+
+    // ============================================
+    // 🔥 PAPELERA (solo "Eliminado")
+    // ============================================
+    public function actionTrash()
+    {
+        try {
+            $user = Yii::$app->user->identity;
+            $empresaId = Yii::$app->session->get('empresa_id');
+
+            if (!$user) {
+                return $this->redirect(['site/login']);
+            }
+
+            if (!$user->isAdmin() && !$user->isSuperAdmin()) {
+                Yii::$app->session->setFlash('error', 'No tienes permiso para acceder a la papelera.');
+                return $this->redirect(['index']);
+            }
+
+            if ($user->isSuperAdmin() && empty($empresaId)) {
+                Yii::$app->session->setFlash('warning', 'Por favor, selecciona una empresa para continuar.');
+                return $this->redirect(['empresa/index']);
+            }
+
+            $trashId = $this->getTrashStatusId();
+            if (!$trashId) {
+                Yii::$app->session->setFlash('warning', 'No se encontró el estado "Eliminado".');
+                return $this->redirect(['index']);
+            }
+
+            // ============================================
+            // 🔥 FILTROS
+            // ============================================
+            $search       = Yii::$app->request->get('search', '');
+            $tipoFiltro   = Yii::$app->request->get('tipo', ''); // 'campaign' | 'promotion' | ''
+            $fecha_inicio = Yii::$app->request->get('fecha_inicio', '');
+            $fecha_fin    = Yii::$app->request->get('fecha_fin', '');
+
+            // ============================================
+            // 🔥 QUERY CAMPAÑAS EN PAPELERA
+            // ============================================
+            $campaignQuery = Campaign::find()
+                ->alias('c')
+                ->andWhere(['c.id_status' => $trashId])
+                ->orderBy(['c.id_campaign' => SORT_DESC]);
+
+            if ($user->isSuperAdmin() && !empty($empresaId)) {
+                $campaignQuery->andWhere(['c.id_company' => $empresaId]);
+            } elseif (!$user->isSuperAdmin()) {
+                $campaignQuery->andWhere(['c.id_company' => $user->id_company]);
+            }
+
+            if (!empty($search)) {
+                $campaignQuery->andWhere(['like', 'c.campaign_name', $search]);
+            }
+            if (!empty($fecha_inicio)) {
+                $campaignQuery->andWhere(['>=', 'c.start_date', $fecha_inicio]);
+            }
+            if (!empty($fecha_fin)) {
+                $campaignQuery->andWhere(['<=', 'c.end_date', $fecha_fin]);
+            }
+
+            // ============================================
+            // 🔥 QUERY PROMOCIONES EN PAPELERA
+            // ============================================
+            $promotionQuery = Promotion::find()
+                ->alias('p')
+                ->andWhere(['p.id_status' => $trashId])
+                ->orderBy(['p.id_promotion' => SORT_DESC]);
+
+            if ($user->isSuperAdmin() && !empty($empresaId)) {
+                $promotionQuery->andWhere(['p.id_company' => $empresaId]);
+            } elseif (!$user->isSuperAdmin()) {
+                $promotionQuery->andWhere(['p.id_company' => $user->id_company]);
+            }
+
+            if (!empty($search)) {
+                $promotionQuery->andWhere(['like', 'p.promotion_name', $search]);
+            }
+            if (!empty($fecha_inicio)) {
+                $promotionQuery->andWhere(['>=', 'p.start_date', $fecha_inicio]);
+            }
+            if (!empty($fecha_fin)) {
+                $promotionQuery->andWhere(['<=', 'p.end_date', $fecha_fin]);
+            }
+
+            // ============================================
+            // 🔥 DataProviders
+            // ============================================
+            $campaignTrashProvider = new ActiveDataProvider([
+                'query' => $campaignQuery,
+                'pagination' => [
+                    'pageSize' => 10,
+                    'pageSizeParam' => 'per-page',
+                    'pageParam' => 'page_campaigns',
+                ],
+                'sort' => ['defaultOrder' => ['id_campaign' => SORT_DESC]],
+            ]);
+
+            $promotionTrashProvider = new ActiveDataProvider([
+                'query' => $promotionQuery,
+                'pagination' => [
+                    'pageSize' => 10,
+                    'pageSizeParam' => 'per-page',
+                    'pageParam' => 'page_promotions',
+                ],
+                'sort' => ['defaultOrder' => ['id_promotion' => SORT_DESC]],
+            ]);
+
+            // ============================================
+            // 🔥 TOTAL
+            // ============================================
+            $totalTrash = $campaignTrashProvider->getTotalCount() + $promotionTrashProvider->getTotalCount();
+
+            return $this->render('trash', [
+                'campaignDataProvider'  => $campaignTrashProvider,
+                'promotionDataProvider' => $promotionTrashProvider,
+                'totalTrash'            => $totalTrash,
+                'isAdmin'               => $user->isAdmin(),
+                'isSuperAdmin'          => $user->isSuperAdmin(),
+                'search'                => $search,
+                'tipoFiltro'            => $tipoFiltro,
+                'fecha_inicio'          => $fecha_inicio,
+                'fecha_fin'             => $fecha_fin,
+            ]);
+
+        } catch (\Exception $e) {
+            Yii::error('Error en actionTrash: ' . $e->getMessage(), 'marketing');
+            Yii::$app->session->setFlash('error', 'Error al cargar la papelera: ' . $e->getMessage());
+            return $this->redirect(['index']);
+        }
+    }
+
+    // ============================================
+    // 🔥 RESTAURAR (a "Inactivo")
+    // ============================================
+    public function actionRestore($id)
+    {
+        try {
+            $user = Yii::$app->user->identity;
+            $empresaId = Yii::$app->session->get('empresa_id');
+
+            if (!$user->isAdmin() && !$user->isSuperAdmin()) {
+                Yii::$app->session->setFlash('error', 'No tienes permiso para restaurar elementos.');
+                return $this->redirect(['trash']);
+            }
+
+            $model = Marketing::findOne(['id' => $id]);
+
+            if (!$model) {
+                Yii::$app->session->setFlash('error', 'Elemento no encontrado.');
+                return $this->redirect(['trash']);
+            }
+
+            // 🔥 Verificar permisos
+            if ($user->isSuperAdmin() && !empty($empresaId) && $model->id_company != $empresaId) {
+                Yii::$app->session->setFlash('error', 'No tienes permiso para restaurar este elemento.');
+                return $this->redirect(['trash']);
+            }
+
+            if (!$user->isSuperAdmin() && $model->id_company != $user->id_company) {
+                Yii::$app->session->setFlash('error', 'No tienes permiso para restaurar este elemento.');
+                return $this->redirect(['trash']);
+            }
+
+            $restoreId = $this->getRestoreStatusId();
+            if (!$restoreId) {
+                Yii::$app->session->setFlash('error', 'No se encontró el estado "' . self::RESTORE_STATUS . '".');
+                return $this->redirect(['trash']);
+            }
+
+            $model->id_status = $restoreId;
+
+            if ($model->save(false)) {
+                Yii::$app->session->setFlash('success', ucfirst($model->getTypeLabel()) . ' restaurada exitosamente.');
+            } else {
+                Yii::$app->session->setFlash('error', 'Error al restaurar el elemento.');
+            }
+
+        } catch (\Exception $e) {
+            Yii::error('Error en actionRestore: ' . $e->getMessage(), 'marketing');
+            Yii::$app->session->setFlash('error', 'Error al restaurar el elemento.');
+        }
+
+        return $this->redirect(['trash']);
     }
 
     // ============================================
@@ -352,7 +660,7 @@ class MarketingController extends Controller
     }
 
     // ============================================
-    // ELIMINAR → Redirige a INDEX
+    // 🔥 ELIMINAR → Mueve a PAPELERA (estado "Eliminado")
     // ============================================
     public function actionDelete($id)
     {
@@ -360,11 +668,17 @@ class MarketingController extends Controller
             $user = Yii::$app->user->identity;
             $empresaId = Yii::$app->session->get('empresa_id');
 
+            if (!$user->isAdmin() && !$user->isSuperAdmin()) {
+                Yii::$app->session->setFlash('error', 'No tienes permiso para eliminar elementos.');
+                return $this->redirect(['index']);
+            }
+
             $model = Marketing::findOne(['id' => $id]);
             if (!$model) {
                 throw new NotFoundHttpException('Elemento no encontrado.');
             }
 
+            // 🔥 Verificar permisos
             if ($user->isSuperAdmin() && !empty($empresaId) && $model->id_company != $empresaId) {
                 Yii::$app->session->setFlash('error', 'No tienes permiso para eliminar este elemento.');
                 return $this->redirect(['index']);
@@ -375,12 +689,25 @@ class MarketingController extends Controller
                 return $this->redirect(['index']);
             }
 
-            if ($model->delete()) {
-                Yii::$app->session->setFlash('success', ucfirst($model->getTypeLabel()) . ' eliminada exitosamente.');
+            $trashId = $this->getTrashStatusId();
+            if (!$trashId) {
+                Yii::$app->session->setFlash('error', 'No se encontró el estado "Eliminado" en la base de datos.');
+                return $this->redirect(['index']);
             }
+
+            $model->id_status = $trashId;
+
+            if ($model->save(false)) {
+                Yii::$app->session->setFlash('success', ucfirst($model->getTypeLabel()) . ' movida a la papelera.');
+            } else {
+                Yii::$app->session->setFlash('error', 'Error al mover el elemento a la papelera.');
+            }
+
         } catch (\Exception $e) {
-            Yii::$app->session->setFlash('error', 'Error al eliminar: ' . $e->getMessage());
+            Yii::error('Error en actionDelete: ' . $e->getMessage(), 'marketing');
+            Yii::$app->session->setFlash('error', 'Error al eliminar el elemento: ' . $e->getMessage());
         }
+
         return $this->redirect(['index']);
     }
 }

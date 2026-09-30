@@ -20,7 +20,7 @@ $totalItems = $totalCampaigns + $totalPromotions;
 $activeItems = $activeCampaigns + $activePromotions;
 $porcentajeActividad = $totalItems > 0 ? round(($activeItems / $totalItems) * 100) : 0;
 
-// 🔎 Variables de filtro (deben venir del controlador)
+// 🔎 Variables de filtro
 $search = isset($search) ? $search : '';
 $status = isset($status) ? $status : '';
 $type = isset($type) ? $type : '';
@@ -47,7 +47,13 @@ $statusList = isset($statusList) ? $statusList : \app\models\Marketing::getStatu
             </div>
             <div class="header-actions">
                 <?= $this->render('/layouts/_report_button') ?>
+
                 <?php if ($canCreate): ?>
+                    <?= Html::a(
+                        '<i class="fas fa-trash"></i> Papelera',
+                        ['trash'],
+                        ['class' => 'btn btn-outline-danger btn-sm btn-header-action']
+                    ) ?>
                     <?= Html::a(
                         '<i class="fas fa-plus-circle"></i> Nueva Campaña o Promoción',
                         ['create'],
@@ -56,15 +62,6 @@ $statusList = isset($statusList) ? $statusList : \app\models\Marketing::getStatu
                 <?php endif; ?>
             </div>
         </div>
-
-        <!-- MENSAJE DE ÉXITO -->
-        <?php if (Yii::$app->session->hasFlash('success')): ?>
-            <div class="alert alert-success alert-dismissible fade show" role="alert">
-                <i class="fas fa-check-circle"></i>
-                <?= Yii::$app->session->getFlash('success') ?>
-                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-            </div>
-        <?php endif; ?>
 
         <!-- MÉTRICAS -->
         <div class="row g-2 mb-3">
@@ -144,43 +141,29 @@ $statusList = isset($statusList) ? $statusList : \app\models\Marketing::getStatu
                                    value="<?= Html::encode($search) ?>"
                                    id="marketing-search-input">
                         </div>
-                        <div class="col-md-2">
-                            <select class="form-select form-select-sm" name="type" id="marketing-type-select">
-                                <option value="">Todos los tipos</option>
-                                <?php foreach (\app\models\Marketing::getTypeList() as $id => $nombre): ?>
-                                    <option value="<?= $id ?>" <?= $type == $id ? 'selected' : '' ?>>
-                                        <?= ucfirst($nombre) ?>
-                                    </option>
-                                <?php endforeach; ?>
-                            </select>
-                        </div>
+
                         <div class="col-md-2">
                             <select class="form-select form-select-sm" name="status" id="marketing-status-select">
                                 <option value="">Todos los estados</option>
                                 <?php foreach ($statusList as $id => $nombre): ?>
-                                    <option value="<?= $id ?>" <?= $status == $id ? 'selected' : '' ?>>
+                                    <option value="<?= Html::encode($nombre) ?>" <?= $status === $nombre ? 'selected' : '' ?>>
                                         <?= ucfirst($nombre) ?>
                                     </option>
                                 <?php endforeach; ?>
                             </select>
                         </div>
 
-                        <!-- 🔥 RANGO DE FECHAS -->
                         <div class="col-md-2">
-                            <label class="form-label small text-muted mb-0" for="marketing-fecha-inicio">
-                                <i class="fas fa-calendar-alt"></i> Desde
-                            </label>
                             <input type="date" class="form-control form-control-sm" name="fecha_inicio"
                                    value="<?= Html::encode($fecha_inicio) ?>"
-                                   id="marketing-fecha-inicio">
+                                   id="marketing-fecha-inicio"
+                                   title="Desde">
                         </div>
                         <div class="col-md-2">
-                            <label class="form-label small text-muted mb-0" for="marketing-fecha-fin">
-                                <i class="fas fa-calendar-alt"></i> Hasta
-                            </label>
                             <input type="date" class="form-control form-control-sm" name="fecha_fin"
                                    value="<?= Html::encode($fecha_fin) ?>"
-                                   id="marketing-fecha-fin">
+                                   id="marketing-fecha-fin"
+                                   title="Hasta">
                         </div>
 
                         <div class="col-auto d-flex gap-1">
@@ -243,7 +226,7 @@ $statusList = isset($statusList) ? $statusList : \app\models\Marketing::getStatu
         });
     }
 
-    ['marketing-type-select', 'marketing-status-select', 'marketing-fecha-inicio', 'marketing-fecha-fin']
+    ['marketing-status-select', 'marketing-fecha-inicio', 'marketing-fecha-fin']
         .forEach(function(id) {
             var el = document.getElementById(id);
             if (el) el.addEventListener('change', submitForm);
