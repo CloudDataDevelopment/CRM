@@ -12,9 +12,11 @@ $this->registerCssFile('@web/css/task.css', ['depends' => [\yii\bootstrap5\Boots
 
 $isAdmin       = $isAdmin ?? false;
 $isAgent       = $isAgent ?? false;
+$isSuperAdmin  = $isSuperAdmin ?? false;
 $tasks         = $tasks ?? [];
 $totalTasks    = $totalTasks ?? 0;
 $withoutStatus = $withoutStatus ?? 0;
+$trashCount    = $trashCount ?? 0;
 $search        = $search ?? '';
 $status        = $status ?? '';
 $fecha_inicio  = $fecha_inicio ?? '';
@@ -58,6 +60,15 @@ $ultimasTareas = array_slice($tasks, 0, 5);
             </div>
             <div class="header-actions">
                 <?= $this->render('/layouts/_report_button') ?>
+
+                <?php if ($isAdmin || $isSuperAdmin): ?>
+                    <?= Html::a(
+                        '<i class="fas fa-trash"></i> Papelera',
+                        ['trash'],
+                        ['class' => 'btn btn-outline-danger btn-sm btn-header-action']
+                    ) ?>
+                <?php endif; ?>
+
                 <?= Html::a('<i class="fas fa-plus"></i> Nueva Actividad', ['create'], ['class' => 'btn btn-primary btn-sm btn-header-action']) ?>
             </div>
         </div>
@@ -246,8 +257,8 @@ $ultimasTareas = array_slice($tasks, 0, 5);
                                                 <?php if ($isAdmin): ?>
                                                     <?= Html::a('<i class="fas fa-trash"></i>', ['delete', 'id' => $task->id_task], [
                                                         'class' => 'btn btn-danger btn-sm btn-action',
-                                                        'title' => 'Eliminar',
-                                                        'data' => ['confirm' => '¿Eliminar esta actividad?', 'method' => 'post'],
+                                                        'title' => 'Mover a papelera',
+                                                        'data' => ['confirm' => '¿Mover esta actividad a la papelera?', 'method' => 'post'],
                                                     ]) ?>
                                                 <?php endif; ?>
                                             </div>

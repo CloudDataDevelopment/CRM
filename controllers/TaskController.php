@@ -16,13 +16,20 @@ class TaskController extends Controller
 {
     public $layout = 'main';
 
+    // 🔥 Estado de papelera
+    const TRASH_STATUS = 'Eliminado';
+
+    // 🔥 Estado al restaurar
+    const RESTORE_STATUS = 'Por hacer';
+
     public function behaviors()
     {
         return [
             'verbs' => [
                 'class' => VerbFilter::className(),
                 'actions' => [
-                    'delete'        => ['POST'],
+                    'delete'        => ['POST', 'GET'],
+                    'restore'       => ['POST', 'GET'],
                     'update-status' => ['POST'],
                     'update-date'   => ['POST'],
                 ],
@@ -35,7 +42,7 @@ class TaskController extends Controller
     // ============================================
 
     /**
-     * 🔥 Obtiene las opciones de estado disponibles
+     * 🔥 Obtiene las opciones de estado disponibles (SIN "Eliminado")
      */
     private function getStatusOptions()
     {
@@ -46,6 +53,66 @@ class TaskController extends Controller
             ->select(['status', 'id_status'])
             ->indexBy('id_status')
             ->column();
+    }
+
+    /**
+     * 🔥 Obtiene el ID del estado "Eliminado" (papelera)
+     */
+    private function getTrashStatusId()
+    {
+        $status = Status::find()->where(['status' => self::TRASH_STATUS])->one();
+        return $status ? $status->id_status : null;
+    }
+
+    /**
+     * 🔥 Obtiene el ID del estado al restaurar ("Por hacer")
+     */
+    private function getRestoreStatusId()
+    {
+        $status = Status::find()->where(['status' => self::RESTORE_STATUS])->one();
+        return $status ? $status->id_status : null;
+    }
+
+    /**
+     * 🔥 Devuelve los IDs de usuarios visibles para el usuario actual.
+     */
+    private function getUserIdsForUser($user, $empresaId)
+    {
+        $query = User::find()->select('id_user');
+
+        if ($user->isSuperAdmin()) {
+            if (!empty($empresaId)) {
+                $query->andWhere(['id_company' => $empresaId]);
+            } else {
+                return [];
+            }
+        } elseif ($user->isAdmin() && !$user->isSuperAdmin()) {
+            $query->andWhere(['id_company' => $user->id_company]);
+        } elseif ($user->isAgent()) {
+            $query->andWhere(['id_user' => $user->id_user]);
+        } else {
+            return [];
+        }
+
+        return $query->column();
+    }
+
+    /**
+     * 🔥 Aplica el filtro por rol/empresa a una query de Task (alias 't')
+     */
+    private function applyRoleFilter($query, $user, $empresaId)
+    {
+        if ($user->isAgent()) {
+            $query->andWhere(['t.id_user' => $user->id_user]);
+        } else {
+            $userIds = $this->getUserIdsForUser($user, $empresaId);
+            if (empty($userIds)) {
+                $query->andWhere(['t.id_task' => -1]);
+            } else {
+                $query->andWhere(['t.id_user' => $userIds]);
+            }
+        }
+        return $query;
     }
 
     /**
@@ -75,35 +142,9 @@ class TaskController extends Controller
         return false;
     }
 
-    /**
-     * 🔥 Devuelve los IDs de usuarios visibles para el usuario actual.
-     * Se usa para filtrar la tabla Task (que no tiene id_company directo).
-     */
-    private function getUserIdsForUser($user, $empresaId)
-    {
-        $query = User::find()->select('id_user');
-
-        if ($user->isSuperAdmin()) {
-            if (!empty($empresaId)) {
-                $query->andWhere(['id_company' => $empresaId]);
-            } else {
-                return [];
-            }
-        } elseif ($user->isAdmin() && !$user->isSuperAdmin()) {
-            $query->andWhere(['id_company' => $user->id_company]);
-        } elseif ($user->isAgent()) {
-            $query->andWhere(['id_user' => $user->id_user]);
-        } else {
-            return [];
-        }
-
-        return $query->column();
-    }
-
     // ============================================
     // INDEX
     // ============================================
-
     public function actionIndex()
     {
         try {
@@ -114,37 +155,28 @@ class TaskController extends Controller
                 return $this->redirect(['site/login']);
             }
 
-            // 🔥 Validar Super Admin sin empresa
             if ($user->isSuperAdmin() && empty($empresaId)) {
                 Yii::$app->session->setFlash('warning', 'Por favor, selecciona una empresa para continuar.');
                 return $this->redirect(['empresa/index']);
             }
 
-            // 🔥 OBTENER IDs DE USUARIOS VISIBLES PARA ESTE USUARIO
-            $userIds = $this->getUserIdsForUser($user, $empresaId);
+            $trashId = $this->getTrashStatusId();
 
-            // 🔥 QUERY BASE
+            // 🔥 QUERY BASE (excluye la papelera)
             $query = Task::find()
                 ->alias('t')
                 ->leftJoin('Status s', 't.id_status = s.id_status')
                 ->leftJoin('User u', 't.id_user = u.id_user')
                 ->with(['status', 'user'])
-                ->andWhere(['>', 't.id_user', 0]);  // 🔥 Excluir huérfanas
+                ->andWhere(['>', 't.id_user', 0]);
 
-            // 🔥 FILTRO POR ROL Y EMPRESA
-            if ($user->isAgent()) {
-                // 🔥 AGENTE: solo sus tareas
-                $query->andWhere(['t.id_user' => $user->id_user]);
-            } else {
-                // 🔥 ADMIN/SUPER ADMIN: tareas de usuarios de su empresa
-                if (empty($userIds)) {
-                    $query->andWhere(['t.id_task' => -1]);
-                } else {
-                    $query->andWhere(['t.id_user' => $userIds]);
-                }
+            if ($trashId) {
+                $query->andWhere(['<>', 't.id_status', $trashId]);
             }
 
-            // 🔥 FILTROS DE BÚSQUEDA
+            $this->applyRoleFilter($query, $user, $empresaId);
+
+            // 🔥 FILTROS
             $search       = Yii::$app->request->get('search', '');
             $status       = Yii::$app->request->get('status', '');
             $fecha_inicio = Yii::$app->request->get('fecha_inicio', '');
@@ -171,7 +203,6 @@ class TaskController extends Controller
 
             $query->orderBy(['t.id_task' => SORT_DESC]);
 
-            // 🔥 DATAPROVIDER CON PAGINACIÓN
             $dataProvider = new ActiveDataProvider([
                 'query' => $query,
                 'pagination' => [
@@ -179,16 +210,14 @@ class TaskController extends Controller
                     'pageSizeParam' => 'per-page',
                     'pageParam' => 'page',
                 ],
-                'sort' => [
-                    'defaultOrder' => ['id_task' => SORT_DESC],
-                ],
+                'sort' => ['defaultOrder' => ['id_task' => SORT_DESC]],
             ]);
 
             $tasks         = $dataProvider->getModels();
             $totalTasks    = $dataProvider->getTotalCount();
             $statusOptions = $this->getStatusOptions();
 
-            // 🔥 CONTAR POR ESTADO (sobre TODAS las tareas filtradas, no solo la página)
+            // 🔥 CONTAR POR ESTADO
             $statusCounts = [
                 'Por hacer'   => 0,
                 'En progreso' => 0,
@@ -199,9 +228,7 @@ class TaskController extends Controller
                 'Sin Estado'  => 0,
             ];
 
-            $allTasksQuery = clone $query;
-            $allTasks = $allTasksQuery->all();
-
+            $allTasks = (clone $query)->all();
             foreach ($allTasks as $task) {
                 $statusName = $task->getStatusName();
                 if (!isset($statusCounts[$statusName])) {
@@ -210,8 +237,19 @@ class TaskController extends Controller
                 $statusCounts[$statusName]++;
             }
 
-            // 🔥 TAREAS SIN ESTADO (filtradas por rol y empresa)
             $withoutStatus = $statusCounts['Sin Estado'] ?? 0;
+
+            // 🔥 CONTAR PAPELERA
+            $trashCount = 0;
+            if ($trashId) {
+                $trashQuery = Task::find()
+                    ->alias('t')
+                    ->leftJoin('User u', 't.id_user = u.id_user')
+                    ->andWhere(['t.id_status' => $trashId]);
+
+                $this->applyRoleFilter($trashQuery, $user, $empresaId);
+                $trashCount = $trashQuery->count();
+            }
 
             return $this->render('index', [
                 'dataProvider'  => $dataProvider,
@@ -220,8 +258,10 @@ class TaskController extends Controller
                 'statusCounts'  => $statusCounts,
                 'statusOptions' => $statusOptions,
                 'withoutStatus' => $withoutStatus,
+                'trashCount'    => $trashCount,
                 'isAdmin'       => $user->isAdmin(),
                 'isAgent'       => $user->isAgent(),
+                'isSuperAdmin'  => $user->isSuperAdmin(),
                 'search'        => $search,
                 'status'        => $status,
                 'fecha_inicio'  => $fecha_inicio,
@@ -230,7 +270,6 @@ class TaskController extends Controller
 
         } catch (\Exception $e) {
             Yii::error('Error en Task::actionIndex: ' . $e->getMessage(), 'task');
-            Yii::error('Stack: ' . $e->getTraceAsString(), 'task');
 
             return $this->render('index', [
                 'dataProvider'  => new ActiveDataProvider(['query' => Task::find()->where(['1' => '0'])]),
@@ -247,8 +286,10 @@ class TaskController extends Controller
                 ],
                 'statusOptions' => [],
                 'withoutStatus' => 0,
+                'trashCount'    => 0,
                 'isAdmin'       => false,
                 'isAgent'       => false,
+                'isSuperAdmin'  => false,
                 'search'        => '',
                 'status'        => '',
                 'fecha_inicio'  => '',
@@ -258,9 +299,166 @@ class TaskController extends Controller
     }
 
     // ============================================
+    // 🔥 PAPELERA (solo "Eliminado")
+    // ============================================
+    public function actionTrash()
+    {
+        try {
+            $user = Yii::$app->user->identity;
+            $empresaId = Yii::$app->session->get('empresa_id');
+
+            if (!$user) {
+                return $this->redirect(['site/login']);
+            }
+
+            if ($user->isSuperAdmin() && empty($empresaId)) {
+                Yii::$app->session->setFlash('warning', 'Por favor, selecciona una empresa para continuar.');
+                return $this->redirect(['empresa/index']);
+            }
+
+            $trashId = $this->getTrashStatusId();
+            if (!$trashId) {
+                Yii::$app->session->setFlash('warning', 'No se encontró el estado "Eliminado".');
+                return $this->redirect(['index']);
+            }
+
+            $query = Task::find()
+                ->alias('t')
+                ->leftJoin('Status s', 't.id_status = s.id_status')
+                ->leftJoin('User u', 't.id_user = u.id_user')
+                ->with(['status', 'user'])
+                ->andWhere(['t.id_status' => $trashId]);
+
+            $this->applyRoleFilter($query, $user, $empresaId);
+
+            $search = Yii::$app->request->get('search', '');
+            if (!empty($search)) {
+                $query->andWhere(['LIKE', 't.comments', $search]);
+            }
+
+            $query->orderBy(['t.id_task' => SORT_DESC]);
+
+            $dataProvider = new ActiveDataProvider([
+                'query' => $query,
+                'pagination' => [
+                    'pageSize' => 10,
+                    'pageSizeParam' => 'per-page',
+                    'pageParam' => 'page',
+                ],
+                'sort' => ['defaultOrder' => ['id_task' => SORT_DESC]],
+            ]);
+
+            $tasks = $dataProvider->getModels();
+            $totalTasks = $dataProvider->getTotalCount();
+
+            return $this->render('trash', [
+                'dataProvider' => $dataProvider,
+                'tasks'        => $tasks,
+                'totalTasks'   => $totalTasks,
+                'search'       => $search,
+                'isAdmin'      => $user->isAdmin(),
+                'isAgent'      => $user->isAgent(),
+                'isSuperAdmin' => $user->isSuperAdmin(),
+            ]);
+
+        } catch (\Exception $e) {
+            Yii::error('Error en Task::actionTrash: ' . $e->getMessage(), 'task');
+            Yii::$app->session->setFlash('error', 'Error al cargar la papelera: ' . $e->getMessage());
+            return $this->redirect(['index']);
+        }
+    }
+
+    // ============================================
+    // 🔥 MOVER A PAPELERA (estado "Eliminado")
+    // ============================================
+    public function actionDelete($id)
+    {
+        try {
+            $model = $this->findModel($id);
+            $user  = Yii::$app->user->identity;
+            $empresaId = Yii::$app->session->get('empresa_id');
+
+            if (!$user->isAdmin()) {
+                Yii::$app->session->setFlash('error', 'No tienes permiso para eliminar actividades.');
+                return $this->redirect(['index']);
+            }
+
+            if (!$this->checkPermission($model, $user, $empresaId)) {
+                Yii::$app->session->setFlash('error', 'No tienes permiso para eliminar esta actividad.');
+                return $this->redirect(['index']);
+            }
+
+            $trashId = $this->getTrashStatusId();
+            if (!$trashId) {
+                Yii::$app->session->setFlash('error', 'No se encontró el estado "Eliminado" en la base de datos.');
+                return $this->redirect(['index']);
+            }
+
+            $model->id_status = $trashId;
+
+            if ($model->save(false)) {
+                Yii::$app->session->setFlash('success', 'Actividad movida a la papelera.');
+            } else {
+                Yii::$app->session->setFlash('error', 'Error al mover la actividad a la papelera.');
+            }
+
+        } catch (NotFoundHttpException $e) {
+            Yii::$app->session->setFlash('error', 'Actividad no encontrada.');
+        } catch (\Exception $e) {
+            Yii::error('Error en Task::actionDelete: ' . $e->getMessage(), 'task');
+            Yii::$app->session->setFlash('error', 'Error al eliminar la actividad.');
+        }
+
+        return $this->redirect(['index']);
+    }
+
+    // ============================================
+    // 🔥 RESTAURAR ACTIVIDAD (a "Por hacer")
+    // ============================================
+    public function actionRestore($id)
+    {
+        try {
+            $model = $this->findModel($id);
+            $user  = Yii::$app->user->identity;
+            $empresaId = Yii::$app->session->get('empresa_id');
+
+            if (!$user->isAdmin()) {
+                Yii::$app->session->setFlash('error', 'No tienes permiso para restaurar actividades.');
+                return $this->redirect(['trash']);
+            }
+
+            if (!$this->checkPermission($model, $user, $empresaId)) {
+                Yii::$app->session->setFlash('error', 'No tienes permiso para restaurar esta actividad.');
+                return $this->redirect(['trash']);
+            }
+
+            $restoreId = $this->getRestoreStatusId();
+            if (!$restoreId) {
+                Yii::$app->session->setFlash('error', 'No se encontró el estado "' . self::RESTORE_STATUS . '".');
+                return $this->redirect(['trash']);
+            }
+
+            $model->id_status = $restoreId;
+
+            if ($model->save(false)) {
+                Yii::$app->session->setFlash('success', 'Actividad restaurada exitosamente.');
+            } else {
+                Yii::$app->session->setFlash('error', 'Error al restaurar la actividad.');
+            }
+
+        } catch (NotFoundHttpException $e) {
+            Yii::$app->session->setFlash('error', 'Actividad no encontrada.');
+        } catch (\Exception $e) {
+            Yii::error('Error en Task::actionRestore: ' . $e->getMessage(), 'task');
+            Yii::$app->session->setFlash('error', 'Error al restaurar la actividad.');
+        }
+
+        return $this->redirect(['trash']);
+    }
+
+    // ============================================
     // VIEW
     // ============================================
-
     public function actionView($id)
     {
         try {
@@ -303,7 +501,6 @@ class TaskController extends Controller
     // ============================================
     // CREATE
     // ============================================
-
     public function actionCreate()
     {
         try {
@@ -312,12 +509,10 @@ class TaskController extends Controller
 
             $statusOptions = $this->getStatusOptions();
 
-            // 🔥 PRE-ASIGNAR VALORES POR DEFECTO
             $model->id_user = $user->id_user;
             $model->date_s = date('Y-m-d');
             $model->date_time = date('Y-m-d H:i:s');
 
-            // Estado por defecto: "Por hacer"
             $statusPorDefecto = Status::find()->where(['status' => 'Por hacer'])->one();
             if ($statusPorDefecto) {
                 $model->id_status = $statusPorDefecto->id_status;
@@ -325,17 +520,14 @@ class TaskController extends Controller
 
             if ($model->load(Yii::$app->request->post())) {
                 try {
-                    // 🔥 FORZAR id_user para agentes (seguridad)
                     if ($user->isAgent()) {
                         $model->id_user = $user->id_user;
                     }
 
-                    // 🔥 Si no tiene usuario asignado, auto-asignar al usuario actual
                     if (empty($model->id_user) || $model->id_user == 0) {
                         $model->id_user = $user->id_user;
                     }
 
-                    // 🔥 Fechas automáticas si no vienen
                     if (empty($model->date_s)) {
                         $model->date_s = date('Y-m-d');
                     }
@@ -378,7 +570,6 @@ class TaskController extends Controller
     // ============================================
     // UPDATE
     // ============================================
-
     public function actionUpdate($id)
     {
         try {
@@ -441,7 +632,6 @@ class TaskController extends Controller
     // ============================================
     // UPDATE STATUS (POST)
     // ============================================
-
     public function actionUpdateStatus()
     {
         $request  = Yii::$app->request;
@@ -486,7 +676,6 @@ class TaskController extends Controller
     // ============================================
     // UPDATE DATE (POST)
     // ============================================
-
     public function actionUpdateDate()
     {
         $id    = Yii::$app->request->post('id_task');
@@ -526,48 +715,8 @@ class TaskController extends Controller
     }
 
     // ============================================
-    // DELETE
-    // ============================================
-
-    public function actionDelete($id)
-    {
-        try {
-            $model = $this->findModel($id);
-            $user  = Yii::$app->user->identity;
-            $empresaId = Yii::$app->session->get('empresa_id');
-
-            // 🔥 Solo admin y super admin pueden eliminar
-            if (!$user->isAdmin()) {
-                Yii::$app->session->setFlash('error', 'No tienes permiso para eliminar actividades.');
-                return $this->redirect(['index']);
-            }
-
-            // 🔥 Verificar permiso sobre la tarea específica
-            if (!$this->checkPermission($model, $user, $empresaId)) {
-                Yii::$app->session->setFlash('error', 'No tienes permiso para eliminar esta actividad.');
-                return $this->redirect(['index']);
-            }
-
-            if ($model->delete()) {
-                Yii::$app->session->setFlash('success', 'Actividad eliminada exitosamente.');
-            } else {
-                Yii::$app->session->setFlash('error', 'Error al eliminar la actividad.');
-            }
-
-        } catch (NotFoundHttpException $e) {
-            Yii::$app->session->setFlash('error', 'Actividad no encontrada.');
-        } catch (\Exception $e) {
-            Yii::error('Error en Task::actionDelete: ' . $e->getMessage(), 'task');
-            Yii::$app->session->setFlash('error', 'Error al eliminar la actividad.');
-        }
-
-        return $this->redirect(['index']);
-    }
-
-    // ============================================
     // FINDER
     // ============================================
-
     protected function findModel($id)
     {
         $model = Task::findOne($id);
