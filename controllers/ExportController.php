@@ -599,6 +599,18 @@ class ExportController extends Controller
             return $query;
         }
 
+        // ============================================
+        // 🔥 EXCLUIR SIEMPRE LOS REGISTROS "ELIMINADOS"
+        // (a menos que el usuario filtre explícitamente por ese estado)
+        // ============================================
+        if (isset($tableSchema->columns['id_status'])) {
+            $statusEliminado = Status::find()->where(['status' => 'Eliminado'])->one();
+
+            if ($statusEliminado && strcasecmp(trim($status), 'Eliminado') !== 0) {
+                $query->andWhere(['<>', 'main.id_status', $statusEliminado->id_status]);
+            }
+        }
+
         if (!empty($search)) {
             $orConditions = ['or'];
             foreach ($tableSchema->columns as $col) {
