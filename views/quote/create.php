@@ -181,22 +181,6 @@ $isSuperAdmin = isset($isSuperAdmin) ? $isSuperAdmin : false;
                             'class' => 'form-control'
                         ])->label('Comentarios') ?>
 
-                        <!-- BOTONES -->
-                        <div class="form-group mt-4 d-flex gap-2 flex-wrap">
-                            <?= Html::submitButton('<i class="fas fa-save"></i> Guardar Cotización', [
-                                'class' => 'btn btn-success'
-                            ]) ?>
-                            <?php if ($lead): ?>
-                                <?= Html::a('<i class="fas fa-times"></i> Cancelar', 
-                                    ['lead/details', 'id' => $lead->id_lead], 
-                                    ['class' => 'btn btn-secondary']) ?>
-                            <?php else: ?>
-                                <?= Html::a('<i class="fas fa-times"></i> Cancelar', 
-                                    ['index'], 
-                                    ['class' => 'btn btn-secondary']) ?>
-                            <?php endif; ?>
-                        </div>
-
                         <?php ActiveForm::end(); ?>
                     </div>
                 </div>

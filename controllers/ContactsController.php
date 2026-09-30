@@ -18,7 +18,11 @@ class ContactsController extends Controller
 {
     public $layout = 'main';
 
+    // 🔥 Estados visibles en el index
     const CONTACT_STATUS_LIST = ['Activo', 'Inactivo'];
+
+    // 🔥 Estado de papelera
+    const TRASH_STATUS = 'Eliminado';
 
     public function behaviors()
     {
@@ -35,9 +39,27 @@ class ContactsController extends Controller
     }
 
     // ============================================
-    // HELPER: ID de papelera (Inactivo)
+    // HELPER: ID del estado "Eliminado" (papelera)
     // ============================================
     private function getTrashStatusId()
+    {
+        $status = Status::find()->where(['status' => self::TRASH_STATUS])->one();
+        return $status ? $status->id_status : null;
+    }
+
+    // ============================================
+    // HELPER: ID del estado "Activo"
+    // ============================================
+    private function getActiveStatusId()
+    {
+        $status = Status::find()->where(['status' => 'Activo'])->one();
+        return $status ? $status->id_status : null;
+    }
+
+    // ============================================
+    // HELPER: ID del estado "Inactivo"
+    // ============================================
+    private function getInactiveStatusId()
     {
         $status = Status::find()->where(['status' => 'Inactivo'])->one();
         return $status ? $status->id_status : null;
@@ -68,7 +90,7 @@ class ContactsController extends Controller
     }
 
     // ============================================
-    // HELPER: Verificar si un contacto pertenece a la empresa del usuario
+    // HELPER: Verificar acceso al contacto
     // ============================================
     private function canAccessContact($contact, $user, $empresaId)
     {
@@ -76,7 +98,6 @@ class ContactsController extends Controller
             return false;
         }
 
-        // Super Admin: solo si la empresa seleccionada coincide
         if ($user->isSuperAdmin()) {
             if (!empty($empresaId) && $contact->id_company != $empresaId) {
                 return false;
@@ -84,12 +105,10 @@ class ContactsController extends Controller
             return true;
         }
 
-        // Admin normal: solo su empresa
         if ($user->isAdmin() && !$user->isSuperAdmin()) {
             return $contact->id_company == $user->id_company;
         }
 
-        // Agente: solo su empresa
         if ($user->isAgent()) {
             return $contact->id_company == $user->id_company;
         }
@@ -144,7 +163,7 @@ class ContactsController extends Controller
     }
 
     // ============================================
-    // INDEX
+    // INDEX (excluye solo "Eliminado")
     // ============================================
     public function actionIndex()
     {
@@ -161,34 +180,30 @@ class ContactsController extends Controller
                 return $this->redirect(['empresa/index']);
             }
 
-            // 🔥 QUERY BASE con JOIN a relaciones
+            $trashId = $this->getTrashStatusId();
+            $activeId = $this->getActiveStatusId();
+            $inactiveId = $this->getInactiveStatusId();
+
+            // QUERY BASE
             $query = Contacts::find()->joinWith(['company', 'status', 'typeContact']);
 
-            // 🔥 EXCLUIR PAPELERA
-            $trashId = $this->getTrashStatusId();
+            // 🔥 EXCLUIR SOLO LA PAPELERA ("Eliminado")
             if ($trashId) {
                 $query->andWhere(['<>', 'Contacts.id_status', $trashId]);
             }
 
-            // ============================================
-            // 🔥 FILTRO POR ROL Y EMPRESA (id_company)
-            // ============================================
+            // FILTRO POR ROL Y EMPRESA
             if ($user->isSuperAdmin()) {
-                // Super Admin: solo la empresa seleccionada en sesión
                 if (!empty($empresaId)) {
                     $query->andWhere(['Contacts.id_company' => (int) $empresaId]);
                 }
             } elseif ($user->isAdmin() && !$user->isSuperAdmin()) {
-                // Admin normal: solo su empresa
                 $query->andWhere(['Contacts.id_company' => (int) $user->id_company]);
             } elseif ($user->isAgent()) {
-                // Agente: solo su empresa
                 $query->andWhere(['Contacts.id_company' => (int) $user->id_company]);
             }
 
-            // ============================================
             // FILTROS DE BÚSQUEDA
-            // ============================================
             $search = Yii::$app->request->get('search', '');
             $status = Yii::$app->request->get('status', '');
             $type = Yii::$app->request->get('type', '');
@@ -216,7 +231,7 @@ class ContactsController extends Controller
                 }
             }
 
-            // 🔥 ORDEN TIPO PILA: el último registrado primero
+            // DATAPROVIDER
             $dataProvider = new ActiveDataProvider([
                 'query' => $query,
                 'pagination' => [
@@ -240,17 +255,25 @@ class ContactsController extends Controller
 
             $contacts = $dataProvider->getModels();
 
-            // ============================================
-            // MÉTRICAS (todas filtradas por empresa)
-            // ============================================
-            $countQuery = clone $query;
-            $totalContacts = $countQuery->count();
+            // MÉTRICAS
+            $totalQuery = Contacts::find();
+            if ($trashId) {
+                $totalQuery->andWhere(['<>', 'id_status', $trashId]);
+            }
+            if ($user->isSuperAdmin()) {
+                if (!empty($empresaId)) {
+                    $totalQuery->andWhere(['id_company' => (int) $empresaId]);
+                }
+            } elseif (!$user->isSuperAdmin()) {
+                $totalQuery->andWhere(['id_company' => (int) $user->id_company]);
+            }
+            $totalContacts = $totalQuery->count();
 
-            $statusActivo = Status::find()->where(['status' => 'Activo'])->one();
-            $statusInactivo = Status::find()->where(['status' => 'Inactivo'])->one();
-
-            // 🔥 CONTACTOS ACTIVOS
+            // Activos
             $activeQuery = Contacts::find();
+            if ($activeId) {
+                $activeQuery->andWhere(['id_status' => $activeId]);
+            }
             if ($user->isSuperAdmin()) {
                 if (!empty($empresaId)) {
                     $activeQuery->andWhere(['id_company' => (int) $empresaId]);
@@ -258,30 +281,37 @@ class ContactsController extends Controller
             } elseif (!$user->isSuperAdmin()) {
                 $activeQuery->andWhere(['id_company' => (int) $user->id_company]);
             }
-            if ($statusActivo) {
-                $activeQuery->andWhere(['id_status' => $statusActivo->id_status]);
-            }
             $activeContacts = $activeQuery->count();
 
-            // 🔥 CONTACTOS EN PAPELERA
-            $trashQuery = Contacts::find();
+            // Inactivos
+            $inactiveQuery = Contacts::find();
+            if ($inactiveId) {
+                $inactiveQuery->andWhere(['id_status' => $inactiveId]);
+            }
             if ($user->isSuperAdmin()) {
                 if (!empty($empresaId)) {
-                    $trashQuery->andWhere(['id_company' => (int) $empresaId]);
+                    $inactiveQuery->andWhere(['id_company' => (int) $empresaId]);
                 }
             } elseif (!$user->isSuperAdmin()) {
-                $trashQuery->andWhere(['id_company' => (int) $user->id_company]);
+                $inactiveQuery->andWhere(['id_company' => (int) $user->id_company]);
             }
-            if ($statusInactivo) {
-                $trashQuery->andWhere(['id_status' => $statusInactivo->id_status]);
+            $inactiveContacts = $inactiveQuery->count();
+
+            // Papelera
+            $trashCount = 0;
+            if ($trashId) {
+                $trashQuery = Contacts::find()->andWhere(['id_status' => $trashId]);
+                if ($user->isSuperAdmin()) {
+                    if (!empty($empresaId)) {
+                        $trashQuery->andWhere(['id_company' => (int) $empresaId]);
+                    }
+                } elseif (!$user->isSuperAdmin()) {
+                    $trashQuery->andWhere(['id_company' => (int) $user->id_company]);
+                }
+                $trashCount = $trashQuery->count();
             }
-            $trashCount = $trashQuery->count();
 
-            $inactiveContacts = $totalContacts - $activeContacts;
-
-            // ============================================
             // LISTAS PARA FILTROS
-            // ============================================
             $statusList = Status::find()
                 ->select(['status', 'id_status'])
                 ->where(['in', 'status', self::CONTACT_STATUS_LIST])
@@ -334,7 +364,7 @@ class ContactsController extends Controller
     }
 
     // ============================================
-    // PAPELERA
+    // PAPELERA (solo "Eliminado")
     // ============================================
     public function actionTrash()
     {
@@ -353,7 +383,7 @@ class ContactsController extends Controller
 
             $trashId = $this->getTrashStatusId();
             if (!$trashId) {
-                Yii::$app->session->setFlash('warning', 'No se encontró el estado "Inactivo".');
+                Yii::$app->session->setFlash('warning', 'No se encontró el estado "Eliminado".');
                 return $this->redirect(['index']);
             }
 
@@ -361,7 +391,6 @@ class ContactsController extends Controller
                 ->joinWith(['company', 'status', 'typeContact'])
                 ->andWhere(['Contacts.id_status' => $trashId]);
 
-            // 🔥 FILTRO POR EMPRESA
             if ($user->isSuperAdmin()) {
                 if (!empty($empresaId)) {
                     $query->andWhere(['Contacts.id_company' => (int) $empresaId]);
@@ -433,13 +462,13 @@ class ContactsController extends Controller
                 return $this->redirect(['trash']);
             }
 
-            $statusActivo = Status::find()->where(['status' => 'Activo'])->one();
-            if (!$statusActivo) {
+            $activeId = $this->getActiveStatusId();
+            if (!$activeId) {
                 Yii::$app->session->setFlash('error', 'No se encontró el estado "Activo".');
                 return $this->redirect(['trash']);
             }
 
-            $model->id_status = $statusActivo->id_status;
+            $model->id_status = $activeId;
 
             if ($model->save(false)) {
                 Yii::$app->session->setFlash('success', 'Contacto restaurado exitosamente.');
@@ -519,7 +548,7 @@ class ContactsController extends Controller
     }
 
     // ============================================
-    // VER CONTACTO - MODAL
+    // VER CONTACTO - MODAL (funciona en index y papelera)
     // ============================================
     public function actionViewModal($id)
     {
@@ -615,7 +644,6 @@ class ContactsController extends Controller
 
                 if ($model->load($post)) {
                     try {
-                        // 🔥 FORZAR id_company según rol
                         if ($user->isSuperAdmin()) {
                             if (!empty($empresaId)) {
                                 $model->id_company = (int) $empresaId;
@@ -714,12 +742,11 @@ class ContactsController extends Controller
             return $this->redirect(['empresa/index']);
         }
 
-        // 🔥 ASIGNAR id_company efectivo
         $model->id_company = $this->getEffectiveCompanyId($user, $empresaId);
 
-        $statusActivo = Status::find()->where(['status' => 'Activo'])->one();
-        if ($statusActivo) {
-            $model->id_status = $statusActivo->id_status;
+        $activeId = $this->getActiveStatusId();
+        if ($activeId) {
+            $model->id_status = $activeId;
         }
 
         if (Yii::$app->request->isPost) {
@@ -735,7 +762,6 @@ class ContactsController extends Controller
             $post['Contacts']['id_type_contact'] = $typeResult['id_type_contact'];
 
             if ($model->load($post)) {
-                // 🔥 FORZAR id_company según rol
                 $model->id_company = $this->getEffectiveCompanyId($user, $empresaId);
 
                 try {
@@ -808,7 +834,6 @@ class ContactsController extends Controller
 
                 if ($model->load($post)) {
                     try {
-                        // 🔥 FORZAR id_company según rol
                         if ($user->isSuperAdmin()) {
                             if (!empty($empresaId)) {
                                 $model->id_company = (int) $empresaId;
@@ -867,7 +892,7 @@ class ContactsController extends Controller
     }
 
     // ============================================
-    // MOVER A PAPELERA
+    // MOVER A PAPELERA (estado "Eliminado")
     // ============================================
     public function actionDelete($id)
     {
@@ -887,13 +912,13 @@ class ContactsController extends Controller
                 return $this->redirect(['index']);
             }
 
-            $statusInactivo = Status::find()->where(['status' => 'Inactivo'])->one();
-            if (!$statusInactivo) {
-                Yii::$app->session->setFlash('error', 'No se encontró el estado "Inactivo".');
+            $trashId = $this->getTrashStatusId();
+            if (!$trashId) {
+                Yii::$app->session->setFlash('error', 'No se encontró el estado "Eliminado".');
                 return $this->redirect(['index']);
             }
 
-            $model->id_status = $statusInactivo->id_status;
+            $model->id_status = $trashId;
 
             if ($model->save(false)) {
                 Yii::$app->session->setFlash('success', 'Contacto movido a la papelera.');

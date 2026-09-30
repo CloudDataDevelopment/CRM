@@ -8,18 +8,12 @@ use yii\widgets\LinkPager;
 $this->title = 'Seguimientos';
 $this->params['breadcrumbs'][] = $this->title;
 
-// ============================================
-// REGISTRAR CSS
-// ============================================
 $this->registerCssFile('@web/css/sales-tracking.css', ['depends' => [\yii\bootstrap5\BootstrapAsset::class]]);
 $this->registerCssFile('@web/css/sales-tracking-panel.css', ['depends' => [\yii\bootstrap5\BootstrapAsset::class], 'position' => \yii\web\View::POS_HEAD]);
 $this->registerCssFile('@web/css/sales-tracking-edit-modal.css', ['depends' => [\yii\bootstrap5\BootstrapAsset::class], 'position' => \yii\web\View::POS_HEAD]);
 
 $this->registerJsFile('https://code.jquery.com/jquery-3.6.0.min.js', ['position' => \yii\web\View::POS_HEAD]);
 
-// ============================================
-// VARIABLES
-// ============================================
 $trackings = isset($trackings) ? $trackings : [];
 $dataProvider = isset($dataProvider) ? $dataProvider : null;
 $totalTrackings = isset($totalTrackings) ? $totalTrackings : 0;
@@ -46,7 +40,6 @@ $metricas = [
 ];
 ?>
 
-<!-- 🔥 CONTENEDOR PRINCIPAL CON SOMBRA -->
 <div class="sales-tracking-index">
     <div class="sales-tracking-wrapper">
 
@@ -115,15 +108,23 @@ $metricas = [
                             <select class="form-select" name="status" id="status-select">
                                 <option value="">Todos los estados</option>
                                 <?php foreach ($statusList as $id => $nombre): ?>
-                                    <option value="<?= $nombre ?>" <?= $status == $nombre ? 'selected' : '' ?>><?= ucfirst($nombre) ?></option>
+                                    <option value="<?= $nombre ?>" <?= $status == $nombre ? 'selected' : '' ?>>
+                                        <?= ucfirst($nombre) ?>
+                                    </option>
                                 <?php endforeach; ?>
                             </select>
                         </div>
                         <div class="col-md-2">
-                            <input type="date" class="form-control" name="fecha_inicio" value="<?= Html::encode($fecha_inicio) ?>" id="fecha-inicio">
+                            <label class="form-label small text-muted mb-1" for="fecha-inicio">
+                                <i class="fas fa-calendar-alt"></i> Desde
+                            </label>
+                            <input type="date" class="form-control" name="fecha_inicio" value="<?= Html::encode($fecha_inicio) ?>" id="fecha-inicio" title="Desde (dd/mm/aaaa)">
                         </div>
                         <div class="col-md-2">
-                            <input type="date" class="form-control" name="fecha_fin" value="<?= Html::encode($fecha_fin) ?>" id="fecha-fin">
+                            <label class="form-label small text-muted mb-1" for="fecha-fin">
+                                <i class="fas fa-calendar-alt"></i> Hasta
+                            </label>
+                            <input type="date" class="form-control" name="fecha_fin" value="<?= Html::encode($fecha_fin) ?>" id="fecha-fin" title="Hasta (dd/mm/aaaa)">
                         </div>
                         <div class="col-md-1">
                             <button type="submit" class="btn btn-primary w-100" id="btn-filtrar"><i class="fas fa-search"></i></button>
@@ -136,7 +137,7 @@ $metricas = [
             </div>
         </div>
 
-        <!-- CONTENEDOR PRINCIPAL -->
+        <!-- CONTENEDOR PRINCIPAL: TABLA + PANEL -->
         <div class="tracking-panel-container">
             <div class="tracking-table-wrapper" id="tableWrapper">
                 <div class="card tracking-table-card">
@@ -341,8 +342,8 @@ $metricas = [
             </div>
         </div>
 
-    </div><!-- /.sales-tracking-wrapper -->
-</div><!-- /.sales-tracking-index -->
+    </div>
+</div>
 
 <?php
 $viewModalUrl = Url::to(['sales-tracking/view-modal']);
@@ -350,27 +351,9 @@ $updateModalUrl = Url::to(['sales-tracking/update-modal']);
 ?>
 
 <script>
-window.onTrackingUpdated = function(t) {
-    var row = document.querySelector('.tracking-row[data-id="' + t.id + '"]');
-    if (!row) return;
-
-    var cells = row.querySelectorAll('td');
-    if (cells[2] && t.status_name) {
-        var badge = cells[2].querySelector('.badge');
-        if (badge) {
-            badge.textContent = t.status_name;
-            if (t.status_badge) badge.className = 'badge bg-' + t.status_badge;
-        }
-    }
-    if (cells[4] && t.comments !== undefined) {
-        cells[4].textContent = t.comments.substring(0, 50);
-    }
-
-    row.style.transition = 'background-color 0.5s';
-    row.style.backgroundColor = '#d4edda';
-    setTimeout(function() { row.style.backgroundColor = ''; }, 1000);
-};
-
+// ============================================
+// 🔧 EJECUTAR SCRIPTS EMBEBIDOS DEL MODAL
+// ============================================
 function executeScripts(container) {
     if (!container) return 0;
     var scripts = container.querySelectorAll('script');
@@ -384,13 +367,14 @@ function executeScripts(container) {
     return scripts.length;
 }
 
+// ============================================
+// 🔧 INICIALIZACIÓN
+// ============================================
 (function() {
     if (typeof jQuery === 'undefined') {
         var script = document.createElement('script');
         script.src = 'https://code.jquery.com/jquery-3.6.0.min.js';
-        script.onload = function() {
-            inicializar();
-        };
+        script.onload = function() { inicializar(); };
         document.head.appendChild(script);
     } else {
         inicializar();
@@ -399,7 +383,6 @@ function executeScripts(container) {
 
 function inicializar() {
     var $ = jQuery;
-
     var viewModalUrl = '<?= $viewModalUrl ?>';
     var updateModalUrl = '<?= $updateModalUrl ?>';
     var isOpen = false;
@@ -409,7 +392,7 @@ function inicializar() {
         var panel = document.getElementById('panelWrapper');
         var tableWrapper = document.getElementById('tableWrapper');
 
-        if (!panel || !tableWrapper) {
+        if (!panel) {
             if (callback) callback();
             return;
         }
@@ -422,15 +405,13 @@ function inicializar() {
 
         panel.classList.remove('visible');
         panel.classList.add('closing');
-        tableWrapper.classList.remove('with-panel');
+        if (tableWrapper) tableWrapper.classList.remove('with-panel');
 
         setTimeout(function() {
             panel.style.display = 'none';
             panel.classList.remove('closing');
             var contenido = document.getElementById('slidePanelContent');
-            if (contenido) {
-                contenido.innerHTML = '';
-            }
+            if (contenido) contenido.innerHTML = '';
             currentId = null;
             if (callback) callback();
         }, 300);
@@ -444,9 +425,7 @@ function inicializar() {
 
         if (isOpen) {
             closePanel(function() {
-                setTimeout(function() {
-                    openPanel(id);
-                }, 300);
+                setTimeout(function() { openPanel(id); }, 300);
             });
             return;
         }
@@ -459,9 +438,7 @@ function inicializar() {
         var tableWrapper = document.getElementById('tableWrapper');
         var filaSeleccionada = document.querySelector('.tracking-row[data-id="' + id + '"]');
 
-        if (!panel || !tableWrapper || !panelContent) {
-            return;
-        }
+        if (!panel || !panelContent) return;
 
         document.querySelectorAll('.tracking-row').forEach(function(row) {
             row.classList.remove('tracking-row-selected');
@@ -470,7 +447,7 @@ function inicializar() {
             filaSeleccionada.classList.add('tracking-row-selected');
         }
 
-        tableWrapper.classList.add('with-panel');
+        if (tableWrapper) tableWrapper.classList.add('with-panel');
         panel.style.display = 'block';
         panel.classList.add('visible');
 
@@ -486,16 +463,14 @@ function inicializar() {
                 executeScripts(panelContent);
             })
             .catch(function(error) {
-                panelContent.innerHTML = '<div class="text-center text-danger py-4"><i class="fas fa-exclamation-triangle fa-2x d-block mb-2"></i><p>Error al cargar</p><button class="btn btn-secondary btn-sm mt-2" onclick="closePanel()">Cerrar</button></div>';
+                panelContent.innerHTML = '<div class="text-center text-danger py-4"><i class="fas fa-exclamation-triangle fa-2x d-block mb-2"></i><p>Error al cargar</p><button class="btn btn-secondary btn-sm mt-2" data-panel-close>Cerrar</button></div>';
             });
     }
 
     function openEditPanel(id) {
         if (isOpen) {
             closePanel(function() {
-                setTimeout(function() {
-                    openEditPanel(id);
-                }, 300);
+                setTimeout(function() { openEditPanel(id); }, 300);
             });
             return;
         }
@@ -508,9 +483,7 @@ function inicializar() {
         var tableWrapper = document.getElementById('tableWrapper');
         var filaSeleccionada = document.querySelector('.tracking-row[data-id="' + id + '"]');
 
-        if (!panel || !tableWrapper || !panelContent) {
-            return;
-        }
+        if (!panel || !panelContent) return;
 
         document.querySelectorAll('.tracking-row').forEach(function(row) {
             row.classList.remove('tracking-row-selected');
@@ -519,7 +492,7 @@ function inicializar() {
             filaSeleccionada.classList.add('tracking-row-selected');
         }
 
-        tableWrapper.classList.add('with-panel');
+        if (tableWrapper) tableWrapper.classList.add('with-panel');
         panel.style.display = 'block';
         panel.classList.add('visible');
 
@@ -535,13 +508,18 @@ function inicializar() {
                 executeScripts(panelContent);
             })
             .catch(function(error) {
-                panelContent.innerHTML = '<div class="text-center text-danger py-4"><i class="fas fa-exclamation-triangle fa-2x d-block mb-2"></i><p>Error al cargar</p><button class="btn btn-secondary btn-sm mt-2" onclick="closePanel()">Cerrar</button></div>';
+                panelContent.innerHTML = '<div class="text-center text-danger py-4"><i class="fas fa-exclamation-triangle fa-2x d-block mb-2"></i><p>Error al cargar</p><button class="btn btn-secondary btn-sm mt-2" data-panel-close>Cerrar</button></div>';
             });
     }
 
-    window.openPanel = openPanel;
-    window.openEditPanel = openEditPanel;
-    window.closePanel = closePanel;
+    document.addEventListener('click', function(e) {
+        var btn = e.target.closest('[data-panel-close]');
+        if (btn) {
+            e.preventDefault();
+            e.stopPropagation();
+            closePanel();
+        }
+    }, true);
 
     $(document).on('click', '.view-tracking-btn', function(e) {
         e.stopPropagation();
@@ -566,6 +544,10 @@ function inicializar() {
             closePanel();
         }
     });
+
+    window.openPanel = openPanel;
+    window.openEditPanel = openEditPanel;
+    window.closePanel = closePanel;
 
     var searchInput = document.getElementById('search-input');
     if (searchInput) {
@@ -603,4 +585,25 @@ function inicializar() {
         });
     }
 }
+
+window.onTrackingUpdated = function(t) {
+    var row = document.querySelector('.tracking-row[data-id="' + t.id + '"]');
+    if (!row) return;
+
+    var cells = row.querySelectorAll('td');
+    if (cells[2] && t.status_name) {
+        var badge = cells[2].querySelector('.badge');
+        if (badge) {
+            badge.textContent = t.status_name;
+            if (t.status_badge) badge.className = 'badge bg-' + t.status_badge;
+        }
+    }
+    if (cells[4] && t.comments !== undefined) {
+        cells[4].textContent = t.comments.substring(0, 50);
+    }
+
+    row.style.transition = 'background-color 0.5s';
+    row.style.backgroundColor = '#d4edda';
+    setTimeout(function() { row.style.backgroundColor = ''; }, 1000);
+};
 </script>

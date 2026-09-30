@@ -18,7 +18,7 @@ class QuoteController extends Controller
 {
     public $layout = 'main';
 
-    const QUOTE_STATUS_LIST = ['Pendiente', 'Aprobada', 'Rechazada', 'Pagada', 'Cancelado', 'Completado'];
+    const QUOTE_STATUS_LIST = ['Pendiente', 'Aprobada', 'Rechazada', 'Pagada', 'Cancelado', 'Completado', 'Eliminado'];
 
     public function behaviors()
     {
@@ -35,8 +35,27 @@ class QuoteController extends Controller
     }
 
     // ============================================
-    // HELPERS
+    // HELPERS DE ESTADOS
     // ============================================
+
+    /**
+     * 🔥 Obtiene el ID del estado "Eliminado" (papelera de cotizaciones).
+     */
+    private function getEliminadoStatusId()
+    {
+        $status = Status::find()->where(['status' => 'Eliminado'])->one();
+        if ($status) return $status->id_status;
+
+        foreach (['eliminado', 'Eliminada', 'eliminada'] as $name) {
+            $status = Status::find()->where(['status' => $name])->one();
+            if ($status) return $status->id_status;
+        }
+        return null;
+    }
+
+    /**
+     * 🔥 Obtiene el ID del estado "Cancelado".
+     */
     private function getCancelledStatusId()
     {
         $status = Status::find()->where(['status' => 'Cancelado'])->one();
@@ -49,6 +68,9 @@ class QuoteController extends Controller
         return null;
     }
 
+    /**
+     * 🔥 Obtiene el ID del estado "Pendiente".
+     */
     private function getPendingStatusId()
     {
         $status = Status::find()->where(['status' => 'Pendiente'])->one();
@@ -78,15 +100,16 @@ class QuoteController extends Controller
                 return $this->redirect(['empresa/index']);
             }
 
-            $idCancelado = $this->getCancelledStatusId();
+            // 🔥 EXCLUIR SOLO LA PAPELERA ("Eliminado")
+            $idEliminado = $this->getEliminadoStatusId();
 
             $query = Quote::find()
                 ->alias('q')
                 ->leftJoin('Lead l', 'q.id_lead = l.id_lead')
                 ->with(['lead', 'status']);
 
-            if ($idCancelado) {
-                $query->andWhere(['<>', 'q.id_status', $idCancelado]);
+            if ($idEliminado) {
+                $query->andWhere(['<>', 'q.id_status', $idEliminado]);
             }
 
             if ($user->isSuperAdmin()) {
@@ -142,9 +165,11 @@ class QuoteController extends Controller
 
             $statusPendiente = Status::find()->where(['status' => 'Pendiente'])->one();
             $statusCompletado = Status::find()->where(['status' => 'Completado'])->one();
+            $statusCancelado = Status::find()->where(['status' => 'Cancelado'])->one();
             
             $idPendiente = $statusPendiente ? $statusPendiente->id_status : null;
             $idCompletado = $statusCompletado ? $statusCompletado->id_status : null;
+            $idCancelado = $statusCancelado ? $statusCancelado->id_status : null;
 
             $totalPendientesGlobal = 0;
             $totalCompletadosGlobal = 0;
@@ -163,33 +188,34 @@ class QuoteController extends Controller
                 } elseif ($idCompletado && $q->id_status == $idCompletado) {
                     $totalCompletadosGlobal++;
                     $montoCompletados += $q->total_amount ?? 0;
+                } elseif ($idCancelado && $q->id_status == $idCancelado) {
+                    $totalCanceladosGlobal++;
+                    $montoCancelados += $q->total_amount ?? 0;
                 }
             }
 
-            if ($idCancelado) {
-                $canceladasQuery = Quote::find()
+            // 🔥 CONTAR PAPELERA
+            $trashCount = 0;
+            if ($idEliminado) {
+                $trashQuery = Quote::find()
                     ->alias('q')
                     ->leftJoin('Lead l', 'q.id_lead = l.id_lead')
-                    ->where(['q.id_status' => $idCancelado]);
+                    ->where(['q.id_status' => $idEliminado]);
 
                 if ($user->isSuperAdmin()) {
-                    if (!empty($empresaId)) $canceladasQuery->andWhere(['l.id_company' => $empresaId]);
+                    if (!empty($empresaId)) $trashQuery->andWhere(['l.id_company' => $empresaId]);
                 } elseif ($user->isAdmin() && !$user->isSuperAdmin()) {
-                    $canceladasQuery->andWhere(['l.id_company' => $user->id_company]);
+                    $trashQuery->andWhere(['l.id_company' => $user->id_company]);
                 } elseif ($user->isAgent()) {
-                    $canceladasQuery->andWhere(['l.id_user' => $user->id_user]);
+                    $trashQuery->andWhere(['l.id_user' => $user->id_user]);
                 }
 
-                $canceladas = $canceladasQuery->all();
-                $totalCanceladosGlobal = count($canceladas);
-                foreach ($canceladas as $c) {
-                    $montoCancelados += $c->total_amount ?? 0;
-                }
+                $trashCount = $trashQuery->count();
             }
 
             $statusOptions = Status::find()
                 ->select(['status', 'id_status'])
-                ->where(['IN', 'status', self::QUOTE_STATUS_LIST])
+                ->where(['IN', 'status', ['Pendiente', 'Aprobada', 'Rechazada', 'Pagada', 'Cancelado', 'Completado']])
                 ->indexBy('id_status')
                 ->column();
 
@@ -214,6 +240,7 @@ class QuoteController extends Controller
                 'montoCancelados' => $montoCancelados,
                 'totalMonto' => $totalMonto,
                 'statusCounts' => $statusCounts,
+                'trashCount' => $trashCount,
                 'isAdmin' => $user->isAdmin(),
                 'isAgent' => $user->isAgent(),
                 'isSuperAdmin' => $user->isSuperAdmin(),
@@ -239,6 +266,7 @@ class QuoteController extends Controller
                 'montoCancelados' => 0,
                 'totalMonto' => 0,
                 'statusCounts' => [],
+                'trashCount' => 0,
                 'isAdmin' => false,
                 'isAgent' => false,
                 'isSuperAdmin' => false,
@@ -252,7 +280,7 @@ class QuoteController extends Controller
     }
 
     // ============================================
-    // PAPELERA
+    // PAPELERA (solo "Eliminado")
     // ============================================
     public function actionTrash()
     {
@@ -267,18 +295,18 @@ class QuoteController extends Controller
             }
 
             $empresaId = Yii::$app->session->get('empresa_id');
-            $idCancelado = $this->getCancelledStatusId();
+            $idEliminado = $this->getEliminadoStatusId();
+
+            if (!$idEliminado) {
+                Yii::$app->session->setFlash('warning', 'No se encontró el estado "Eliminado".');
+                return $this->redirect(['index']);
+            }
 
             $query = Quote::find()
                 ->alias('q')
                 ->leftJoin('Lead l', 'q.id_lead = l.id_lead')
-                ->with(['lead', 'status']);
-
-            if ($idCancelado) {
-                $query->andWhere(['q.id_status' => $idCancelado]);
-            } else {
-                $query->andWhere(['0' => '1']);
-            }
+                ->with(['lead', 'status'])
+                ->andWhere(['q.id_status' => $idEliminado]);
 
             if ($user->isSuperAdmin()) {
                 if (!empty($empresaId)) $query->andWhere(['l.id_company' => $empresaId]);
@@ -334,7 +362,7 @@ class QuoteController extends Controller
     }
 
     // ============================================
-    // RESTAURAR
+    // RESTAURAR (vuelve a "Pendiente")
     // ============================================
     public function actionRestore($id)
     {
@@ -388,7 +416,7 @@ class QuoteController extends Controller
     }
 
     // ============================================
-    // MOVER A PAPELERA
+    // MOVER A PAPELERA (a "Eliminado")
     // ============================================
     public function actionDelete($id)
     {
@@ -418,16 +446,21 @@ class QuoteController extends Controller
                 return $this->redirect(['index']);
             }
 
-            $idCancelado = $this->getCancelledStatusId();
+            // 🔥 AHORA VA A "Eliminado", NO A "Cancelado"
+            $idEliminado = $this->getEliminadoStatusId();
             
-            if (!$idCancelado) {
-                Yii::$app->session->setFlash('error', 'No se encontró el estado "Cancelado" en la base de datos.');
+            if (!$idEliminado) {
+                Yii::$app->session->setFlash('error', 'No se encontró el estado "Eliminado" en la base de datos.');
                 return $this->redirect(['index']);
             }
 
-            $model->id_status = $idCancelado;
+            // 🔥 Usar updateAll para evitar beforeSave del modelo
+            $affected = Quote::updateAll(
+                ['id_status' => $idEliminado],
+                ['id_quote' => $id]
+            );
 
-            if ($model->save(false)) {
+            if ($affected > 0) {
                 Yii::$app->session->setFlash('success', 'Cotización movida a la papelera.');
             } else {
                 Yii::$app->session->setFlash('error', 'Error al mover la cotización a la papelera.');
@@ -702,7 +735,6 @@ class QuoteController extends Controller
                 return $this->redirect(['empresa/index']);
             }
 
-            // 🔥 Solo inicializar campos que existen en la tabla
             $model->date_quote = date('Y-m-d');
             $model->hour_quote = date('H:i');
             $model->total_amount = 0;

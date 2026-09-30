@@ -19,6 +19,12 @@ class SalesTrackingController extends Controller
 {
     public $layout = 'main';
 
+    // 🔥 Estado de papelera
+    const TRASH_STATUS = 'Eliminado';
+
+    // 🔥 Estado al restaurar
+    const RESTORE_STATUS = 'Pendiente';
+
     public function behaviors()
     {
         return [
@@ -75,11 +81,20 @@ class SalesTrackingController extends Controller
     }
 
     // ============================================
-    // HELPER: Obtener ID del estado "Inactivo"
+    // HELPER: ID del estado "Eliminado" (papelera)
     // ============================================
     private function getTrashStatusId()
     {
-        $status = Status::find()->where(['status' => 'Inactivo'])->one();
+        $status = Status::find()->where(['status' => self::TRASH_STATUS])->one();
+        return $status ? $status->id_status : null;
+    }
+
+    // ============================================
+    // HELPER: ID del estado "Pendiente"
+    // ============================================
+    private function getPendingStatusId()
+    {
+        $status = Status::find()->where(['status' => self::RESTORE_STATUS])->one();
         return $status ? $status->id_status : null;
     }
 
@@ -106,7 +121,7 @@ class SalesTrackingController extends Controller
             ->leftJoin('Lead l', 'st.id_lead = l.id_lead')
             ->leftJoin('Status s', 'st.id_status = s.id_status');
 
-        // 🔥 EXCLUIR PAPELERA (estado "Inactivo")
+        // 🔥 EXCLUIR SOLO LA PAPELERA ("Eliminado")
         $trashId = $this->getTrashStatusId();
         if ($trashId) {
             $query->andWhere(['<>', 'st.id_status', $trashId]);
@@ -291,7 +306,7 @@ class SalesTrackingController extends Controller
     }
 
     // ============================================
-    // 🔥 PAPELERA DE SEGUIMIENTOS
+    // 🔥 PAPELERA (solo "Eliminado")
     // ============================================
     public function actionTrash()
     {
@@ -307,7 +322,7 @@ class SalesTrackingController extends Controller
 
         $trashId = $this->getTrashStatusId();
         if (!$trashId) {
-            Yii::$app->session->setFlash('warning', 'No se encontró el estado "Inactivo".');
+            Yii::$app->session->setFlash('warning', 'No se encontró el estado "Eliminado".');
             return $this->redirect(['index']);
         }
 
@@ -317,7 +332,7 @@ class SalesTrackingController extends Controller
         $isSuperAdmin = $userInfo['isSuperAdmin'];
         $empresaSeleccionada = $userInfo['empresaSeleccionada'];
 
-        // 🔥 QUERY BASE - Solo Inactivos
+        // 🔥 QUERY BASE - Solo "Eliminado"
         $query = SalesTracking::find()
             ->alias('st')
             ->leftJoin('Lead l', 'st.id_lead = l.id_lead')
@@ -351,7 +366,6 @@ class SalesTrackingController extends Controller
             }
         }
 
-        // Filtros
         $search = Yii::$app->request->get('search', '');
         if (!empty($search)) {
             $query->andWhere([
@@ -363,7 +377,6 @@ class SalesTrackingController extends Controller
             ]);
         }
 
-        // DATAPROVIDER
         $dataProvider = new ActiveDataProvider([
             'query' => $query,
             'pagination' => [
@@ -393,7 +406,7 @@ class SalesTrackingController extends Controller
     }
 
     // ============================================
-    // 🔥 VER DETALLES DEL SEGUIMIENTO
+    // VER DETALLES DEL SEGUIMIENTO
     // ============================================
     public function actionDetails($id)
     {
@@ -487,7 +500,6 @@ class SalesTrackingController extends Controller
         $statusOptions = SalesTracking::getStatusOptions();
 
         if (Yii::$app->request->isPost && $model->load(Yii::$app->request->post())) {
-            // 🔥 Forzar id_user si es agente
             if ($userInfo['isAgent']) {
                 $model->id_user = $userInfo['userId'];
             }
@@ -595,7 +607,6 @@ class SalesTrackingController extends Controller
 
         if ($model->load(Yii::$app->request->post())) {
             
-            // 🔥 FORZAR USUARIO ACTUAL
             if (empty($model->id_user)) {
                 $model->id_user = $userInfo['userId'];
             }
@@ -702,7 +713,7 @@ class SalesTrackingController extends Controller
     }
 
     // ============================================
-    // 🔥 MOVER A PAPELERA (Cambio a Inactivo)
+    // 🔥 MOVER A PAPELERA (estado "Eliminado")
     // ============================================
     public function actionDelete($id)
     {
@@ -722,14 +733,14 @@ class SalesTrackingController extends Controller
             throw new NotFoundHttpException('El seguimiento solicitado no existe.');
         }
 
-        if (!$this->checkPermission($model, $userInfo)) {
+        if (!$this->checkPermission($model, $userInfo) && !$userInfo['isAdmin']) {
             Yii::$app->session->setFlash('error', 'No tienes permiso para eliminar este seguimiento.');
             return $this->redirect(['index']);
         }
 
         $trashId = $this->getTrashStatusId();
         if (!$trashId) {
-            Yii::$app->session->setFlash('error', 'No se encontró el estado "Inactivo" en la base de datos.');
+            Yii::$app->session->setFlash('error', 'No se encontró el estado "Eliminado" en la base de datos.');
             return $this->redirect(['index']);
         }
 
@@ -745,7 +756,7 @@ class SalesTrackingController extends Controller
     }
 
     // ============================================
-    // 🔥 RESTAURAR SEGUIMIENTO
+    // 🔥 RESTAURAR SEGUIMIENTO (a "Pendiente")
     // ============================================
     public function actionRestore($id)
     {
@@ -765,18 +776,18 @@ class SalesTrackingController extends Controller
             throw new NotFoundHttpException('El seguimiento solicitado no existe.');
         }
 
-        if (!$this->checkPermission($model, $userInfo)) {
+        if (!$this->checkPermission($model, $userInfo) && !$userInfo['isAdmin']) {
             Yii::$app->session->setFlash('error', 'No tienes permiso para restaurar este seguimiento.');
             return $this->redirect(['trash']);
         }
 
-        $statusDefault = Status::find()->where(['status' => 'Pendiente'])->one();
+        $statusDefault = $this->getPendingStatusId();
         if (!$statusDefault) {
             Yii::$app->session->setFlash('error', 'No se encontró el estado "Pendiente".');
             return $this->redirect(['trash']);
         }
 
-        $model->id_status = $statusDefault->id_status;
+        $model->id_status = $statusDefault;
 
         if ($model->save(false)) {
             Yii::$app->session->setFlash('success', 'Seguimiento restaurado exitosamente.');
@@ -805,14 +816,14 @@ class SalesTrackingController extends Controller
             if ($tracking->lead) {
                 return $tracking->lead->id_company == $userInfo['companyId'];
             }
-            return false;
+            return $tracking->id_user == $userInfo['userId'];
         }
 
         if ($userInfo['isAgent']) {
             if ($tracking->lead) {
                 return $tracking->lead->id_user == $userInfo['userId'];
             }
-            return false;
+            return $tracking->id_user == $userInfo['userId'];
         }
 
         return false;

@@ -969,3 +969,79 @@
 .dashboard-card:nth-child(2) { animation-delay: 0.10s; }
 .dashboard-card:nth-child(3) { animation-delay: 0.15s; }
 .dashboard-card:nth-child(4) { animation-delay: 0.20s; }
+/* ============================================ */
+/* 🔎 FILTROS (igual que sales-tracking)       */
+/* ============================================ */
+
+.marketing-filtros-card {
+    border: 2px solid #000 !important;
+    border-radius: 10px;
+    overflow: hidden;
+    background: #ffffff;
+}
+
+.marketing-filtros-card .card-body {
+    padding: 12px 15px;
+}
+
+.marketing-filtros-card .form-control,
+.marketing-filtros-card .form-select {
+    border-radius: 6px;
+    font-size: 0.85rem;
+    padding: 6px 12px;
+}
+
+.marketing-filtros-card .form-control:focus,
+.marketing-filtros-card .form-select:focus {
+    border-color: #0B3192;
+    box-shadow: 0 0 0 3px rgba(11, 49, 146, 0.1);
+}
+
+.marketing-filtros-card .btn-primary {
+    background: #0a48e2 !important;
+    border-color: #0a48e2 !important;
+    color: #ffffff !important;
+}
+
+.marketing-filtros-card .btn-primary:hover {
+    background: #245eff !important;
+    border-color: #245eff !important;
+}
+
+.marketing-filtros-card .btn-secondary {
+    background: #6c757d !important;
+    border-color: #6c757d !important;
+    color: #ffffff !important;
+}
+
+.marketing-filtros-card .btn-secondary:hover {
+    background: #5a6268 !important;
+    border-color: #5a6268 !important;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+    .marketing-filtros-card .card-body {
+        padding: 10px 12px;
+    }
+    .marketing-filtros-card .form-control,
+    .marketing-filtros-card .form-select {
+        font-size: 0.8rem;
+        padding: 5px 10px;
+    }
+}
+
+@media (max-width: 576px) {
+    .marketing-filtros-card .card-body {
+        padding: 8px 10px;
+    }
+    .marketing-filtros-card .form-control,
+    .marketing-filtros-card .form-select {
+        font-size: 0.75rem;
+        padding: 4px 8px;
+    }
+    .marketing-filtros-card .btn {
+        font-size: 0.75rem;
+        padding: 5px 10px;
+    }
+}

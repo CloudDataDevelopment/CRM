@@ -32,6 +32,10 @@ $this->registerCssFile('@web/css/marketing.css', [
                 <?= Html::a('<i class="fas fa-arrow-left"></i> Volver', ['index'], [
                     'class' => 'btn btn-secondary btn-sm btn-header-action'
                 ]) ?>
+                <?= Html::submitButton('<i class="fas fa-save"></i> Guardar', [
+                    'class' => 'btn btn-primary btn-sm btn-header-action',
+                    'form' => 'marketing-create-form',
+                ]) ?>
             </div>
         </div>
 
@@ -42,7 +46,9 @@ $this->registerCssFile('@web/css/marketing.css', [
                     <h4><i class="fas fa-plus-circle me-2"></i> <?= Html::encode($this->title) ?></h4>
                 </div>
                 <div class="card-body">
-                    <?php $form = ActiveForm::begin(); ?>
+                    <?php $form = ActiveForm::begin([
+                        'options' => ['id' => 'marketing-create-form'],
+                    ]); ?>
 
                     <div class="row">
                         <div class="col-md-6">
@@ -91,11 +97,6 @@ $this->registerCssFile('@web/css/marketing.css', [
                     </div>
 
                     <?= Html::activeHiddenInput($model, 'id_company') ?>
-
-                    <div class="form-group mt-3">
-                        <?= Html::submitButton('<i class="fas fa-save"></i> Guardar', ['class' => 'btn btn-primary']) ?>
-                        <?= Html::a('<i class="fas fa-arrow-left"></i> Cancelar', ['index'], ['class' => 'btn btn-secondary']) ?>
-                    </div>
 
                     <?php ActiveForm::end(); ?>
                 </div>

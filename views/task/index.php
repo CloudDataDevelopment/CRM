@@ -187,10 +187,16 @@ $ultimasTareas = array_slice($tasks, 0, 5);
                             </select>
                         </div>
                         <div class="col-md-2">
+                            <label class="form-label small text-muted mb-1" for="fecha-inicio">
+                                <i class="fas fa-calendar-alt"></i> Desde
+                            </label>
                             <input type="date" class="form-control" name="fecha_inicio"
                                    value="<?= Html::encode($fecha_inicio) ?>" id="fecha-inicio">
                         </div>
                         <div class="col-md-2">
+                            <label class="form-label small text-muted mb-1" for="fecha-fin">
+                                <i class="fas fa-calendar-alt"></i> Hasta
+                            </label>
                             <input type="date" class="form-control" name="fecha_fin"
                                    value="<?= Html::encode($fecha_fin) ?>" id="fecha-fin">
                         </div>

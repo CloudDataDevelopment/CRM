@@ -181,21 +181,6 @@ $isAdmin = $user->isAdmin() || $user->isSuperAdmin();
                 </div>
             </div>
 
-            <!-- BOTONES INFERIORES -->
-            <div class="form-group mt-3 d-flex gap-2 flex-wrap">
-                <?= Html::a('<i class="fas fa-arrow-left"></i> Volver', ['index'], ['class' => 'btn btn-secondary']) ?>
-                <?php if ($isAdmin): ?>
-                    <?= Html::a('<i class="fas fa-edit"></i> Editar', ['update', 'id' => $model->id], ['class' => 'btn btn-warning']) ?>
-                    <?= Html::a('<i class="fas fa-trash"></i> Eliminar', ['delete', 'id' => $model->id], [
-                        'class' => 'btn btn-danger',
-                        'data' => [
-                            'confirm' => '¿Estás seguro de eliminar este elemento?',
-                            'method' => 'post',
-                        ],
-                    ]) ?>
-                <?php endif; ?>
-            </div>
-
         </div>
 
     </div>

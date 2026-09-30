@@ -8,8 +8,11 @@ $this->title = 'Papelera de Seguimientos';
 $this->params['breadcrumbs'][] = ['label' => 'Seguimientos', 'url' => ['index']];
 $this->params['breadcrumbs'][] = $this->title;
 
-// 🔥 Solo sales-tracking.css (ya incluye los estilos de papelera)
 $this->registerCssFile('@web/css/sales-tracking.css', ['depends' => [\yii\bootstrap5\BootstrapAsset::class]]);
+$this->registerCssFile('@web/css/sales-tracking-panel.css', ['depends' => [\yii\bootstrap5\BootstrapAsset::class], 'position' => \yii\web\View::POS_HEAD]);
+$this->registerCssFile('@web/css/sales-tracking-edit-modal.css', ['depends' => [\yii\bootstrap5\BootstrapAsset::class], 'position' => \yii\web\View::POS_HEAD]);
+
+$this->registerJsFile('https://code.jquery.com/jquery-3.6.0.min.js', ['position' => \yii\web\View::POS_HEAD]);
 
 $dataProvider = isset($dataProvider) ? $dataProvider : null;
 $trackings = isset($trackings) ? $trackings : [];
@@ -20,7 +23,6 @@ $isSuperAdmin = isset($isSuperAdmin) ? $isSuperAdmin : false;
 $search = isset($search) ? $search : '';
 ?>
 
-<!-- 🔥 CONTENEDOR PRINCIPAL CON SOMBRA -->
 <div class="sales-tracking-trash">
     <div class="sales-tracking-wrapper">
 
@@ -51,8 +53,8 @@ $search = isset($search) ? $search : '';
         <div class="alert alert-warning d-flex align-items-center mb-3" role="alert">
             <i class="fas fa-info-circle me-2" style="font-size: 1.2rem;"></i>
             <div>
-                <strong>Papelera:</strong> Aquí se encuentran los seguimientos marcados como <strong>eliminados</strong>.
-                Puedes restaurarlos para que vuelvan al listado activo.
+                <strong>Papelera:</strong> Aquí se encuentran los seguimientos con estado <strong>"Eliminado"</strong>.
+                Puedes restaurarlos para que vuelvan al listado activo con estado "Pendiente".
             </div>
         </div>
 
@@ -106,188 +108,325 @@ $search = isset($search) ? $search : '';
             </div>
         </div>
 
-        <!-- TABLA -->
-        <div class="card tracking-table-card">
-            <div class="card-header">
-                <div class="header-left">
-                    <i class="fas fa-trash text-danger"></i>
-                    <span>Seguimientos en Papelera</span>
-                    <span class="badge bg-danger ms-2"><?= $dataProvider ? $dataProvider->getTotalCount() : 0 ?></span>
-                </div>
-                <div class="header-right">
-                    <span class="badge bg-secondary">
-                        Página <?= $dataProvider ? $dataProvider->getPagination()->getPage() + 1 : 1 ?>
-                        de <?= $dataProvider ? $dataProvider->getPagination()->getPageCount() : 1 ?>
-                    </span>
-                </div>
-            </div>
-            <div class="card-body p-0">
-                <div class="table-responsive">
-                    <table class="table table-hover mb-0">
-                        <thead class="table-light">
-                            <tr>
-                                <th width="50">#</th>
-                                <th>Lead</th>
-                                <th>Comentarios</th>
-                                <th>Fecha Seguimiento</th>
-                                <th>Próximo</th>
-                                <th>Usuario</th>
-                                <?php if ($isSuperAdmin): ?><th>Empresa</th><?php endif; ?>
-                                <th>Estado</th>
-                                <th class="text-center" width="180">Acciones</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            <?php if (!empty($trackings)): ?>
-                                <?php foreach ($trackings as $index => $tracking): ?>
-                                    <tr class="tracking-row" data-id="<?= $tracking->id_sales_tracking ?>">
-                                        <td><?= $dataProvider ? $dataProvider->getPagination()->getOffset() + $index + 1 : $index + 1 ?></td>
-                                        <td>
-                                            <?php if ($tracking->lead): ?>
-                                                <span class="lead-badge">
-                                                    <i class="fas fa-user"></i>
-                                                    <?= Html::encode($tracking->lead->name . ' ' . $tracking->lead->lastname) ?>
-                                                </span>
-                                                <?php if ($tracking->lead->phone): ?>
-                                                    <br>
-                                                    <small class="text-muted">
-                                                        <i class="fas fa-phone"></i> <?= Html::encode($tracking->lead->phone) ?>
-                                                    </small>
-                                                <?php endif; ?>
-                                            <?php else: ?>
-                                                <span class="text-muted">Sin lead</span>
-                                            <?php endif; ?>
-                                        </td>
-                                        <td>
-                                            <?php if (!empty($tracking->comments)): ?>
-                                                <?= Html::encode(mb_substr($tracking->comments, 0, 60)) ?>
-                                                <?= mb_strlen($tracking->comments) > 60 ? '...' : '' ?>
-                                            <?php else: ?>
-                                                <span class="text-muted">—</span>
-                                            <?php endif; ?>
-                                        </td>
-                                        <td>
-                                            <?php if ($tracking->date_s): ?>
-                                                <?= date('d/m/Y', strtotime($tracking->date_s)) ?>
-                                                <?php if ($tracking->hour): ?>
-                                                    <br>
-                                                    <small class="text-muted">
-                                                        <i class="far fa-clock"></i> <?= Html::encode($tracking->hour) ?>
-                                                    </small>
-                                                <?php endif; ?>
-                                            <?php else: ?>
-                                                <span class="text-muted">—</span>
-                                            <?php endif; ?>
-                                        </td>
-                                        <td>
-                                            <?php if ($tracking->date_f): ?>
-                                                <?= date('d/m/Y', strtotime($tracking->date_f)) ?>
-                                            <?php else: ?>
-                                                <span class="text-muted">—</span>
-                                            <?php endif; ?>
-                                        </td>
-                                        <td>
-                                            <?php if ($tracking->user): ?>
-                                                <span class="badge bg-info">
-                                                    <i class="fas fa-user"></i>
-                                                    <?= Html::encode($tracking->user->name . ' ' . $tracking->user->lastname1) ?>
-                                                </span>
-                                            <?php else: ?>
-                                                <span class="text-muted">Sin asignar</span>
-                                            <?php endif; ?>
-                                        </td>
-                                        <?php if ($isSuperAdmin): ?>
-                                            <td>
-                                                <?php
-                                                $companyName = '-';
-                                                if ($tracking->lead && $tracking->lead->company) {
-                                                    $companyName = $tracking->lead->company->name;
-                                                }
-                                                echo Html::encode($companyName);
-                                                ?>
-                                            </td>
-                                        <?php endif; ?>
-                                        <td>
-                                            <span class="badge bg-<?= $tracking->getStatusBadgeClass() ?>">
-                                                <?= $tracking->getStatusName() ?>
-                                            </span>
-                                        </td>
-                                        <td class="text-center">
-                                            <div class="d-flex gap-1 justify-content-center">
-                                                <?php if ($isAdmin || $isSuperAdmin): ?>
-                                                    <?= Html::a(
-                                                        '<i class="fas fa-undo"></i> Restaurar',
-                                                        ['restore', 'id' => $tracking->id_sales_tracking],
-                                                        [
-                                                            'class' => 'btn btn-sm btn-success btn-action',
-                                                            'title' => 'Restaurar seguimiento',
-                                                            'data' => [
-                                                                'confirm' => '¿Restaurar este seguimiento?',
-                                                                'method' => 'post',
-                                                            ],
-                                                        ]
-                                                    ) ?>
-                                                <?php endif; ?>
-                                                <?= Html::a(
-                                                    '<i class="fas fa-eye"></i>',
-                                                    ['view', 'id' => $tracking->id_sales_tracking],
-                                                    [
-                                                        'class' => 'btn btn-sm btn-info btn-action',
-                                                        'title' => 'Ver detalles',
-                                                    ]
-                                                ) ?>
-                                            </div>
-                                        </td>
+        <!-- CONTENEDOR PRINCIPAL: TABLA + PANEL -->
+        <div class="tracking-panel-container">
+
+            <!-- Tabla -->
+            <div class="tracking-table-wrapper" id="tableWrapper">
+                <div class="card tracking-table-card">
+                    <div class="card-header">
+                        <div class="header-left">
+                            <i class="fas fa-trash text-danger"></i>
+                            <span>Seguimientos en Papelera</span>
+                            <span class="badge bg-danger ms-2"><?= $dataProvider ? $dataProvider->getTotalCount() : 0 ?></span>
+                        </div>
+                        <div class="header-right">
+                            <span class="badge bg-secondary">
+                                Página <?= $dataProvider ? $dataProvider->getPagination()->getPage() + 1 : 1 ?>
+                                de <?= $dataProvider ? $dataProvider->getPagination()->getPageCount() : 1 ?>
+                            </span>
+                        </div>
+                    </div>
+                    <div class="card-body p-0">
+                        <div class="table-responsive">
+                            <table class="table table-hover mb-0">
+                                <thead class="table-light">
+                                    <tr>
+                                        <th width="50">#</th>
+                                        <th>Lead</th>
+                                        <th>Comentarios</th>
+                                        <th>Fecha Seguimiento</th>
+                                        <th>Estado</th>
+                                        <th class="text-center" width="180">Acciones</th>
                                     </tr>
-                                <?php endforeach; ?>
-                            <?php else: ?>
-                                <tr>
-                                    <td colspan="<?= $isSuperAdmin ? 9 : 8 ?>" class="text-center text-muted py-5">
-                                        <i class="fas fa-trash fa-3x d-block mb-3 text-muted"></i>
-                                        <p class="mb-2">No hay seguimientos en la papelera.</p>
-                                        <small class="text-muted d-block mb-3">
-                                            Los seguimientos eliminados aparecerán aquí.
-                                        </small>
-                                        <?= Html::a(
-                                            '<i class="fas fa-arrow-left"></i> Volver a Seguimientos',
-                                            ['index'],
-                                            ['class' => 'btn btn-sm btn-primary']
-                                        ) ?>
-                                    </td>
-                                </tr>
-                            <?php endif; ?>
-                        </tbody>
-                    </table>
+                                </thead>
+                                <tbody>
+                                    <?php if (!empty($trackings)): ?>
+                                        <?php foreach ($trackings as $index => $tracking): ?>
+                                            <tr class="tracking-row" data-id="<?= $tracking->id_sales_tracking ?>">
+                                                <td><?= $dataProvider ? $dataProvider->getPagination()->getOffset() + $index + 1 : $index + 1 ?></td>
+                                                <td>
+                                                    <?php if ($tracking->lead): ?>
+                                                        <span class="lead-badge">
+                                                            <i class="fas fa-user"></i>
+                                                            <?= Html::encode($tracking->lead->name . ' ' . $tracking->lead->lastname) ?>
+                                                        </span>
+                                                        <?php if ($tracking->lead->phone): ?>
+                                                            <br>
+                                                            <small class="text-muted">
+                                                                <i class="fas fa-phone"></i> <?= Html::encode($tracking->lead->phone) ?>
+                                                            </small>
+                                                        <?php endif; ?>
+                                                    <?php else: ?>
+                                                        <span class="text-muted">Sin lead</span>
+                                                    <?php endif; ?>
+                                                </td>
+                                                <td>
+                                                    <?php if (!empty($tracking->comments)): ?>
+                                                        <?= Html::encode(mb_substr($tracking->comments, 0, 60)) ?>
+                                                        <?= mb_strlen($tracking->comments) > 60 ? '...' : '' ?>
+                                                    <?php else: ?>
+                                                        <span class="text-muted">—</span>
+                                                    <?php endif; ?>
+                                                </td>
+                                                <td>
+                                                    <?php if ($tracking->date_s): ?>
+                                                        <?= date('d/m/Y', strtotime($tracking->date_s)) ?>
+                                                        <?php if ($tracking->hour): ?>
+                                                            <br>
+                                                            <small class="text-muted">
+                                                                <i class="far fa-clock"></i> <?= Html::encode($tracking->hour) ?>
+                                                            </small>
+                                                        <?php endif; ?>
+                                                    <?php else: ?>
+                                                        <span class="text-muted">—</span>
+                                                    <?php endif; ?>
+                                                </td>
+                                                <td>
+                                                    <span class="badge bg-<?= $tracking->getStatusBadgeClass() ?>">
+                                                        <?= $tracking->getStatusName() ?>
+                                                    </span>
+                                                </td>
+                                                <td class="text-center">
+                                                    <div class="d-flex gap-1 justify-content-center">
+                                                        <button type="button"
+                                                                class="btn btn-info btn-sm tracking-btn-action view-tracking-btn"
+                                                                data-id="<?= $tracking->id_sales_tracking ?>"
+                                                                title="Ver detalles">
+                                                            <i class="fas fa-eye"></i>
+                                                        </button>
+
+                                                        <?= Html::a(
+                                                            '<i class="fas fa-undo"></i>',
+                                                            ['restore', 'id' => $tracking->id_sales_tracking],
+                                                            [
+                                                                'class' => 'btn btn-success btn-sm tracking-btn-action',
+                                                                'title' => 'Restaurar seguimiento',
+                                                                'data' => [
+                                                                    'confirm' => '¿Restaurar este seguimiento?',
+                                                                    'method' => 'post',
+                                                                ],
+                                                            ]
+                                                        ) ?>
+                                                    </div>
+                                                </td>
+                                            </tr>
+                                        <?php endforeach; ?>
+                                    <?php else: ?>
+                                        <tr>
+                                            <td colspan="6" class="text-center text-muted py-5">
+                                                <i class="fas fa-trash fa-3x d-block mb-3 text-muted"></i>
+                                                <p class="mb-2">No hay seguimientos en la papelera.</p>
+                                                <small class="text-muted d-block mb-3">
+                                                    Los seguimientos con estado "Eliminado" aparecerán aquí.
+                                                </small>
+                                                <?= Html::a(
+                                                    '<i class="fas fa-arrow-left"></i> Volver a Seguimientos',
+                                                    ['index'],
+                                                    ['class' => 'btn btn-sm btn-primary']
+                                                ) ?>
+                                            </td>
+                                        </tr>
+                                    <?php endif; ?>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+
+                    <?php if ($dataProvider && $dataProvider->pagination->pageCount > 1): ?>
+                        <div class="card-footer d-flex justify-content-between align-items-center flex-wrap gap-2">
+                            <small class="text-muted">
+                                <i class="fas fa-info-circle"></i>
+                                Mostrando <?= $dataProvider->getCount() ?> de <?= $totalTrackings ?> seguimientos
+                            </small>
+                            <?= LinkPager::widget([
+                                'pagination' => $dataProvider->pagination,
+                                'options' => ['class' => 'pagination pagination-sm mb-0'],
+                                'linkOptions' => ['class' => 'page-link'],
+                                'prevPageLabel' => '<i class="fas fa-chevron-left"></i>',
+                                'nextPageLabel' => '<i class="fas fa-chevron-right"></i>',
+                                'firstPageLabel' => '<i class="fas fa-angle-double-left"></i>',
+                                'lastPageLabel' => '<i class="fas fa-angle-double-right"></i>',
+                                'maxButtonCount' => 5,
+                            ]) ?>
+                        </div>
+                    <?php endif; ?>
                 </div>
             </div>
 
-            <?php if ($dataProvider && $dataProvider->pagination->pageCount > 1): ?>
-                <div class="card-footer d-flex justify-content-between align-items-center flex-wrap gap-2">
-                    <small class="text-muted">
-                        <i class="fas fa-info-circle"></i>
-                        Mostrando <?= $dataProvider->getCount() ?> de <?= $totalTrackings ?> seguimientos
-                    </small>
-                    <?= LinkPager::widget([
-                        'pagination' => $dataProvider->pagination,
-                        'options' => ['class' => 'pagination pagination-sm mb-0'],
-                        'linkOptions' => ['class' => 'page-link'],
-                        'prevPageLabel' => '<i class="fas fa-chevron-left"></i>',
-                        'nextPageLabel' => '<i class="fas fa-chevron-right"></i>',
-                        'firstPageLabel' => '<i class="fas fa-angle-double-left"></i>',
-                        'lastPageLabel' => '<i class="fas fa-angle-double-right"></i>',
-                        'maxButtonCount' => 5,
-                    ]) ?>
+            <!-- Panel Lateral -->
+            <div class="panel-wrapper" id="panelWrapper">
+                <div class="card slide-panel-card">
+                    <div class="card-body p-0" id="slidePanelContent"></div>
                 </div>
-            <?php endif; ?>
+            </div>
         </div>
 
-    </div><!-- /.sales-tracking-wrapper -->
-</div><!-- /.sales-tracking-trash -->
+    </div>
+</div>
+
+<?php
+$viewModalUrl = Url::to(['sales-tracking/view-modal']);
+?>
 
 <script>
-document.getElementById('search-input').addEventListener('keypress', function(e) {
-    if (e.key === 'Enter') {
-        document.getElementById('form-filtros').submit();
+function executeScripts(container) {
+    if (!container) return 0;
+    var scripts = container.querySelectorAll('script');
+    scripts.forEach(function(oldScript) {
+        var newScript = document.createElement('script');
+        if (oldScript.src) newScript.src = oldScript.src;
+        else newScript.textContent = oldScript.textContent;
+        document.body.appendChild(newScript);
+        oldScript.remove();
+    });
+    return scripts.length;
+}
+
+(function() {
+    if (typeof jQuery === 'undefined') {
+        var script = document.createElement('script');
+        script.src = 'https://code.jquery.com/jquery-3.6.0.min.js';
+        script.onload = function() { inicializar(); };
+        document.head.appendChild(script);
+    } else {
+        inicializar();
     }
-});
+})();
+
+function inicializar() {
+    var $ = jQuery;
+    var viewModalUrl = '<?= $viewModalUrl ?>';
+    var isOpen = false;
+    var currentId = null;
+
+    function closePanel(callback) {
+        var panel = document.getElementById('panelWrapper');
+        var tableWrapper = document.getElementById('tableWrapper');
+
+        if (!panel) {
+            if (callback) callback();
+            return;
+        }
+
+        isOpen = false;
+
+        document.querySelectorAll('.tracking-row').forEach(function(row) {
+            row.classList.remove('tracking-row-selected');
+        });
+
+        panel.classList.remove('visible');
+        panel.classList.add('closing');
+        if (tableWrapper) tableWrapper.classList.remove('with-panel');
+
+        setTimeout(function() {
+            panel.style.display = 'none';
+            panel.classList.remove('closing');
+            var contenido = document.getElementById('slidePanelContent');
+            if (contenido) contenido.innerHTML = '';
+            currentId = null;
+            if (callback) callback();
+        }, 300);
+    }
+
+    function openPanel(id) {
+        if (id === currentId && isOpen) {
+            closePanel();
+            return;
+        }
+
+        if (isOpen) {
+            closePanel(function() {
+                setTimeout(function() { openPanel(id); }, 300);
+            });
+            return;
+        }
+
+        currentId = id;
+        isOpen = true;
+
+        var panel = document.getElementById('panelWrapper');
+        var panelContent = document.getElementById('slidePanelContent');
+        var tableWrapper = document.getElementById('tableWrapper');
+        var filaSeleccionada = document.querySelector('.tracking-row[data-id="' + id + '"]');
+
+        if (!panel || !panelContent) return;
+
+        document.querySelectorAll('.tracking-row').forEach(function(row) {
+            row.classList.remove('tracking-row-selected');
+        });
+        if (filaSeleccionada) {
+            filaSeleccionada.classList.add('tracking-row-selected');
+        }
+
+        if (tableWrapper) tableWrapper.classList.add('with-panel');
+        panel.style.display = 'block';
+        panel.classList.add('visible');
+
+        panelContent.innerHTML = '<div class="text-center text-muted py-4"><div class="spinner-border text-primary" role="status"></div><p class="mt-2">Cargando...</p></div>';
+
+        fetch(viewModalUrl + '?id=' + id)
+            .then(function(response) {
+                if (!response.ok) throw new Error('HTTP ' + response.status);
+                return response.text();
+            })
+            .then(function(data) {
+                panelContent.innerHTML = data;
+                executeScripts(panelContent);
+            })
+            .catch(function(error) {
+                panelContent.innerHTML = '<div class="text-center text-danger py-4"><i class="fas fa-exclamation-triangle fa-2x d-block mb-2"></i><p>Error al cargar</p><button class="btn btn-secondary btn-sm mt-2" data-panel-close>Cerrar</button></div>';
+            });
+    }
+
+    // LISTENERS GLOBALES
+    document.addEventListener('click', function(e) {
+        var btn = e.target.closest('[data-panel-close]');
+        if (btn) {
+            e.preventDefault();
+            e.stopPropagation();
+            closePanel();
+        }
+    }, true);
+
+    document.addEventListener('click', function(e) {
+        var btn = e.target.closest('[data-panel-close-go]');
+        if (btn) {
+            e.preventDefault();
+            e.stopPropagation();
+            var url = btn.getAttribute('data-panel-close-go');
+            closePanel(function() {
+                window.location.href = url;
+            });
+        }
+    }, true);
+
+    $(document).on('click', '.view-tracking-btn', function(e) {
+        e.stopPropagation();
+        var id = $(this).data('id');
+        if (id) openPanel(id);
+    });
+
+    $(document).on('click', '.tracking-row', function(e) {
+        if ($(e.target).closest('a, button').length > 0) return;
+        var id = $(this).data('id');
+        if (id) openPanel(id);
+    });
+
+    document.addEventListener('keydown', function(e) {
+        if (e.key === 'Escape' && isOpen) {
+            closePanel();
+        }
+    });
+
+    window.openPanel = openPanel;
+    window.closePanel = closePanel;
+
+    var searchInput = document.getElementById('search-input');
+    if (searchInput) {
+        searchInput.addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') document.getElementById('form-filtros').submit();
+        });
+    }
+}
 </script>

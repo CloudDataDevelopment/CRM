@@ -53,35 +53,39 @@ if (!$model) {
     return;
 }
 
-// Obtener datos
-$leadName = $model->lead ? $model->lead->name . ' ' . $model->lead->lastname : 'Lead no disponible';
-$leadPhone = $model->lead ? $model->lead->phone : 'Sin teléfono';
-$leadStatus = $model->lead ? $model->lead->getStatusName() : 'Sin estado';
-$leadBadgeClass = $model->lead ? $model->lead->getStatusBadgeClass() : 'secondary';
+// ============================================
+// DATOS DEL LEAD ASOCIADO
+// ============================================
+$lead = $model->lead;
+$leadName = $lead ? $lead->name . ' ' . $lead->lastname : 'Lead no disponible';
+$leadPhone = $lead ? $lead->phone : 'Sin teléfono';
+$leadStatus = $lead ? $lead->getStatusName() : 'Sin estado';
+$leadBadgeClass = $lead ? $lead->getStatusBadgeClass() : 'secondary';
 
 $statusName = $model->getStatusName();
 $badgeClass = $model->getStatusBadgeClass();
 $total = (int) $model->total_amount;
-
-// Notas
 $notas = $model->getNotes();
 
+// 🔥 DETECTAR SI ESTÁ EN PAPELERA (para quote/trash)
+$isTrash = (strtolower(trim($statusName)) === 'eliminado');
+
 $statusColors = [
-    'success' => '#1cc88a',
-    'warning' => '#f6c23e',
-    'danger' => '#e74a3b',
-    'info' => '#36b9cc',
+    'success'   => '#1cc88a',
+    'warning'   => '#f6c23e',
+    'danger'    => '#e74a3b',
+    'info'      => '#36b9cc',
     'secondary' => '#6c757d',
-    'primary' => '#4e73df',
+    'primary'   => '#4e73df',
 ];
 
 $statusIcons = [
-    'success' => 'fa-check-circle',
-    'warning' => 'fa-clock',
-    'danger' => 'fa-times-circle',
-    'info' => 'fa-dollar-sign',
+    'success'   => 'fa-check-circle',
+    'warning'   => 'fa-clock',
+    'danger'    => 'fa-times-circle',
+    'info'      => 'fa-dollar-sign',
     'secondary' => 'fa-circle',
-    'primary' => 'fa-circle',
+    'primary'   => 'fa-circle',
 ];
 ?>
 
@@ -97,11 +101,22 @@ $statusIcons = [
     <!-- BODY -->
     <div class="slide-panel-body">
 
+        <!-- 🔥 ALERTA DE PAPELERA (solo si está eliminada) -->
+        <?php if ($isTrash): ?>
+            <div class="alert alert-warning d-flex align-items-center mb-3" role="alert" style="border-radius: 8px; padding: 10px 12px; font-size: 0.8rem;">
+                <i class="fas fa-trash me-2" style="font-size: 1rem;"></i>
+                <div>
+                    <strong>En papelera</strong>
+                    <div style="font-size: 0.75rem;">Restaura desde la tabla para volver al listado activo.</div>
+                </div>
+            </div>
+        <?php endif; ?>
+
         <!-- ESTADO -->
         <div class="profile-status text-center mb-2">
             <span class="status-badge" style="background-color: <?= $statusColors[$badgeClass] ?? '#6c757d' ?>;">
                 <i class="fas <?= $statusIcons[$badgeClass] ?? 'fa-circle' ?>"></i>
-                <?= $statusName ?>
+                <?= Html::encode($statusName) ?>
             </span>
         </div>
 
@@ -123,7 +138,7 @@ $statusIcons = [
             <div class="info-row">
                 <span class="info-label"><i class="fas fa-tag"></i> Estado</span>
                 <span class="info-value">
-                    <span class="badge bg-<?= $leadBadgeClass ?>"><?= $leadStatus ?></span>
+                    <span class="badge bg-<?= $leadBadgeClass ?>"><?= Html::encode($leadStatus) ?></span>
                 </span>
             </div>
         </div>
@@ -134,6 +149,10 @@ $statusIcons = [
         <div class="info-section">
             <div class="info-title">
                 <i class="fas fa-file-invoice"></i> Cotización
+            </div>
+            <div class="info-row">
+                <span class="info-label"><i class="fas fa-hashtag"></i> ID</span>
+                <span class="info-value">#<?= $model->id_quote ?></span>
             </div>
             <div class="info-row">
                 <span class="info-label"><i class="fas fa-calendar-alt"></i> Fecha</span>
@@ -148,7 +167,7 @@ $statusIcons = [
             <div class="info-row">
                 <span class="info-label"><i class="fas fa-tag"></i> Estado</span>
                 <span class="info-value">
-                    <span class="badge bg-<?= $badgeClass ?>"><?= $statusName ?></span>
+                    <span class="badge bg-<?= $badgeClass ?>"><?= Html::encode($statusName) ?></span>
                 </span>
             </div>
         </div>
@@ -184,11 +203,24 @@ $statusIcons = [
 
     <!-- FOOTER -->
     <div class="slide-panel-footer">
-        <a href="<?= Url::to(['quote/details', 'id' => $model->id_quote]) ?>" class="btn-footer btn-footer-primary" data-panel-close-go="<?= Url::to(['quote/details', 'id' => $model->id_quote]) ?>">
-            <i class="fas fa-external-link-alt"></i> Ver más
-        </a>
+        <?php if (!$isTrash): ?>
+            <!-- 🔥 EN INDEX: Ver más + Editar -->
+            <a href="<?= Url::to(['quote/details', 'id' => $model->id_quote]) ?>"
+               class="btn-footer btn-footer-primary"
+               data-panel-close-go="<?= Url::to(['quote/details', 'id' => $model->id_quote]) ?>">
+                <i class="fas fa-external-link-alt"></i> Ver más
+            </a>
+            <?php if ($isAdmin || $isSuperAdmin): ?>
+                <button class="btn-footer btn-footer-warning edit-quote-btn"
+                        data-id="<?= $model->id_quote ?>"
+                        title="Editar">
+                    <i class="fas fa-edit"></i> Editar
+                </button>
+            <?php endif; ?>
+        <?php endif; ?>
+
         <button class="btn-footer btn-footer-secondary" data-panel-close>
             <i class="fas fa-times"></i> Cerrar
         </button>
     </div>
-</div>  
+</div>

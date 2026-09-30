@@ -25,7 +25,7 @@ if ($error && !$model) {
                 <div class="header-title">
                     <i class="fas fa-exclamation-triangle text-danger"></i> Error
                 </div>
-                <button type="button" class="btn-close-panel" onclick="cerrarPanelSeguimiento()">
+                <button type="button" class="btn-close-panel" data-panel-close>
                     <i class="fas fa-times"></i>
                 </button>
             </div>
@@ -33,7 +33,7 @@ if ($error && !$model) {
                 <div class="edit-panel-message">
                     <i class="fas fa-exclamation-triangle text-danger"></i>
                     <p>' . Html::encode($error) . '</p>
-                    <button class="btn-message btn-message-secondary" onclick="cerrarPanelSeguimiento()">
+                    <button class="btn-message btn-message-secondary" data-panel-close>
                         <i class="fas fa-times"></i> Cerrar
                     </button>
                 </div>
@@ -51,7 +51,7 @@ if (!$model) {
                 <div class="header-title">
                     <i class="fas fa-inbox text-muted"></i> Seguimiento no encontrado
                 </div>
-                <button type="button" class="btn-close-panel" onclick="cerrarPanelSeguimiento()">
+                <button type="button" class="btn-close-panel" data-panel-close>
                     <i class="fas fa-times"></i>
                 </button>
             </div>
@@ -59,7 +59,7 @@ if (!$model) {
                 <div class="edit-panel-message">
                     <i class="fas fa-inbox text-muted"></i>
                     <p>Seguimiento no encontrado</p>
-                    <button class="btn-message btn-message-secondary" onclick="cerrarPanelSeguimiento()">
+                    <button class="btn-message btn-message-secondary" data-panel-close>
                         <i class="fas fa-times"></i> Cerrar
                     </button>
                 </div>
@@ -76,7 +76,7 @@ if (!$model) {
         <div class="header-title">
             <i class="fas fa-edit text-primary"></i> Editar Seguimiento
         </div>
-        <button type="button" class="btn-close-panel" onclick="cerrarPanelSeguimiento()">
+        <button type="button" class="btn-close-panel" data-panel-close>
             <i class="fas fa-times"></i>
         </button>
     </div>
@@ -140,7 +140,7 @@ if (!$model) {
 
     <!-- FOOTER -->
     <div class="edit-panel-footer">
-        <button type="button" class="btn-footer btn-footer-secondary" onclick="cerrarPanelSeguimiento()">
+        <button type="button" class="btn-footer btn-footer-secondary" data-panel-close>
             <i class="fas fa-times"></i> Cancelar
         </button>
         <button type="button" class="btn-footer btn-footer-primary" id="btn-save-tracking">
@@ -151,60 +151,6 @@ if (!$model) {
 </div>
 
 <script>
-// ============================================
-// 🔥 FUNCIÓN DE CIERRE - Busca closePanel en varios lugares
-// ============================================
-function cerrarPanelSeguimiento() {
-    console.log('🔴 Cerrando panel de seguimiento...');
-
-    // 1️⃣ Intentar con closePanel global
-    if (typeof window.closePanel === 'function') {
-        console.log('✅ Usando window.closePanel');
-        window.closePanel();
-        return;
-    }
-
-    // 2️⃣ Intentar con closePanel en el padre (iframe)
-    if (window.parent && typeof window.parent.closePanel === 'function') {
-        console.log('✅ Usando window.parent.closePanel');
-        window.parent.closePanel();
-        return;
-    }
-
-    // 3️⃣ Fallback manual: ocultar el panel y restaurar tabla
-    console.log('⚠️ closePanel no encontrado, aplicando fallback manual');
-    fallbackCerrarPanel();
-}
-
-function fallbackCerrarPanel() {
-    var panel = document.getElementById('panelWrapper');
-    var tableWrapper = document.getElementById('tableWrapper');
-
-    if (panel) {
-        panel.classList.remove('visible');
-        panel.classList.add('closing');
-        panel.style.display = 'none';
-    }
-    if (tableWrapper) {
-        tableWrapper.classList.remove('with-panel');
-    }
-
-    document.querySelectorAll('.tracking-row').forEach(function(row) {
-        row.classList.remove('tracking-row-selected');
-    });
-
-    setTimeout(function() {
-        if (panel) {
-            panel.classList.remove('closing');
-            var contenido = document.getElementById('slidePanelContent');
-            if (contenido) contenido.innerHTML = '';
-        }
-    }, 300);
-}
-
-// Exponer globalmente
-window.cerrarPanelSeguimiento = cerrarPanelSeguimiento;
-
 // ============================================
 // SUBMIT FORM
 // ============================================

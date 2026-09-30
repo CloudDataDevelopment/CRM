@@ -1,6 +1,7 @@
 <?php
 
 use yii\helpers\Html;
+use yii\helpers\Url;
 use yii\widgets\Pjax;
 use yii\bootstrap5\Tabs;
 
@@ -18,6 +19,14 @@ $canCreate = $isAdmin;
 $totalItems = $totalCampaigns + $totalPromotions;
 $activeItems = $activeCampaigns + $activePromotions;
 $porcentajeActividad = $totalItems > 0 ? round(($activeItems / $totalItems) * 100) : 0;
+
+// 🔎 Variables de filtro (deben venir del controlador)
+$search = isset($search) ? $search : '';
+$status = isset($status) ? $status : '';
+$type = isset($type) ? $type : '';
+$fecha_inicio = isset($fecha_inicio) ? $fecha_inicio : '';
+$fecha_fin = isset($fecha_fin) ? $fecha_fin : '';
+$statusList = isset($statusList) ? $statusList : \app\models\Marketing::getStatusList();
 ?>
 
 <div class="marketing-index">
@@ -121,6 +130,72 @@ $porcentajeActividad = $totalItems > 0 ? round(($activeItems / $totalItems) * 10
             </div>
         </div>
 
+        <!-- 🔎 FILTROS -->
+        <div class="card marketing-filtros-card mb-3">
+            <div class="card-body">
+                <form method="get" action="<?= Url::to(['marketing/index']) ?>" id="form-filtros-marketing">
+                    <div class="row g-2 align-items-end">
+                        <div class="col-auto">
+                            <label class="form-label fw-bold mb-0 small">Filtrar</label>
+                        </div>
+                        <div class="col-md-2">
+                            <input type="text" class="form-control form-control-sm" name="search"
+                                   placeholder="Buscar..."
+                                   value="<?= Html::encode($search) ?>"
+                                   id="marketing-search-input">
+                        </div>
+                        <div class="col-md-2">
+                            <select class="form-select form-select-sm" name="type" id="marketing-type-select">
+                                <option value="">Todos los tipos</option>
+                                <?php foreach (\app\models\Marketing::getTypeList() as $id => $nombre): ?>
+                                    <option value="<?= $id ?>" <?= $type == $id ? 'selected' : '' ?>>
+                                        <?= ucfirst($nombre) ?>
+                                    </option>
+                                <?php endforeach; ?>
+                            </select>
+                        </div>
+                        <div class="col-md-2">
+                            <select class="form-select form-select-sm" name="status" id="marketing-status-select">
+                                <option value="">Todos los estados</option>
+                                <?php foreach ($statusList as $id => $nombre): ?>
+                                    <option value="<?= $id ?>" <?= $status == $id ? 'selected' : '' ?>>
+                                        <?= ucfirst($nombre) ?>
+                                    </option>
+                                <?php endforeach; ?>
+                            </select>
+                        </div>
+
+                        <!-- 🔥 RANGO DE FECHAS -->
+                        <div class="col-md-2">
+                            <label class="form-label small text-muted mb-0" for="marketing-fecha-inicio">
+                                <i class="fas fa-calendar-alt"></i> Desde
+                            </label>
+                            <input type="date" class="form-control form-control-sm" name="fecha_inicio"
+                                   value="<?= Html::encode($fecha_inicio) ?>"
+                                   id="marketing-fecha-inicio">
+                        </div>
+                        <div class="col-md-2">
+                            <label class="form-label small text-muted mb-0" for="marketing-fecha-fin">
+                                <i class="fas fa-calendar-alt"></i> Hasta
+                            </label>
+                            <input type="date" class="form-control form-control-sm" name="fecha_fin"
+                                   value="<?= Html::encode($fecha_fin) ?>"
+                                   id="marketing-fecha-fin">
+                        </div>
+
+                        <div class="col-auto d-flex gap-1">
+                            <button type="submit" class="btn btn-primary btn-sm" id="marketing-btn-filtrar" title="Filtrar">
+                                <i class="fas fa-search"></i>
+                            </button>
+                            <a href="<?= Url::to(['marketing/index']) ?>" class="btn btn-secondary btn-sm" title="Limpiar">
+                                <i class="fas fa-undo"></i>
+                            </a>
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </div>
+
         <!-- TABS -->
         <?php Pjax::begin(['id' => 'marketing-pjax', 'enablePushState' => false]); ?>
 
@@ -154,3 +229,32 @@ $porcentajeActividad = $totalItems > 0 ? round(($activeItems / $totalItems) * 10
 
     </div>
 </div>
+
+<script>
+(function() {
+    function submitForm() {
+        document.getElementById('form-filtros-marketing').submit();
+    }
+
+    var searchInput = document.getElementById('marketing-search-input');
+    if (searchInput) {
+        searchInput.addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') { e.preventDefault(); submitForm(); }
+        });
+    }
+
+    ['marketing-type-select', 'marketing-status-select', 'marketing-fecha-inicio', 'marketing-fecha-fin']
+        .forEach(function(id) {
+            var el = document.getElementById(id);
+            if (el) el.addEventListener('change', submitForm);
+        });
+
+    var btnFiltrar = document.getElementById('marketing-btn-filtrar');
+    if (btnFiltrar) {
+        btnFiltrar.addEventListener('click', function(e) {
+            e.preventDefault();
+            submitForm();
+        });
+    }
+})();
+</script>

@@ -23,7 +23,6 @@ if ($error) {
                 <div class="text-center text-danger py-5">
                     <i class="fas fa-exclamation-triangle fa-3x d-block mb-3"></i>
                     <p>' . Html::encode($error) . '</p>
-                    <button class="btn btn-secondary btn-sm mt-3" data-panel-close>Cerrar</button>
                 </div>
             </div>
             <div class="slide-panel-footer">
@@ -49,7 +48,6 @@ if (!$model) {
                 <div class="text-center text-muted py-5">
                     <i class="fas fa-inbox fa-3x d-block mb-3"></i>
                     <p>Seguimiento no encontrado</p>
-                    <button class="btn btn-secondary btn-sm mt-3" data-panel-close>Cerrar</button>
                 </div>
             </div>
             <div class="slide-panel-footer">
@@ -68,6 +66,11 @@ $lead = $model->lead;
 $leadName = $lead ? $lead->name . ' ' . $lead->lastname : 'Lead no disponible';
 $leadPhone = $lead ? $lead->phone : 'Sin teléfono';
 $leadId = $lead ? $lead->id_lead : null;
+
+// 🔥 URL usando Url::to() → respeta urlManager y genera /web/lead/details/555
+$leadDetailsUrl = $leadId
+    ? Url::to(['lead/details', 'id' => (int)$leadId])
+    : '#';
 
 $statusName = $model->getStatusName();
 $badgeClass = $model->getStatusBadgeClass();
@@ -116,7 +119,7 @@ $statusIcons = [
             <div class="profile-status">
                 <span class="status-badge" style="background-color: <?= $statusColors[$badgeClass] ?? '#6c757d' ?>;">
                     <i class="fas <?= $statusIcons[$badgeClass] ?? 'fa-circle' ?>"></i>
-                    <?= $statusName ?>
+                    <?= Html::encode($statusName) ?>
                 </span>
             </div>
         </div>
@@ -148,20 +151,20 @@ $statusIcons = [
             <div class="info-row">
                 <span class="info-label"><i class="fas fa-tag"></i> Estado</span>
                 <span class="info-value">
-                    <span class="badge bg-<?= $badgeClass ?>"><?= $statusName ?></span>
+                    <span class="badge bg-<?= $badgeClass ?>"><?= Html::encode($statusName) ?></span>
                 </span>
             </div>
             <?php if (!empty($model->comments)): ?>
-            <div class="info-row info-row-comments">
-                <span class="info-label"><i class="fas fa-sticky-note"></i> Comentarios</span>
-                <span class="info-value"><?= nl2br(Html::encode($model->comments)) ?></span>
-            </div>
+                <div class="info-row info-row-comments">
+                    <span class="info-label"><i class="fas fa-sticky-note"></i> Comentarios</span>
+                    <span class="info-value"><?= nl2br(Html::encode($model->comments)) ?></span>
+                </div>
             <?php endif; ?>
             <?php if (!empty($model->date_f)): ?>
-            <div class="info-row">
-                <span class="info-label"><i class="fas fa-calendar-check"></i> Próximo</span>
-                <span class="info-value"><?= date('d/m/Y', strtotime($model->date_f)) ?></span>
-            </div>
+                <div class="info-row">
+                    <span class="info-label"><i class="fas fa-calendar-check"></i> Próximo</span>
+                    <span class="info-value"><?= date('d/m/Y', strtotime($model->date_f)) ?></span>
+                </div>
             <?php endif; ?>
         </div>
 
@@ -170,14 +173,13 @@ $statusIcons = [
     <!-- FOOTER -->
     <div class="slide-panel-footer">
         <?php if ($leadId): ?>
-            <!-- 🔥 BOTÓN "VER LEAD" - Cierra panel y navega -->
-            <a href="<?= Url::to(['lead/details', 'id' => $leadId]) ?>"
-               class="btn-footer btn-footer-primary"
-               data-panel-close-go="<?= Url::to(['lead/details', 'id' => $leadId]) ?>">
+            <!-- 🔥 Botón "Ver Lead" usando <a> con href REAL (/web/lead/details/555) -->
+            <a href="<?= $leadDetailsUrl ?>"
+               class="btn-footer btn-footer-primary js-ver-lead-link">
                 <i class="fas fa-external-link-alt"></i> Ver Lead
             </a>
+
         <?php else: ?>
-            <!-- Sin lead: botón deshabilitado -->
             <button class="btn-footer btn-footer-primary" disabled style="opacity: 0.5; cursor: not-allowed;">
                 <i class="fas fa-external-link-alt"></i> Sin Lead
             </button>

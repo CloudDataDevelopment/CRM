@@ -13,16 +13,6 @@ $this->registerCssFile('@web/css/leads.css', ['depends' => [\yii\bootstrap5\Boot
 $this->registerCssFile('@web/css/dashboard.css', ['depends' => [\yii\bootstrap5\BootstrapAsset::class]]);
 $this->registerCssFile('@web/css/lead-details.css', ['depends' => [\yii\bootstrap5\BootstrapAsset::class], 'position' => \yii\web\View::POS_HEAD]);
 
-/* 🔥 OCULTO: CSS de evaluaciones
-$this->registerCssFile('@web/css/evaluaciones.css', ['depends' => [\yii\bootstrap5\BootstrapAsset::class], 'position' => \yii\web\View::POS_HEAD]);
-*/
-
-// Variables (vienen del controlador)
-/* 🔥 OCULTO: Variables de evaluaciones
-$evaluaciones = isset($evaluaciones) ? $evaluaciones : [];
-$totalEvaluaciones = isset($totalEvaluaciones) ? $totalEvaluaciones : count($evaluaciones);
-*/
-
 $trackings = isset($trackings) ? $trackings : ($model->salesTrackings ?? []);
 $totalTrackings = isset($totalTrackings) ? $totalTrackings : count($trackings);
 
@@ -167,12 +157,6 @@ $whatsappLink = $phone ? 'https://wa.me/' . preg_replace('/[^0-9]/', '', $phone)
                                 <div class="stat-number"><?= $totalQuotes ?></div>
                                 <div class="stat-label">Cotizaciones</div>
                             </div>
-                            <?php /* 🔥 OCULTO: Stat de Evaluaciones
-                            <div class="stat-item-large">
-                                <div class="stat-number"><?= $totalEvaluaciones ?></div>
-                                <div class="stat-label">Evaluaciones</div>
-                            </div>
-                            */ ?>
                         </div>
                     </div>
                 </div>
@@ -180,80 +164,6 @@ $whatsappLink = $phone ? 'https://wa.me/' . preg_replace('/[^0-9]/', '', $phone)
 
             <!-- COLUMNA DERECHA: ACTIVIDADES -->
             <div class="col-lg-8">
-
-                <?php /* ============================================ 
-                   🔥 EVALUACIONES - OCULTO TEMPORALMENTE
-                   Para reactivar, quita el comentario PHP
-                   ============================================ */ ?>
-                <?php /*
-                <!-- ============================================ -->
-                <!-- 🔥 EVALUACIONES (mismo estilo que seguimientos) -->
-                <!-- ============================================ -->
-                <div class="card details-card">
-                    <div class="card-header d-flex justify-content-between align-items-center">
-                        <h5 class="mb-0"><i class="fas fa-clipboard-check"></i> Evaluaciones</h5>
-                        <div>
-                            <span class="badge bg-secondary"><?= $totalEvaluaciones ?></span>
-                            <a href="<?= Url::to(['report/create', 'leadId' => $model->id_lead]) ?>" class="btn btn-sm btn-outline-primary ms-2">
-                                <i class="fas fa-plus"></i> Nueva
-                            </a>
-                        </div>
-                    </div>
-                    <div class="card-body p-0">
-                        <div class="table-responsive">
-                            <table class="table table-hover mb-0 details-table">
-                                <thead class="table-light">
-                                    <tr>
-                                        <th style="width: 50px;">#</th>
-                                        <th>Nombre</th>
-                                        <th>Tipo</th>
-                                        <th>Fecha</th>
-                                        <th>Estado</th>
-                                        <th style="width: 60px;" class="text-center">Acción</th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    <?php if (!empty($evaluaciones)): ?>
-                                        <?php foreach ($evaluaciones as $index => $eval): ?>
-                                            <tr>
-                                                <td><?= $index + 1 ?></td>
-                                                <td><?= Html::encode($eval->report_name) ?></td>
-                                                <td><?= Html::encode($eval->report_type ?? '—') ?></td>
-                                                <td><?= $eval->date_report ? date('d/m/Y', strtotime($eval->date_report)) : '—' ?></td>
-                                                <td>
-                                                    <span class="badge bg-<?= $eval->getStatusBadgeClass() ?>">
-                                                        <?= $eval->getStatusName() ?>
-                                                    </span>
-                                                </td>
-                                                <td class="text-center">
-                                                    <?= Html::a('<i class="fas fa-eye"></i>', ['report/view', 'id' => $eval->id_report], [
-                                                        'class' => 'btn btn-info btn-sm btn-action',
-                                                        'title' => 'Ver'
-                                                    ]) ?>
-                                                </td>
-                                            </tr>
-                                        <?php endforeach; ?>
-                                    <?php else: ?>
-                                        <tr>
-                                            <td colspan="6" class="text-center text-muted py-4">
-                                                <i class="fas fa-inbox fa-2x d-block mb-2"></i>
-                                                No hay evaluaciones registradas
-                                            </td>
-                                        </tr>
-                                    <?php endif; ?>
-                                </tbody>
-                            </table>
-                        </div>
-                    </div>
-                    <?php if ($totalEvaluaciones > 5): ?>
-                    <div class="card-footer text-end">
-                        <a href="<?= Url::to(['report/index', 'leadId' => $model->id_lead]) ?>" class="btn btn-sm btn-outline-primary">
-                            Ver todas las evaluaciones <i class="fas fa-arrow-right"></i>
-                        </a>
-                    </div>
-                    <?php endif; ?>
-                </div>
-                */ ?>
 
                 <!-- ============================================ -->
                 <!-- SEGUIMIENTOS                                 -->
@@ -362,8 +272,11 @@ $whatsappLink = $phone ? 'https://wa.me/' . preg_replace('/[^0-9]/', '', $phone)
                                                     </span>
                                                 </td>
                                                 <td>
-                                                    <?php if ($quote->pending_payment > 0): ?>
-                                                        <span class="text-danger">$<?= number_format($quote->pending_payment, 0, '.', ',') ?></span>
+                                                    <?php
+                                                    $pendingQuote = method_exists($quote, 'getRealPending') ? $quote->getRealPending() : 0;
+                                                    if ($pendingQuote > 0):
+                                                    ?>
+                                                        <span class="text-danger">$<?= number_format($pendingQuote, 0, '.', ',') ?></span>
                                                     <?php else: ?>
                                                         <span class="text-success"><i class="fas fa-check-circle"></i> $0</span>
                                                     <?php endif; ?>

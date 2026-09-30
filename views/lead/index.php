@@ -68,6 +68,7 @@ $metricas = [
         'value' => $enProceso ?? 0,
         'porcentaje' => $porcentajes['procesando'] ?? 0,
     ],
+    
 ];
 
 // 🔥 Configuración del embudo (SIN CANCELADOS)
@@ -181,7 +182,9 @@ $formatDate = function($date, $format = 'd/m/Y') {
             <div class="card-body">
                 <form method="get" action="<?= Url::to(['lead/index']) ?>" id="form-filtros">
                     <div class="row align-items-end">
-                        <div class="col-md-1"><label class="form-label fw-bold mb-0">Filtrar</label></div>
+                        <div class="col-md-1">
+                            <label class="form-label fw-bold mb-0">Filtrar</label>
+                        </div>
                         <div class="col-md-3">
                             <input type="text" class="form-control" name="search" placeholder="Buscar..." value="<?= Html::encode($search) ?>" id="search-input">
                         </div>
@@ -197,9 +200,15 @@ $formatDate = function($date, $format = 'd/m/Y') {
                             </select>
                         </div>
                         <div class="col-md-2">
+                            <label class="form-label small text-muted mb-1" for="fecha-inicio">
+                                <i class="fas fa-calendar-alt"></i> Desde
+                            </label>
                             <input type="date" class="form-control" name="fecha_inicio" value="<?= Html::encode($fecha_inicio) ?>" id="fecha-inicio">
                         </div>
                         <div class="col-md-2">
+                            <label class="form-label small text-muted mb-1" for="fecha-fin">
+                                <i class="fas fa-calendar-alt"></i> Hasta
+                            </label>
                             <input type="date" class="form-control" name="fecha_fin" value="<?= Html::encode($fecha_fin) ?>" id="fecha-fin">
                         </div>
                         <div class="col-md-1">

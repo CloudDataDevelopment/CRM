@@ -18,13 +18,17 @@ class LeadController extends Controller
 {
     public $layout = 'main';
 
+    // ============================================
+    // HELPERS DE ESTADOS
+    // ============================================
+
     /**
      * 🔥 Obtiene el ID del status "Nuevo" de forma dinámica.
      */
     protected function getStatusNuevoId()
     {
         $status = Status::find()->where(['status' => 'Nuevo'])->one();
-        
+
         if (!$status) {
             $status = new Status();
             $status->status = 'Nuevo';
@@ -34,12 +38,21 @@ class LeadController extends Controller
                 return 19;
             }
         }
-        
+
         return $status->id_status;
     }
 
     /**
-     * 🔥 Obtiene el ID del status "Inactivo" (papelera).
+     * 🔥 Obtiene el ID del status "Eliminado" (papelera).
+     */
+    protected function getStatusEliminadoId()
+    {
+        $status = Status::find()->where(['status' => 'Eliminado'])->one();
+        return $status ? $status->id_status : null;
+    }
+
+    /**
+     * 🔥 Obtiene el ID del status "Inactivo".
      */
     protected function getStatusInactivoId()
     {
@@ -56,6 +69,50 @@ class LeadController extends Controller
         return $status ? $status->id_status : null;
     }
 
+    /**
+     * 🔥 Obtiene el ID del status "Pendiente".
+     */
+    protected function getStatusPendienteId()
+    {
+        $status = Status::find()->where(['status' => 'Pendiente'])->one();
+        return $status ? $status->id_status : null;
+    }
+
+    // ============================================
+    // 🔥 HELPER GLOBAL DE PERMISOS (relajado)
+    // Devuelve null si OK, o mensaje de error si bloquea
+    // Regla: solo bloquea si el lead es de OTRA empresa
+    // ============================================
+    protected function checkLeadAccess($model, $user, $empresaId)
+    {
+        if (!$user) {
+            return 'Debes iniciar sesión para ver este lead.';
+        }
+
+        if (!$model) {
+            return 'El lead solicitado no existe.';
+        }
+
+        // SuperAdmin: solo bloquear si tiene empresa seleccionada Y el lead es de otra
+        if ($user->isSuperAdmin()) {
+            if (!empty($empresaId) && !empty($model->id_company) && $model->id_company != $empresaId) {
+                return 'Este lead pertenece a otra empresa. Cambia de empresa para verlo.';
+            }
+            return null; // OK
+        }
+
+        // Admin / Agente / cualquier otro con empresa definida
+        if (!empty($user->id_company)) {
+            if (!empty($model->id_company) && $model->id_company != $user->id_company) {
+                return 'Este lead pertenece a otra empresa. No tienes permiso para verlo.';
+            }
+            return null; // OK
+        }
+
+        // Fallback: sin empresa definida, permitir
+        return null;
+    }
+
     // ============================================
     // LISTA DE LEADS CON PAGINACIÓN
     // ============================================
@@ -63,32 +120,32 @@ class LeadController extends Controller
     {
         try {
             $user = Yii::$app->user->identity;
-            
+
             // 🔥 ESTADOS PERMITIDOS (SIN CANCELADO)
             $estadosPermitidos = ['Nuevo', 'Contactado', 'Procesando', 'Completado'];
-            
+
             // 🔥 OBTENER LA EMPRESA SELECCIONADA EN SESIÓN
             $empresaId = Yii::$app->session->get('empresa_id');
-            
+
             // Si es Super Admin y no tiene empresa seleccionada
             if ($user->isSuperAdmin() && empty($empresaId)) {
                 Yii::$app->session->setFlash('warning', 'Por favor, selecciona una empresa para continuar.');
                 return $this->redirect(['empresa/index']);
             }
-            
+
             $search = Yii::$app->request->get('search');
             $status = Yii::$app->request->get('status');
             $fecha_inicio = Yii::$app->request->get('fecha_inicio');
             $fecha_fin = Yii::$app->request->get('fecha_fin');
-            
-            // 🔥 EXCLUIR PAPELERA (Inactivo) Y CANCELADOS
-            $idPapelera = $this->getStatusInactivoId();
+
+            // 🔥 EXCLUIR PAPELERA (Eliminado) Y CANCELADOS
+            $idEliminado = $this->getStatusEliminadoId();
             $idCancelado = $this->getStatusCanceladoId();
-            
+
             $excludeIds = [];
-            if ($idPapelera) $excludeIds[] = $idPapelera;
+            if ($idEliminado) $excludeIds[] = $idEliminado;
             if ($idCancelado) $excludeIds[] = $idCancelado;
-            
+
             // ============================================
             // 🔥 HELPER: Aplica filtro por rol/empresa
             // ============================================
@@ -108,21 +165,21 @@ class LeadController extends Controller
                 }
                 return $query;
             };
-            
+
             // ============================================
             // 🔥 CONSULTA CON DATAPROVIDER PARA PAGINACIÓN
             // ============================================
             $query = Lead::findWithDeleted()
                 ->orderBy(['Lead.created_at' => SORT_DESC]);
-            
+
             // 🔥 EXCLUIR PAPELERA Y CANCELADOS
             if (!empty($excludeIds)) {
                 $query->andWhere(['not in', 'Lead.id_status', $excludeIds]);
             }
-            
+
             // 🔥 FILTROS POR ROL Y EMPRESA
             $applyLeadFilter($query);
-            
+
             // Filtros
             if (!empty($search)) {
                 $query->andWhere(['or',
@@ -132,22 +189,22 @@ class LeadController extends Controller
                     ['like', 'Lead.phone', $search],
                 ]);
             }
-            
+
             if (!empty($status)) {
                 $statusModel = Status::find()->where(['status' => $status])->one();
                 if ($statusModel) {
                     $query->andWhere(['Lead.id_status' => $statusModel->id_status]);
                 }
             }
-            
+
             if (!empty($fecha_inicio)) {
                 $query->andWhere(['>=', 'Lead.created_at', $fecha_inicio]);
             }
-            
+
             if (!empty($fecha_fin)) {
                 $query->andWhere(['<=', 'Lead.created_at', $fecha_fin]);
             }
-            
+
             // 🔥 DATAPROVIDER CON PAGINACIÓN
             $dataProvider = new ActiveDataProvider([
                 'query' => $query,
@@ -203,15 +260,15 @@ class LeadController extends Controller
             // ============================================
             // 🔥 MÉTRICAS POR ESTADO (DINÁMICAS)
             // ============================================
-            
+
             $statusNuevo      = Status::find()->where(['status' => 'Nuevo'])->one();
             $statusContactado = Status::find()->where(['status' => 'Contactado'])->one();
             $statusProcesando = Status::find()->where(['status' => 'Procesando'])->one();
-            
+
             $idStatusNuevo      = $statusNuevo      ? $statusNuevo->id_status      : null;
             $idStatusContactado = $statusContactado ? $statusContactado->id_status : null;
             $idStatusProcesando = $statusProcesando ? $statusProcesando->id_status : null;
-            
+
             // TOTAL LEADS (excluyendo papelera y cancelados)
             $totalLeadsQuery = Lead::findWithDeleted();
             if (!empty($excludeIds)) {
@@ -219,7 +276,7 @@ class LeadController extends Controller
             }
             $applyLeadFilter($totalLeadsQuery);
             $totalLeads = $totalLeadsQuery->count();
-            
+
             // NUEVO
             $nuevoCount = 0;
             if ($idStatusNuevo) {
@@ -227,7 +284,7 @@ class LeadController extends Controller
                 $applyLeadFilter($queryNuevo);
                 $nuevoCount = $queryNuevo->count();
             }
-            
+
             // CONTACTADO
             $contactadoCount = 0;
             if ($idStatusContactado) {
@@ -235,7 +292,7 @@ class LeadController extends Controller
                 $applyLeadFilter($queryContactado);
                 $contactadoCount = $queryContactado->count();
             }
-            
+
             // PROCESANDO
             $procesandoCount = 0;
             if ($idStatusProcesando) {
@@ -243,14 +300,14 @@ class LeadController extends Controller
                 $applyLeadFilter($queryProcesando);
                 $procesandoCount = $queryProcesando->count();
             }
-            
+
             // PORCENTAJES
             $totalParaPorcentajes = $totalLeads > 0 ? $totalLeads : 1;
-            
+
             $porcentajeNuevo      = round(($nuevoCount / $totalParaPorcentajes) * 100, 1);
             $porcentajeContactado = round(($contactadoCount / $totalParaPorcentajes) * 100, 1);
             $porcentajeProcesando = round(($procesandoCount / $totalParaPorcentajes) * 100, 1);
-            
+
             // ALIAS PARA COMPATIBILIDAD CON LA VISTA
             $nuevosMes   = $nuevoCount;
             $contactados = $contactadoCount;
@@ -264,7 +321,7 @@ class LeadController extends Controller
             $contactado     = $contactadoCount;
             $calificado     = 0;
             $ganado         = 0;
-            
+
             $totalEmbudo = $nuevoProspecto + $contactado + $calificado + $ganado;
             $embudo = [
                 'nuevo' => (int)$nuevoProspecto,
@@ -284,11 +341,11 @@ class LeadController extends Controller
                 $trackingsQuery = SalesTracking::find()
                     ->alias('st')
                     ->leftJoin('Lead l', 'st.id_lead = l.id_lead');
-                
+
                 if (!empty($excludeIds)) {
                     $trackingsQuery->andWhere(['not in', 'l.id_status', $excludeIds]);
                 }
-                
+
                 if ($user && $user->isAgent()) {
                     $trackingsQuery->andWhere(['l.id_user' => $user->id_user]);
                 } elseif ($user && $user->isSuperAdmin()) {
@@ -298,11 +355,11 @@ class LeadController extends Controller
                 } elseif ($user && $user->isAdmin() && !$user->isSuperAdmin()) {
                     $trackingsQuery->andWhere(['l.id_company' => $user->id_company]);
                 }
-                
+
                 $trackings = $trackingsQuery->orderBy(['st.date_s' => SORT_DESC, 'st.hour' => SORT_DESC])
                     ->limit(5)
                     ->all();
-                
+
                 foreach ($trackings as $tracking) {
                     if ($tracking->lead) {
                         $actividadesRecientes[] = [
@@ -331,11 +388,11 @@ class LeadController extends Controller
                         ->alias('q')
                         ->leftJoin('Lead l', 'q.id_lead = l.id_lead')
                         ->where(['q.id_status' => $statusPendiente->id_status]);
-                    
+
                     if (!empty($excludeIds)) {
                         $quotesQuery->andWhere(['not in', 'l.id_status', $excludeIds]);
                     }
-                    
+
                     if ($user && $user->isAgent()) {
                         $quotesQuery->andWhere(['l.id_user' => $user->id_user]);
                     } elseif ($user && $user->isSuperAdmin()) {
@@ -345,11 +402,11 @@ class LeadController extends Controller
                     } elseif ($user && $user->isAdmin() && !$user->isSuperAdmin()) {
                         $quotesQuery->andWhere(['l.id_company' => $user->id_company]);
                     }
-                    
+
                     $quotes = $quotesQuery->orderBy(['q.date_quote' => SORT_ASC])
                         ->limit(3)
                         ->all();
-                    
+
                     foreach ($quotes as $quote) {
                         if ($quote->lead) {
                             $proximasActividades[] = [
@@ -380,11 +437,11 @@ class LeadController extends Controller
                     ->leftJoin('Lead l', 'st.id_lead = l.id_lead')
                     ->andWhere(['IS NOT', 'st.date_f', null])
                     ->andWhere(['>', 'st.date_f', $fechaHoy]);
-                
+
                 if (!empty($excludeIds)) {
                     $proximosTrackingsQuery->andWhere(['not in', 'l.id_status', $excludeIds]);
                 }
-                
+
                 if ($user && $user->isAgent()) {
                     $proximosTrackingsQuery->andWhere(['l.id_user' => $user->id_user]);
                 } elseif ($user && $user->isSuperAdmin()) {
@@ -394,11 +451,11 @@ class LeadController extends Controller
                 } elseif ($user && $user->isAdmin() && !$user->isSuperAdmin()) {
                     $proximosTrackingsQuery->andWhere(['l.id_company' => $user->id_company]);
                 }
-                
+
                 $proximosTrackings = $proximosTrackingsQuery->orderBy(['st.date_f' => SORT_ASC])
                     ->limit(5)
                     ->all();
-                
+
                 foreach ($proximosTrackings as $tracking) {
                     if ($tracking->lead) {
                         $diasRestantes = (int) floor((strtotime($tracking->date_f) - strtotime($fechaHoy)) / 86400);
@@ -468,7 +525,7 @@ class LeadController extends Controller
                 'proximasActividades' => $proximasActividades,
                 'embudo' => $embudo,
             ]);
-            
+
         } catch (\Exception $e) {
             ErrorManager::handle($e, 'Error al cargar los leads');
             return $this->render('index', [
@@ -504,12 +561,12 @@ class LeadController extends Controller
     {
         try {
             Yii::$app->response->format = \yii\web\Response::FORMAT_HTML;
-            
+
             $model = Lead::findWithDeleted()
                 ->where(['id_lead' => $id])
                 ->with('salesTrackings')
                 ->one();
-            
+
             if (!$model) {
                 return $this->renderPartial('_view_modal', [
                     'model' => null,
@@ -521,11 +578,11 @@ class LeadController extends Controller
                 'model' => $model,
                 'error' => null,
             ]);
-            
+
         } catch (\Exception $e) {
             Yii::error('Error en actionViewModal: ' . $e->getMessage(), 'lead-view-modal');
             Yii::error('Stack trace: ' . $e->getTraceAsString(), 'lead-view-modal');
-            
+
             return $this->renderPartial('_view_modal', [
                 'model' => null,
                 'error' => 'Error al cargar el lead: ' . $e->getMessage()
@@ -542,9 +599,9 @@ class LeadController extends Controller
             $user = Yii::$app->user->identity;
             $isModal = Yii::$app->request->get('modal', false);
             $isAjax = Yii::$app->request->isAjax;
-            
+
             $estadosPermitidos = ['Nuevo', 'Contactado', 'Procesando', 'Completado'];
-            
+
             $model = Lead::findWithDeleted()
                 ->where(['id_lead' => $id])
                 ->one();
@@ -561,42 +618,20 @@ class LeadController extends Controller
             }
 
             // ============================================
-            // 🔥 VERIFICACIÓN DE PERMISOS
+            // 🔥 VERIFICACIÓN DE PERMISOS (relajada)
             // ============================================
-            if ($user && $user->isAgent()) {
-                if ($model->id_user != $user->id_user) {
-                    if ($isModal || $isAjax) {
-                        return $this->renderPartial('_update_modal', [
-                            'model' => null,
-                            'error' => 'No tienes permiso para editar este lead.'
-                        ]);
-                    }
-                    Yii::$app->session->setFlash('error', 'No tienes permiso para editar este lead.');
-                    return $this->redirect(['index']);
+            $empresaId = Yii::$app->session->get('empresa_id');
+            $accessError = $this->checkLeadAccess($model, $user, $empresaId);
+
+            if ($accessError !== null) {
+                if ($isModal || $isAjax) {
+                    return $this->renderPartial('_update_modal', [
+                        'model' => null,
+                        'error' => $accessError
+                    ]);
                 }
-            } elseif ($user && $user->isAdmin() && !$user->isSuperAdmin()) {
-                if ($model->id_company != $user->id_company) {
-                    if ($isModal || $isAjax) {
-                        return $this->renderPartial('_update_modal', [
-                            'model' => null,
-                            'error' => 'No tienes permiso para editar este lead.'
-                        ]);
-                    }
-                    Yii::$app->session->setFlash('error', 'No tienes permiso para editar este lead.');
-                    return $this->redirect(['index']);
-                }
-            } elseif ($user && $user->isSuperAdmin()) {
-                $empresaId = Yii::$app->session->get('empresa_id');
-                if (!empty($empresaId) && $model->id_company != $empresaId) {
-                    if ($isModal || $isAjax) {
-                        return $this->renderPartial('_update_modal', [
-                            'model' => null,
-                            'error' => 'No tienes permiso para editar este lead.'
-                        ]);
-                    }
-                    Yii::$app->session->setFlash('error', 'No tienes permiso para editar este lead.');
-                    return $this->redirect(['index']);
-                }
+                Yii::$app->session->setFlash('error', $accessError);
+                return $this->redirect(['index']);
             }
 
             $returnUrl = Yii::$app->request->get('return', 'index');
@@ -623,11 +658,11 @@ class LeadController extends Controller
                                 'success' => 'Lead actualizado exitosamente'
                             ]);
                         }
-                        
+
                         // 🔥 RESPUESTA PARA VISTA COMPLETA
                         Yii::$app->session->setFlash('success', 'Lead actualizado exitosamente');
                         return $this->redirect(['view', 'id' => $model->id_lead]);
-                        
+
                     } else {
                         // 🔥 ERROR DE VALIDACIÓN EN MODAL
                         if ($isModal || $isAjax) {
@@ -702,23 +737,22 @@ class LeadController extends Controller
         try {
             $user = Yii::$app->user->identity;
             $empresaId = Yii::$app->session->get('empresa_id');
-            
+
             if (!$user || !$user->isAdmin()) {
                 Yii::$app->session->setFlash('error', 'No tienes permiso para acceder a la papelera.');
                 return $this->redirect(['index']);
             }
-            
-            $idPapelera = $this->getStatusInactivoId();
-            
-            if (!$idPapelera) {
-                Yii::$app->session->setFlash('warning', 'No se encontró el estado "Inactivo".');
+
+            $idEliminado = $this->getStatusEliminadoId();
+
+            if (!$idEliminado) {
+                Yii::$app->session->setFlash('warning', 'No se encontró el estado "Eliminado".');
                 return $this->redirect(['index']);
             }
-            
-            // 🔥 USAR findWithDeleted() porque find() filtra por Cancelado
+
             $query = Lead::findWithDeleted()
-                ->where(['Lead.id_status' => $idPapelera]);
-            
+                ->where(['Lead.id_status' => $idEliminado]);
+
             if ($user->isSuperAdmin()) {
                 if (!empty($empresaId)) {
                     $query->andWhere(['Lead.id_company' => $empresaId]);
@@ -726,13 +760,13 @@ class LeadController extends Controller
             } elseif (!$user->isSuperAdmin()) {
                 $query->andWhere(['Lead.id_company' => $user->id_company]);
             }
-            
+
             $leads = $query->all();
 
             return $this->render('trash', [
                 'leads' => $leads,
             ]);
-            
+
         } catch (\Exception $e) {
             ErrorManager::handle($e, 'Error al cargar la papelera');
             return $this->render('trash', [
@@ -749,7 +783,7 @@ class LeadController extends Controller
         try {
             $user = Yii::$app->user->identity;
             $empresaId = Yii::$app->session->get('empresa_id');
-            
+
             $model = Lead::findWithDeleted()
                 ->where(['id_lead' => $id])
                 ->with('salesTrackings')
@@ -760,21 +794,14 @@ class LeadController extends Controller
                 return $this->redirect(['index']);
             }
 
-            if ($user && $user->isAgent()) {
-                if ($model->id_user != $user->id_user) {
-                    Yii::$app->session->setFlash('error', 'No tienes permiso para ver este lead.');
-                    return $this->redirect(['index']);
-                }
-            } elseif ($user && $user->isSuperAdmin()) {
-                if (!empty($empresaId) && $model->id_company != $empresaId) {
-                    Yii::$app->session->setFlash('error', 'No tienes permiso para ver este lead.');
-                    return $this->redirect(['index']);
-                }
-            } elseif ($user && $user->isAdmin() && !$user->isSuperAdmin()) {
-                if ($model->id_company != $user->id_company) {
-                    Yii::$app->session->setFlash('error', 'No tienes permiso para ver este lead.');
-                    return $this->redirect(['index']);
-                }
+            // ============================================
+            // 🔥 VERIFICACIÓN DE PERMISOS (relajada)
+            // ============================================
+            $accessError = $this->checkLeadAccess($model, $user, $empresaId);
+
+            if ($accessError !== null) {
+                Yii::$app->session->setFlash('error', $accessError);
+                return $this->redirect(['index']);
             }
 
             $estadosPermitidos = ['Nuevo', 'Contactado', 'Procesando', 'Completado'];
@@ -788,7 +815,7 @@ class LeadController extends Controller
                 'model' => $model,
                 'statusList' => $statusList,
             ]);
-            
+
         } catch (\Exception $e) {
             ErrorManager::handle($e, 'Error al cargar la información del lead.');
             return $this->redirect(['index']);
@@ -796,105 +823,241 @@ class LeadController extends Controller
     }
 
     // ============================================
-    // MOVER A PAPELERA
+    // MOVER A PAPELERA (CON ELIMINACIÓN EN CASCADA)
+    // Usa updateAll para evitar beforeSave de Quote
     // ============================================
     public function actionDelete($id)
     {
+        $transaction = Yii::$app->db->beginTransaction();
+
         try {
             $user = Yii::$app->user->identity;
             $empresaId = Yii::$app->session->get('empresa_id');
-            
+
             if (!$user || !$user->isAdmin()) {
                 Yii::$app->session->setFlash('error', 'No tienes permiso para eliminar leads.');
                 return $this->redirect(['index']);
             }
-            
+
             $model = Lead::findWithDeleted()
                 ->where(['id_lead' => $id])
                 ->one();
-            
-            if ($model) {
-                if ($user->isSuperAdmin()) {
-                    if (!empty($empresaId) && $model->id_company != $empresaId) {
-                        Yii::$app->session->setFlash('error', 'No tienes permiso para eliminar este lead.');
-                        return $this->redirect(['index']);
-                    }
-                } elseif (!$user->isSuperAdmin() && $model->id_company != $user->id_company) {
+
+            if (!$model) {
+                $transaction->rollBack();
+                Yii::$app->session->setFlash('error', 'Lead no encontrado.');
+                return $this->redirect(['index']);
+            }
+
+            // 🔥 VERIFICAR PERMISOS POR EMPRESA
+            if ($user->isSuperAdmin()) {
+                if (!empty($empresaId) && $model->id_company != $empresaId) {
+                    $transaction->rollBack();
                     Yii::$app->session->setFlash('error', 'No tienes permiso para eliminar este lead.');
                     return $this->redirect(['index']);
                 }
-                
-                $idPapelera = $this->getStatusInactivoId();
-                
-                if (!$idPapelera) {
-                    Yii::$app->session->setFlash('error', 'No se encontró el estado "Inactivo".');
-                    return $this->redirect(['index']);
-                }
-                
-                if ($model->id_status == $idPapelera) {
-                    Yii::$app->session->setFlash('info', 'Este lead ya está en la papelera.');
-                    return $this->redirect(['index']);
-                }
-                
-                $model->id_status = $idPapelera;
-                if ($model->save(false)) {
-                    Yii::$app->session->setFlash('success', 'Lead movido a la papelera.');
-                } else {
-                    Yii::$app->session->setFlash('error', 'Error al mover el lead a la papelera.');
-                }
+            } elseif (!$user->isSuperAdmin() && $model->id_company != $user->id_company) {
+                $transaction->rollBack();
+                Yii::$app->session->setFlash('error', 'No tienes permiso para eliminar este lead.');
+                return $this->redirect(['index']);
             }
+
+            // 🔥 OBTENER ID DEL ESTADO "Eliminado"
+            $idEliminado = $this->getStatusEliminadoId();
+
+            if (!$idEliminado) {
+                $transaction->rollBack();
+                Yii::$app->session->setFlash('error', 'No se encontró el estado "Eliminado" en la base de datos.');
+                return $this->redirect(['index']);
+            }
+
+            if ($model->id_status == $idEliminado) {
+                $transaction->rollBack();
+                Yii::$app->session->setFlash('info', 'Este lead ya está en la papelera.');
+                return $this->redirect(['index']);
+            }
+
+            // ============================================
+            // 1️⃣ MOVER EL LEAD A "Eliminado"
+            // ============================================
+            $model->id_status = $idEliminado;
+            if (!$model->save(false)) {
+                $transaction->rollBack();
+                Yii::$app->session->setFlash('error', 'Error al mover el lead a la papelera.');
+                return $this->redirect(['index']);
+            }
+
+            // ============================================
+            // 2️⃣ ELIMINAR COTIZACIONES DEL LEAD (updateAll)
+            // updateAll NO dispara beforeSave → evita que
+            // el estado "Eliminado" sea sobrescrito por "Completado"
+            // ============================================
+            $cotizacionesEliminadas = Quote::updateAll(
+                ['id_status' => $idEliminado],
+                ['id_lead' => $model->id_lead]
+            );
+
+            // ============================================
+            // 3️⃣ ELIMINAR SEGUIMIENTOS DEL LEAD (updateAll)
+            // ============================================
+            $seguimientosEliminados = SalesTracking::updateAll(
+                ['id_status' => $idEliminado],
+                ['id_lead' => $model->id_lead]
+            );
+
+            // ============================================
+            // 4️⃣ ELIMINAR EVALUACIONES/REPORTES DEL LEAD (updateAll)
+            // ============================================
+            $evaluacionesEliminadas = 0;
+            try {
+                $evaluacionesEliminadas = Report::updateAll(
+                    ['id_status' => $idEliminado],
+                    ['id_lead' => $model->id_lead]
+                );
+            } catch (\Exception $e) {
+                Yii::warning('Error al eliminar reportes del lead ' . $model->id_lead . ': ' . $e->getMessage());
+            }
+
+            $transaction->commit();
+
+            // 🔥 MENSAJE INFORMATIVO
+            $msg = 'Lead movido a la papelera.';
+            if ($cotizacionesEliminadas > 0) {
+                $msg .= ' Se eliminaron ' . $cotizacionesEliminadas . ' cotización(es).';
+            }
+            if ($seguimientosEliminados > 0) {
+                $msg .= ' Se eliminaron ' . $seguimientosEliminados . ' seguimiento(s).';
+            }
+            if ($evaluacionesEliminadas > 0) {
+                $msg .= ' Se eliminaron ' . $evaluacionesEliminadas . ' evaluación(es).';
+            }
+
+            Yii::$app->session->setFlash('success', $msg);
+
         } catch (\Exception $e) {
+            $transaction->rollBack();
             ErrorManager::handle($e, 'Error al eliminar el lead.');
+            Yii::$app->session->setFlash('error', 'Error al eliminar el lead: ' . $e->getMessage());
         }
 
         return $this->redirect(['index']);
     }
 
     // ============================================
-    // RESTAURAR
+    // RESTAURAR (CON RESTAURACIÓN EN CASCADA)
+    // Usa updateAll para evitar beforeSave
     // ============================================
     public function actionRestore($id)
     {
+        $transaction = Yii::$app->db->beginTransaction();
+
         try {
             $user = Yii::$app->user->identity;
             $empresaId = Yii::$app->session->get('empresa_id');
-            
+
             if (!$user || !$user->isAdmin()) {
                 Yii::$app->session->setFlash('error', 'No tienes permiso para restaurar leads.');
                 return $this->redirect(['index']);
             }
-            
+
             $model = Lead::findWithDeleted()
                 ->where(['id_lead' => $id])
                 ->one();
-            
-            if ($model) {
-                if ($user->isSuperAdmin()) {
-                    if (!empty($empresaId) && $model->id_company != $empresaId) {
-                        Yii::$app->session->setFlash('error', 'No tienes permiso para restaurar este lead.');
-                        return $this->redirect(['trash']);
-                    }
-                } elseif (!$user->isSuperAdmin() && $model->id_company != $user->id_company) {
+
+            if (!$model) {
+                $transaction->rollBack();
+                Yii::$app->session->setFlash('error', 'Lead no encontrado.');
+                return $this->redirect(['trash']);
+            }
+
+            // 🔥 VERIFICAR PERMISOS
+            if ($user->isSuperAdmin()) {
+                if (!empty($empresaId) && $model->id_company != $empresaId) {
+                    $transaction->rollBack();
                     Yii::$app->session->setFlash('error', 'No tienes permiso para restaurar este lead.');
                     return $this->redirect(['trash']);
                 }
-                
-                $idPapelera = $this->getStatusInactivoId();
-                
-                if ($model->id_status != $idPapelera) {
-                    Yii::$app->session->setFlash('info', 'Este lead no está en la papelera.');
-                    return $this->redirect(['index']);
-                }
-                
-                $model->id_status = $this->getStatusNuevoId();
-                if ($model->save(false)) {
-                    Yii::$app->session->setFlash('success', 'Lead restaurado exitosamente con estado "Nuevo".');
-                } else {
-                    Yii::$app->session->setFlash('error', 'Error al restaurar el lead.');
+            } elseif (!$user->isSuperAdmin() && $model->id_company != $user->id_company) {
+                $transaction->rollBack();
+                Yii::$app->session->setFlash('error', 'No tienes permiso para restaurar este lead.');
+                return $this->redirect(['trash']);
+            }
+
+            // 🔥 IDs DE ESTADOS
+            $idEliminado = $this->getStatusEliminadoId();
+            $idNuevo = $this->getStatusNuevoId();
+            $idPendiente = $this->getStatusPendienteId();
+            $idActivo = null;
+
+            $statusActivo = Status::find()->where(['status' => 'Activo'])->one();
+            if ($statusActivo) {
+                $idActivo = $statusActivo->id_status;
+            }
+
+            if ($model->id_status != $idEliminado) {
+                $transaction->rollBack();
+                Yii::$app->session->setFlash('info', 'Este lead no está en la papelera.');
+                return $this->redirect(['index']);
+            }
+
+            // ============================================
+            // 1️⃣ RESTAURAR EL LEAD A "NUEVO"
+            // ============================================
+            $model->id_status = $idNuevo;
+            if (!$model->save(false)) {
+                $transaction->rollBack();
+                Yii::$app->session->setFlash('error', 'Error al restaurar el lead.');
+                return $this->redirect(['trash']);
+            }
+
+            // ============================================
+            // 2️⃣ RESTAURAR SEGUIMIENTOS (Eliminado → Pendiente)
+            // ============================================
+            $seguimientosRestaurados = 0;
+
+            if ($idPendiente) {
+                $seguimientosRestaurados = SalesTracking::updateAll(
+                    ['id_status' => $idPendiente],
+                    ['id_lead' => $model->id_lead, 'id_status' => $idEliminado]
+                );
+            }
+
+            // ============================================
+            // 3️⃣ RESTAURAR EVALUACIONES (Eliminado → Activo)
+            // ============================================
+            $evaluacionesRestauradas = 0;
+
+            if ($idActivo) {
+                try {
+                    $evaluacionesRestauradas = Report::updateAll(
+                        ['id_status' => $idActivo],
+                        ['id_lead' => $model->id_lead, 'id_status' => $idEliminado]
+                    );
+                } catch (\Exception $e) {
+                    Yii::warning('Error al restaurar reportes del lead ' . $model->id_lead . ': ' . $e->getMessage());
                 }
             }
+
+            // ⚠️ Las cotizaciones NO se restauran automáticamente
+            // (se quedan en "Eliminado" porque pudieron haberse cerrado como venta)
+
+            $transaction->commit();
+
+            $msg = 'Lead restaurado exitosamente con estado "Nuevo".';
+            if ($seguimientosRestaurados > 0) {
+                $msg .= ' Se restauraron ' . $seguimientosRestaurados . ' seguimiento(s).';
+            }
+            if ($evaluacionesRestauradas > 0) {
+                $msg .= ' Se restauraron ' . $evaluacionesRestauradas . ' evaluación(es).';
+            }
+            $msg .= ' Las cotizaciones permanecen en papelera.';
+
+            Yii::$app->session->setFlash('success', $msg);
+
         } catch (\Exception $e) {
+            $transaction->rollBack();
             ErrorManager::handle($e, 'Error al restaurar el lead.');
+            Yii::$app->session->setFlash('error', 'Error al restaurar el lead: ' . $e->getMessage());
         }
 
         return $this->redirect(['trash']);
@@ -908,7 +1071,7 @@ class LeadController extends Controller
         try {
             $user = Yii::$app->user->identity;
             $empresaId = Yii::$app->session->get('empresa_id');
-            
+
             $model = Lead::findWithDeleted()
                 ->where(['id_lead' => $id])
                 ->one();
@@ -918,21 +1081,10 @@ class LeadController extends Controller
                 return $this->redirect(['view', 'id' => $id]);
             }
 
-            if ($user && $user->isAgent()) {
-                if ($model->id_user != $user->id_user) {
-                    Yii::$app->session->setFlash('error', 'No tienes permiso para cambiar el estado de este lead.');
-                    return $this->redirect(['view', 'id' => $id]);
-                }
-            } elseif ($user && $user->isSuperAdmin()) {
-                if (!empty($empresaId) && $model->id_company != $empresaId) {
-                    Yii::$app->session->setFlash('error', 'No tienes permiso para cambiar el estado de este lead.');
-                    return $this->redirect(['view', 'id' => $id]);
-                }
-            } elseif ($user && $user->isAdmin() && !$user->isSuperAdmin()) {
-                if ($model->id_company != $user->id_company) {
-                    Yii::$app->session->setFlash('error', 'No tienes permiso para cambiar el estado de este lead.');
-                    return $this->redirect(['view', 'id' => $id]);
-                }
+            $accessError = $this->checkLeadAccess($model, $user, $empresaId);
+            if ($accessError !== null) {
+                Yii::$app->session->setFlash('error', $accessError);
+                return $this->redirect(['view', 'id' => $id]);
             }
 
             $statusModel = Status::find()->where(['status' => $status])->one();
@@ -943,11 +1095,11 @@ class LeadController extends Controller
 
             $oldStatus = $model->getStatusName();
             $model->id_status = $statusModel->id_status;
-            
+
             if ($model->save(false)) {
                 Yii::$app->session->removeAllFlashes();
                 Yii::$app->session->setFlash('success', 'Estado actualizado de "' . $oldStatus . '" a "' . $status . '"');
-                
+
                 try {
                     $tracking = new SalesTracking();
                     $tracking->id_lead = $model->id_lead;
@@ -963,7 +1115,7 @@ class LeadController extends Controller
             }
 
             return $this->redirect(['view', 'id' => $id]);
-            
+
         } catch (\Exception $e) {
             ErrorManager::handle($e, 'Error al cambiar el estado.');
             return $this->redirect(['view', 'id' => $id]);
@@ -987,7 +1139,7 @@ class LeadController extends Controller
             try {
                 $user = Yii::$app->user->identity;
                 $empresaId = Yii::$app->session->get('empresa_id');
-                
+
                 if ($user->isSuperAdmin()) {
                     if (!empty($empresaId)) {
                         $model->id_company = $empresaId;
@@ -999,14 +1151,14 @@ class LeadController extends Controller
                 } else {
                     $model->id_company = 1;
                 }
-                
+
                 $model->id_status = $idStatusNuevo;
-                
+
                 // 🔥 Validar created_at
                 if (empty($model->created_at) || $model->created_at === '0000-00-00') {
                     $model->created_at = date('Y-m-d');
                 }
-                
+
                 if ($user && $user->isAgent()) {
                     $model->id_user = $user->id_user;
                 } else {
@@ -1035,20 +1187,20 @@ class LeadController extends Controller
 
         $user = Yii::$app->user->identity;
         $empresaId = Yii::$app->session->get('empresa_id');
-        
-        $idPapelera = $this->getStatusInactivoId();
+
+        $idEliminado = $this->getStatusEliminadoId();
         $idCancelado = $this->getStatusCanceladoId();
-        
+
         $excludeIds = [];
-        if ($idPapelera) $excludeIds[] = $idPapelera;
+        if ($idEliminado) $excludeIds[] = $idEliminado;
         if ($idCancelado) $excludeIds[] = $idCancelado;
-        
+
         $ultimosLeads = Lead::findWithDeleted();
-        
+
         if (!empty($excludeIds)) {
             $ultimosLeads->andWhere(['not in', 'Lead.id_status', $excludeIds]);
         }
-        
+
         if ($user && $user->isAgent()) {
             $ultimosLeads->andWhere(['Lead.id_user' => $user->id_user]);
         } elseif ($user && $user->isSuperAdmin()) {
@@ -1058,7 +1210,7 @@ class LeadController extends Controller
         } elseif ($user && !$user->isSuperAdmin()) {
             $ultimosLeads->andWhere(['Lead.id_company' => $user->id_company]);
         }
-        
+
         $ultimosLeads = $ultimosLeads->orderBy(['id_lead' => SORT_DESC])->limit(5)->all();
 
         $statusList = Status::find()
@@ -1083,7 +1235,7 @@ class LeadController extends Controller
         try {
             $user = Yii::$app->user->identity;
             $empresaId = Yii::$app->session->get('empresa_id');
-            
+
             $model = Lead::findWithDeleted()
                 ->where(['id_lead' => $id])
                 ->with(['salesTrackings', 'quotes', 'user', 'company', 'status'])
@@ -1095,48 +1247,74 @@ class LeadController extends Controller
             }
 
             // ============================================
-            // 🔥 VERIFICACIÓN DE PERMISOS
+            // 🔥 VERIFICACIÓN DE PERMISOS (relajada)
             // ============================================
-            if ($user && $user->isAgent()) {
-                if ($model->id_user != $user->id_user) {
-                    Yii::$app->session->setFlash('error', 'No tienes permiso para ver este lead.');
-                    return $this->redirect(['index']);
-                }
-            } elseif ($user && $user->isSuperAdmin()) {
-                if (!empty($empresaId) && $model->id_company != $empresaId) {
-                    Yii::$app->session->setFlash('error', 'No tienes permiso para ver este lead.');
-                    return $this->redirect(['index']);
-                }
-            } elseif ($user && $user->isAdmin() && !$user->isSuperAdmin()) {
-                if ($model->id_company != $user->id_company) {
-                    Yii::$app->session->setFlash('error', 'No tienes permiso para ver este lead.');
-                    return $this->redirect(['index']);
-                }
+            $accessError = $this->checkLeadAccess($model, $user, $empresaId);
+
+            if ($accessError !== null) {
+                Yii::$app->session->setFlash('error', $accessError);
+                return $this->redirect(['index']);
             }
 
             // ============================================
-            // 🔥 CARGAR EVALUACIONES DEL LEAD
+            // 🔥 CARGAR EVALUACIONES (con fallback seguro)
             // ============================================
-            $evaluaciones = $model->getReports()
-                ->with(['status', 'user'])
-                ->all();
-            $totalEvaluaciones = count($evaluaciones);
+            $evaluaciones = [];
+            $totalEvaluaciones = 0;
+
+            try {
+                if (method_exists($model, 'getReports')) {
+                    $evaluaciones = $model->getReports()
+                        ->with(['status', 'user'])
+                        ->all();
+                    $totalEvaluaciones = count($evaluaciones);
+                }
+            } catch (\Exception $e) {
+                Yii::warning('No se pudieron cargar evaluaciones del lead ' . $id . ': ' . $e->getMessage(), 'lead-details');
+                $evaluaciones = [];
+                $totalEvaluaciones = 0;
+            }
 
             // ============================================
-            // 🔥 CARGAR SEGUIMIENTOS Y COTIZACIONES
+            // 🔥 CARGAR SEGUIMIENTOS (con fallback seguro)
             // ============================================
-            $trackings = $model->salesTrackings ?? [];
-            $totalTrackings = count($trackings);
+            $trackings = [];
+            $totalTrackings = 0;
 
-            $quotes = $model->quotes ?? [];
-            $totalQuotes = count($quotes);
+            try {
+                if (method_exists($model, 'getSalesTrackings')) {
+                    $trackings = $model->salesTrackings ?? [];
+                    $totalTrackings = count($trackings);
+                }
+            } catch (\Exception $e) {
+                Yii::warning('No se pudieron cargar seguimientos del lead ' . $id . ': ' . $e->getMessage(), 'lead-details');
+                $trackings = [];
+                $totalTrackings = 0;
+            }
+
+            // ============================================
+            // 🔥 CARGAR COTIZACIONES (con fallback seguro)
+            // ============================================
+            $quotes = [];
+            $totalQuotes = 0;
+
+            try {
+                if (method_exists($model, 'getQuotes')) {
+                    $quotes = $model->quotes ?? [];
+                    $totalQuotes = count($quotes);
+                }
+            } catch (\Exception $e) {
+                Yii::warning('No se pudieron cargar cotizaciones del lead ' . $id . ': ' . $e->getMessage(), 'lead-details');
+                $quotes = [];
+                $totalQuotes = 0;
+            }
 
             // ============================================
             // 🔥 DATOS ADICIONALES
             // ============================================
-            $agentName = $model->getAgentName();
-            $statusName = $model->getStatusName();
-            $statusIcon = $model->getStatusIcon();
+            $agentName = method_exists($model, 'getAgentName') ? $model->getAgentName() : 'Sin asignar';
+            $statusName = method_exists($model, 'getStatusName') ? $model->getStatusName() : 'Sin Estado';
+            $statusIcon = method_exists($model, 'getStatusIcon') ? $model->getStatusIcon() : 'fa-circle';
 
             $statusColor = '#6c757d';
             $statusColors = [
@@ -1177,7 +1355,7 @@ class LeadController extends Controller
                 'isAgent'           => $user->isAgent(),
                 'isSuperAdmin'      => $user->isSuperAdmin(),
             ]);
-            
+
         } catch (\Exception $e) {
             Yii::error('Error en actionDetails: ' . $e->getMessage(), 'lead-details');
             Yii::error('Stack trace: ' . $e->getTraceAsString(), 'lead-details');

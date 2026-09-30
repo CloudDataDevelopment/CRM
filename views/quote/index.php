@@ -39,6 +39,7 @@ $search = isset($search) ? $search : '';
 $status = isset($status) ? $status : '';
 $fecha_inicio = isset($fecha_inicio) ? $fecha_inicio : '';
 $fecha_fin = isset($fecha_fin) ? $fecha_fin : '';
+$trashCount = isset($trashCount) ? $trashCount : 0;
 
 $hasData = !empty($quotes);
 $totalCount = $dataProvider ? $dataProvider->getTotalCount() : 0;
@@ -72,7 +73,11 @@ foreach ($quotes as $q) {
                 <?= $this->render('/layouts/_report_button') ?>
                 
                 <?php if ($isAdmin || $isSuperAdmin): ?>
-                    <?= Html::a('<i class="fas fa-trash"></i> Papelera', ['trash'], ['class' => 'btn btn-outline-danger btn-sm']) ?>
+                    <?= Html::a(
+                        '<i class="fas fa-trash"></i> Papelera' . ($trashCount > 0 ? ' (' . $trashCount . ')' : ''),
+                        ['trash'],
+                        ['class' => 'btn btn-outline-danger btn-sm']
+                    ) ?>
                 <?php endif; ?>
                 
                 <?= Html::a('<i class="fas fa-plus"></i> Nueva Cotización', ['create'], ['class' => 'btn btn-primary btn-sm']) ?>
@@ -134,8 +139,12 @@ foreach ($quotes as $q) {
             <div class="card-body">
                 <form method="get" action="<?= Url::to(['quote/index']) ?>" id="form-filtros">
                     <div class="row align-items-end">
-                        <div class="col-md-1"><label class="form-label fw-bold mb-0">Filtrar</label></div>
-                        <div class="col-md-3"><input type="text" class="form-control" name="search" placeholder="Buscar..." value="<?= Html::encode($search) ?>" id="search-input"></div>
+                        <div class="col-md-1">
+                            <label class="form-label fw-bold mb-0">Filtrar</label>
+                        </div>
+                        <div class="col-md-3">
+                            <input type="text" class="form-control" name="search" placeholder="Buscar..." value="<?= Html::encode($search) ?>" id="search-input">
+                        </div>
                         <div class="col-md-2">
                             <select class="form-select" name="status" id="status-select">
                                 <option value="">Todos los estados</option>
@@ -144,10 +153,24 @@ foreach ($quotes as $q) {
                                 <?php endforeach; ?>
                             </select>
                         </div>
-                        <div class="col-md-2"><input type="date" class="form-control" name="fecha_inicio" value="<?= Html::encode($fecha_inicio) ?>" id="fecha-inicio"></div>
-                        <div class="col-md-2"><input type="date" class="form-control" name="fecha_fin" value="<?= Html::encode($fecha_fin) ?>" id="fecha-fin"></div>
-                        <div class="col-md-1"><button type="submit" class="btn btn-primary w-100" id="btn-filtrar"><i class="fas fa-search"></i></button></div>
-                        <div class="col-md-1"><a href="<?= Url::to(['quote/index']) ?>" class="btn btn-secondary w-100" title="Limpiar"><i class="fas fa-undo"></i></a></div>
+                        <div class="col-md-2">
+                            <label class="form-label small text-muted mb-1" for="fecha-inicio">
+                                <i class="fas fa-calendar-alt"></i> Desde
+                            </label>
+                            <input type="date" class="form-control" name="fecha_inicio" value="<?= Html::encode($fecha_inicio) ?>" id="fecha-inicio">
+                        </div>
+                        <div class="col-md-2">
+                            <label class="form-label small text-muted mb-1" for="fecha-fin">
+                                <i class="fas fa-calendar-alt"></i> Hasta
+                            </label>
+                            <input type="date" class="form-control" name="fecha_fin" value="<?= Html::encode($fecha_fin) ?>" id="fecha-fin">
+                        </div>
+                        <div class="col-md-1">
+                            <button type="submit" class="btn btn-primary w-100" id="btn-filtrar"><i class="fas fa-search"></i></button>
+                        </div>
+                        <div class="col-md-1">
+                            <a href="<?= Url::to(['quote/index']) ?>" class="btn btn-secondary w-100" title="Limpiar"><i class="fas fa-undo"></i></a>
+                        </div>
                     </div>
                 </form>
             </div>
@@ -344,7 +367,6 @@ window.onQuoteUpdated = function(q) {
     if (!row) return;
 
     var cells = row.querySelectorAll('td');
-    // cells[0] = Cliente, cells[1] = Fecha, cells[2] = Total, cells[3] = Estado
     if (cells[2] && q.total_amount) {
         cells[2].innerHTML = '<strong>$' + parseInt(q.total_amount).toLocaleString('es-MX') + '</strong>';
     }
@@ -353,7 +375,6 @@ window.onQuoteUpdated = function(q) {
         if (badge) badge.textContent = q.status_name;
     }
 
-    // Efecto verde
     row.style.transition = 'background-color 0.5s';
     row.style.backgroundColor = '#d4edda';
     setTimeout(function() { row.style.backgroundColor = ''; }, 1000);
