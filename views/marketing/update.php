@@ -30,9 +30,6 @@ $this->registerCssFile('@web/css/marketing.css', [
                 </h1>
             </div>
             <div class="header-actions">
-                <?= Html::a('<i class="fas fa-eye"></i> Ver', ['view', 'id' => $model->id], [
-                    'class' => 'btn btn-info btn-sm btn-header-action'
-                ]) ?>
                 <?= Html::a('<i class="fas fa-arrow-left"></i> Volver', ['index'], [
                     'class' => 'btn btn-secondary btn-sm btn-header-action'
                 ]) ?>

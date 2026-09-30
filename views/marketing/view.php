@@ -49,15 +49,6 @@ $isAdmin = $user->isAdmin() || $user->isSuperAdmin();
             </div>
         </div>
 
-        <!-- MENSAJE DE ÉXITO -->
-        <?php if (Yii::$app->session->hasFlash('success')): ?>
-            <div class="alert alert-success alert-dismissible fade show" role="alert">
-                <i class="fas fa-check-circle"></i>
-                <?= Yii::$app->session->getFlash('success') ?>
-                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-            </div>
-        <?php endif; ?>
-
         <!-- DETALLE -->
         <div class="marketing-detail">
 

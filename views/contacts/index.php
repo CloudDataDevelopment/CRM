@@ -94,7 +94,9 @@ $metricas = [
                             <select class="form-select" name="status" id="status-select">
                                 <option value="">Todos los estados</option>
                                 <?php foreach ($statusList as $id => $nombre): ?>
-                                    <option value="<?= $nombre ?>" <?= $status == $nombre ? 'selected' : '' ?>><?= ucfirst($nombre) ?></option>
+                                    <option value="<?= $id ?>" <?= $status == $id ? 'selected' : '' ?>>
+                                        <?= ucfirst($nombre) ?>
+                                    </option>
                                 <?php endforeach; ?>
                             </select>
                         </div>
@@ -102,7 +104,9 @@ $metricas = [
                             <select class="form-select" name="type" id="type-select">
                                 <option value="">Todos los tipos</option>
                                 <?php foreach ($typeList as $id => $nombre): ?>
-                                    <option value="<?= $nombre ?>" <?= $type == $nombre ? 'selected' : '' ?>><?= ucfirst($nombre) ?></option>
+                                    <option value="<?= $nombre ?>" <?= $type == $nombre ? 'selected' : '' ?>>
+                                        <?= ucfirst($nombre) ?>
+                                    </option>
                                 <?php endforeach; ?>
                             </select>
                         </div>

@@ -99,6 +99,77 @@ class SalesTrackingController extends Controller
     }
 
     // ============================================
+    // HELPER: Aplicar filtros por rol y empresa
+    // ============================================
+    private function applyRoleFilters($query, $userInfo)
+    {
+        $isSuperAdmin = $userInfo['isSuperAdmin'];
+        $isAdmin = $userInfo['isAdmin'];
+        $isAgent = $userInfo['isAgent'];
+        $empresaSeleccionada = $userInfo['empresaSeleccionada'];
+        $companyId = $userInfo['companyId'];
+        $userId = $userInfo['userId'];
+
+        if ($isSuperAdmin) {
+            if (!empty($empresaSeleccionada)) {
+                $leadIds = Lead::find()
+                    ->select('id_lead')
+                    ->where(['id_company' => $empresaSeleccionada])
+                    ->column();
+
+                if (!empty($leadIds)) {
+                    $query->andWhere(['st.id_lead' => $leadIds]);
+                } else {
+                    $query->andWhere(['st.id_sales_tracking' => -1]);
+                }
+            }
+        } elseif ($isAdmin && !$isSuperAdmin) {
+            $leadIds = Lead::find()
+                ->select('id_lead')
+                ->where(['id_company' => $companyId])
+                ->column();
+
+            if (!empty($leadIds)) {
+                $query->andWhere(['st.id_lead' => $leadIds]);
+            } else {
+                $query->andWhere(['st.id_sales_tracking' => -1]);
+            }
+        } elseif ($isAgent) {
+            $query->andWhere(['st.id_user' => $userId]);
+        }
+
+        return $query;
+    }
+
+    // ============================================
+    // HELPER: Normalizar nombre de estado
+    // 🔥 Convierte cualquier variante al nombre canónico
+    // ============================================
+    private function normalizeStatusName($rawStatus)
+    {
+        $raw = strtolower(trim($rawStatus ?? ''));
+        $raw = str_replace(['_', '-'], ' ', $raw);
+
+        if ($raw === 'pendiente') {
+            return 'Pendiente';
+        }
+        if ($raw === 'programado') {
+            return 'Programado';
+        }
+        if ($raw === 'en progreso' || $raw === 'enprogreso' || $raw === 'en proceso' || $raw === 'progreso') {
+            return 'En Progreso';
+        }
+        if ($raw === 'completado') {
+            return 'Completado';
+        }
+        if ($raw === 'cancelado') {
+            return 'Cancelado';
+        }
+
+        return null;
+    }
+
+    // ============================================
     // LISTA DE SEGUIMIENTOS CON PAGINACIÓN
     // ============================================
     public function actionIndex()
@@ -115,48 +186,74 @@ class SalesTrackingController extends Controller
         $isSuperAdmin = $userInfo['isSuperAdmin'];
         $empresaSeleccionada = $userInfo['empresaSeleccionada'];
 
-        // 🔥 CONSTRUIR CONSULTA BASE
+        $trashId = $this->getTrashStatusId();
+
+        // ============================================
+        // 🔥 QUERY BASE PARA MÉTRICAS (SIN FILTROS)
+        // ============================================
+        $baseQuery = SalesTracking::find()
+            ->alias('st')
+            ->leftJoin('Lead l', 'st.id_lead = l.id_lead')
+            ->leftJoin('Status s', 'st.id_status = s.id_status');
+
+        if ($trashId) {
+            $baseQuery->andWhere(['<>', 'st.id_status', $trashId]);
+        }
+
+        $this->applyRoleFilters($baseQuery, $userInfo);
+
+        // ============================================
+        // 🔥 MÉTRICAS FIJAS (SIEMPRE SIN FILTROS)
+        // ============================================
+
+        // Total (fijo)
+        $totalTrackings = (clone $baseQuery)->count();
+
+        // 🔥 Conteo por estado (normalizado para que las claves
+        // coincidan siempre con las métricas de la vista)
+        $statusCounts = [
+            'Pendiente'   => 0,
+            'Programado'  => 0,
+            'En Progreso' => 0,
+            'Completado'  => 0,
+            'Cancelado'   => 0,
+        ];
+
+        $allTrackings = (clone $baseQuery)->all();
+
+        foreach ($allTrackings as $t) {
+            $statusModel = Status::findOne($t->id_status);
+            if (!$statusModel) {
+                continue;
+            }
+
+            $key = $this->normalizeStatusName($statusModel->status);
+            if ($key !== null) {
+                $statusCounts[$key]++;
+            }
+        }
+
+        // Últimos 5 seguimientos (fijo, sin filtros)
+        $ultimosSeguimientos = (clone $baseQuery)
+            ->orderBy(['st.date_s' => SORT_DESC, 'st.hour' => SORT_DESC])
+            ->limit(5)
+            ->all();
+
+        // ============================================
+        // 🔥 QUERY PARA LA TABLA (CON FILTROS)
+        // ============================================
         $query = SalesTracking::find()
             ->alias('st')
             ->leftJoin('Lead l', 'st.id_lead = l.id_lead')
             ->leftJoin('Status s', 'st.id_status = s.id_status');
 
-        // 🔥 EXCLUIR SOLO LA PAPELERA ("Eliminado")
-        $trashId = $this->getTrashStatusId();
         if ($trashId) {
             $query->andWhere(['<>', 'st.id_status', $trashId]);
         }
 
-        // 🔥 FILTRO POR ROL Y EMPRESA
-        if ($isSuperAdmin) {
-            if (!empty($empresaSeleccionada)) {
-                $leadIds = Lead::find()
-                    ->select('id_lead')
-                    ->where(['id_company' => $empresaSeleccionada])
-                    ->column();
-                
-                if (!empty($leadIds)) {
-                    $query->andWhere(['st.id_lead' => $leadIds]);
-                } else {
-                    $query->andWhere(['st.id_sales_tracking' => -1]);
-                }
-            }
-        } elseif ($isAdmin && !$isSuperAdmin) {
-            $leadIds = Lead::find()
-                ->select('id_lead')
-                ->where(['id_company' => $companyId])
-                ->column();
-            
-            if (!empty($leadIds)) {
-                $query->andWhere(['st.id_lead' => $leadIds]);
-            } else {
-                $query->andWhere(['st.id_sales_tracking' => -1]);
-            }
-        } elseif ($isAgent) {
-            $query->andWhere(['st.id_user' => $userId]);
-        }
+        $this->applyRoleFilters($query, $userInfo);
 
-        // 🔥 FILTROS DE BÚSQUEDA
+        // 🔥 FILTROS DE BÚSQUEDA (solo aplican a la tabla)
         $search = Yii::$app->request->get('search', '');
         $status = Yii::$app->request->get('status', '');
         $fecha_inicio = Yii::$app->request->get('fecha_inicio', '');
@@ -231,30 +328,7 @@ class SalesTrackingController extends Controller
 
         $trackings = $dataProvider->getModels();
 
-        // 🔥 CONTAR POR ESTADO
-        $statusCounts = [];
         $statusList = SalesTracking::getStatusOptions();
-
-        $countQuery = clone $query;
-        $allTrackings = $countQuery->all();
-
-        foreach ($allTrackings as $t) {
-            $statusModel = Status::findOne($t->id_status);
-            if ($statusModel) {
-                $name = $statusModel->status;
-                if (!isset($statusCounts[$name])) {
-                    $statusCounts[$name] = 0;
-                }
-                $statusCounts[$name]++;
-            }
-        }
-
-        // 🔥 ÚLTIMOS 5 SEGUIMIENTOS
-        $ultimosQuery = clone $query;
-        $ultimosSeguimientos = $ultimosQuery
-            ->orderBy(['st.date_s' => SORT_DESC, 'st.hour' => SORT_DESC])
-            ->limit(5)
-            ->all();
 
         // 🔥 CONTAR PAPELERA
         $trashCount = 0;
@@ -264,33 +338,14 @@ class SalesTrackingController extends Controller
                 ->leftJoin('Lead l', 'st.id_lead = l.id_lead')
                 ->where(['st.id_status' => $trashId]);
 
-            if ($isSuperAdmin) {
-                if (!empty($empresaSeleccionada)) {
-                    $leadIds = Lead::find()->select('id_lead')->where(['id_company' => $empresaSeleccionada])->column();
-                    if (!empty($leadIds)) {
-                        $trashQuery->andWhere(['st.id_lead' => $leadIds]);
-                    } else {
-                        $trashQuery->andWhere(['st.id_sales_tracking' => -1]);
-                    }
-                }
-            } elseif ($isAdmin && !$isSuperAdmin) {
-                $leadIds = Lead::find()->select('id_lead')->where(['id_company' => $companyId])->column();
-                if (!empty($leadIds)) {
-                    $trashQuery->andWhere(['st.id_lead' => $leadIds]);
-                } else {
-                    $trashQuery->andWhere(['st.id_sales_tracking' => -1]);
-                }
-            } elseif ($isAgent) {
-                $trashQuery->andWhere(['st.id_user' => $userId]);
-            }
-
+            $this->applyRoleFilters($trashQuery, $userInfo);
             $trashCount = $trashQuery->count();
         }
 
         return $this->render('index', [
             'dataProvider' => $dataProvider,
             'trackings' => $trackings,
-            'totalTrackings' => $dataProvider->getTotalCount(),
+            'totalTrackings' => $totalTrackings,
             'statusCounts' => $statusCounts,
             'ultimosSeguimientos' => $ultimosSeguimientos,
             'trashCount' => $trashCount,
@@ -326,45 +381,16 @@ class SalesTrackingController extends Controller
             return $this->redirect(['index']);
         }
 
-        $userId = $userInfo['userId'];
-        $companyId = $userInfo['companyId'];
         $isAdmin = $userInfo['isAdmin'];
         $isSuperAdmin = $userInfo['isSuperAdmin'];
-        $empresaSeleccionada = $userInfo['empresaSeleccionada'];
 
-        // 🔥 QUERY BASE - Solo "Eliminado"
         $query = SalesTracking::find()
             ->alias('st')
             ->leftJoin('Lead l', 'st.id_lead = l.id_lead')
             ->leftJoin('Status s', 'st.id_status = s.id_status')
             ->andWhere(['st.id_status' => $trashId]);
 
-        // FILTRO POR ROL Y EMPRESA
-        if ($isSuperAdmin) {
-            if (!empty($empresaSeleccionada)) {
-                $leadIds = Lead::find()
-                    ->select('id_lead')
-                    ->where(['id_company' => $empresaSeleccionada])
-                    ->column();
-                
-                if (!empty($leadIds)) {
-                    $query->andWhere(['st.id_lead' => $leadIds]);
-                } else {
-                    $query->andWhere(['st.id_sales_tracking' => -1]);
-                }
-            }
-        } elseif ($isAdmin && !$isSuperAdmin) {
-            $leadIds = Lead::find()
-                ->select('id_lead')
-                ->where(['id_company' => $companyId])
-                ->column();
-            
-            if (!empty($leadIds)) {
-                $query->andWhere(['st.id_lead' => $leadIds]);
-            } else {
-                $query->andWhere(['st.id_sales_tracking' => -1]);
-            }
-        }
+        $this->applyRoleFilters($query, $userInfo);
 
         $search = Yii::$app->request->get('search', '');
         if (!empty($search)) {

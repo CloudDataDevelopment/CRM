@@ -30,6 +30,7 @@ $fecha_fin = isset($fecha_fin) ? $fecha_fin : '';
 
 $hasData = !empty($trackings);
 
+// 🔥 MÉTRICAS FIJAS (no cambian con los filtros)
 $metricas = [
     ['class' => 'primary', 'icon' => 'phone', 'label' => 'Total Seguimientos', 'value' => $totalTrackings],
     ['class' => 'warning', 'icon' => 'clock', 'label' => 'Pendientes', 'value' => $statusCounts['Pendiente'] ?? 0],
@@ -76,7 +77,7 @@ $metricas = [
             </div>
         </div>
 
-        <!-- MÉTRICAS -->
+        <!-- 🔥 MÉTRICAS FIJAS -->
         <div class="row g-2 mb-2">
             <?php foreach ($metricas as $metrica): ?>
                 <div class="col-xl-2 col-md-4 col-6">
