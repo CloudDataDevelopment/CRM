@@ -65,18 +65,23 @@ class UserManagementController extends Controller
     }
 
     // ============================================
-    // 🔥 OBTENER LISTA DE ROLES
+    // 🔥 OBTENER LISTA DE ROLES (según el rol del usuario actual)
     // ============================================
-    private function getRolesList()
+    private function getRolesList($isSuperAdmin = false)
     {
         try {
             $roleColumn = $this->getRoleNameColumn();
 
-            $roles = Role::find()
+            $query = Role::find()
                 ->select([$roleColumn, 'id_role'])
-                ->orderBy(['id_role' => SORT_ASC])
-                ->indexBy('id_role')
-                ->column();
+                ->orderBy(['id_role' => SORT_ASC]);
+
+            // 🔥 Si NO es SuperAdmin, excluir el rol "Super Administrador" (id_role = 1)
+            if (!$isSuperAdmin) {
+                $query->andWhere(['<>', 'id_role', 1]);
+            }
+
+            $roles = $query->indexBy('id_role')->column();
 
             if (!empty($roles)) {
                 return $roles;
@@ -85,8 +90,17 @@ class UserManagementController extends Controller
             Yii::warning('Error al cargar roles: ' . $e->getMessage(), 'user-management');
         }
 
+        // 🔥 Fallback
+        if ($isSuperAdmin) {
+            return [
+                1 => 'Super Administrador',
+                2 => 'Administrador',
+                3 => 'Agente',
+                4 => 'Cliente',
+            ];
+        }
+
         return [
-            1 => 'Super Administrador',
             2 => 'Administrador',
             3 => 'Agente',
             4 => 'Cliente',
@@ -112,10 +126,17 @@ class UserManagementController extends Controller
                 return $this->redirect(['empresa/index']);
             }
 
+            $isSuperAdmin = $user->isSuperAdmin();
+
             // 🔥 FILTROS DE BÚSQUEDA
             $search       = Yii::$app->request->get('search', '');
             $roleFilter   = Yii::$app->request->get('role', '');
             $statusFilter = Yii::$app->request->get('status', '');
+
+            // 🔥 Si NO es SuperAdmin, NO permitir filtrar por rol 1 (Super Administrador)
+            if (!$isSuperAdmin && (int)$roleFilter === 1) {
+                $roleFilter = '';
+            }
 
             // 🔥 QUERY BASE
             $query = User::find()
@@ -123,9 +144,9 @@ class UserManagementController extends Controller
                 ->orderBy(['User.id_user' => SORT_ASC]);
 
             // 🔥 FILTRO POR EMPRESA
-            if ($user->isSuperAdmin() && !empty($empresaId)) {
+            if ($isSuperAdmin && !empty($empresaId)) {
                 $query->andWhere(['User.id_company' => $empresaId]);
-            } elseif (!$user->isSuperAdmin()) {
+            } elseif (!$isSuperAdmin) {
                 $query->andWhere(['User.id_company' => $user->id_company]);
                 $query->andWhere(['<>', 'Authentication.id_role', 1]);
             }
@@ -145,7 +166,12 @@ class UserManagementController extends Controller
 
             // 🔥 FILTRO POR ROL
             if (!empty($roleFilter)) {
-                $query->andWhere(['Authentication.id_role' => $roleFilter]);
+                // 🔥 Extra: si no es SuperAdmin, nunca permitir rol 1
+                if (!$isSuperAdmin && (int)$roleFilter === 1) {
+                    $query->andWhere(['0' => '1']);
+                } else {
+                    $query->andWhere(['Authentication.id_role' => $roleFilter]);
+                }
             }
 
             // 🔥 FILTRO POR ESTADO
@@ -199,9 +225,9 @@ class UserManagementController extends Controller
             $metricQuery = User::find()
                 ->joinWith(['authentication', 'role']);
 
-            if ($user->isSuperAdmin() && !empty($empresaId)) {
+            if ($isSuperAdmin && !empty($empresaId)) {
                 $metricQuery->andWhere(['User.id_company' => $empresaId]);
-            } elseif (!$user->isSuperAdmin()) {
+            } elseif (!$isSuperAdmin) {
                 $metricQuery->andWhere(['User.id_company' => $user->id_company]);
                 $metricQuery->andWhere(['<>', 'Authentication.id_role', 1]);
             }
@@ -233,7 +259,8 @@ class UserManagementController extends Controller
             }
 
             // 🔥 LISTAS PARA FILTROS
-            $rolesList = $this->getRolesList();
+            // 🔥 Solo se pasa "Super Administrador" si el usuario actual lo es
+            $rolesList = $this->getRolesList($isSuperAdmin);
 
             $statusList = Status::find()
                 ->select(['status', 'id_status'])
@@ -249,7 +276,7 @@ class UserManagementController extends Controller
                 'totalAgents'   => $totalAgents,
                 'totalClients'  => $totalClients,
                 'totalActive'   => $totalActive,
-                'isSuperAdmin'  => $user->isSuperAdmin(),
+                'isSuperAdmin'  => $isSuperAdmin,
                 'isAdmin'       => $user->isAdmin(),
                 'rolesList'     => $rolesList,
                 'statusList'    => $statusList,
@@ -274,7 +301,7 @@ class UserManagementController extends Controller
                 'totalActive'   => 0,
                 'isSuperAdmin'  => false,
                 'isAdmin'       => false,
-                'rolesList'     => [1 => 'Super Administrador', 2 => 'Administrador', 3 => 'Agente', 4 => 'Cliente'],
+                'rolesList'     => [2 => 'Administrador', 3 => 'Agente', 4 => 'Cliente'],
                 'statusList'    => [],
                 'search'        => '',
                 'role'          => '',
