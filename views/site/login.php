@@ -30,13 +30,13 @@ $asuntoPassword = "Solicitud de restablecimiento de contraseña - {$nombreSistem
 $cuerpoPassword = "Hola, equipo de soporte de {$nombreSistema}:\n\n" .
                   "Solicito restablecer mi contraseña de acceso al sistema.\n\n" .
                   "═══════════════════════════════\n" .
-                  "📅 Fecha: {$fechaSolicitud}\n" .
+                  " Fecha: {$fechaSolicitud}\n" .
                   "═══════════════════════════════\n\n" .
-                  "👉 Datos del usuario:\n" .
-                  "   • Usuario: ____________________\n" .
-                  "   • Correo registrado: ____________________\n" .
-                  "   • Empresa: ____________________\n\n" .
-                  "👉 Motivo: Olvidé mi contraseña.\n\n" .
+                  " Datos del usuario:\n" .
+                  "   • Usuario: \n" .
+                  "   • Correo registrado: \n" .
+                  "   • Empresa: \n\n" .
+                  " Motivo: Olvidé mi contraseña.\n\n" .
                   "Quedo atento a su respuesta.\n\n" .
                   "Gracias.";
 
@@ -57,18 +57,18 @@ $asuntoAcceso = "Solicitud de acceso al sistema - {$nombreSistema}";
 $cuerpoAcceso = "Hola, equipo de soporte de {$nombreSistema}:\n\n" .
                 "Solicito acceso al sistema. A continuación mis datos:\n\n" .
                 "═══════════════════════════════\n" .
-                "📅 Fecha: {$fechaSolicitud}\n" .
+                "Fecha: {$fechaSolicitud}\n" .
                 "═══════════════════════════════\n\n" .
-                "👉 Datos del solicitante:\n" .
-                "   • Nombre completo: ____________________\n" .
-                "   • Correo electrónico: ____________________\n" .
-                "   • Teléfono: ____________________\n" .
-                "   • Empresa: ____________________\n" .
-                "   • Puesto / cargo: ____________________\n" .
-                "   • Motivo de la solicitud: ____________________\n\n" .
-                "👉 Comentarios adicionales:\n" .
-                "   __________________________________________\n" .
-                "   __________________________________________\n\n" .
+                " Datos del solicitante:\n" .
+                "   • Nombre completo: \n" .
+                "   • Correo electrónico: \n" .
+                "   • Teléfono: \n" .
+                "   • Empresa:\n" .
+                "   • Puesto / cargo: \n" .
+                "   • Motivo de la solicitud:\n\n" .
+                " Comentarios adicionales:\n" .
+                "  \n" .
+                " \n\n" .
                 "Quedo atento a su respuesta para completar el registro.\n\n" .
                 "Gracias.";
 
@@ -139,15 +139,8 @@ $mailtoUrlAcceso = 'mailto:' . $emailSoporte .
             ->label('Contraseña')
         ?>
 
-        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
-            <?= $form->field($model, 'rememberMe')
-                ->checkbox([
-                    'template' => "{input} {label}",
-                    'labelOptions' => ['style' => 'font-weight: 400; color: #666; font-size: 14px;'],
-                ])
-            ?>
-
-            <!-- 🔥 BOTÓN "OLVIDASTE TU CONTRASEÑA" → Abre Gmail -->
+        <!-- 🔥 BOTÓN "OLVIDASTE TU CONTRASEÑA" → Abre Gmail -->
+        <div style="text-align: right; margin-bottom: 10px;">
             <?= Html::a(
                 '<i class="fas fa-envelope"></i> ¿Olvidaste tu contraseña?',
                 $gmailUrlPassword,
@@ -168,8 +161,6 @@ $mailtoUrlAcceso = 'mailto:' . $emailSoporte .
         ]) ?>
 
         <?php ActiveForm::end(); ?>
-
-
 
         <!-- 🔥 ENLACE "SOLICITA ACCESO" → Abre Gmail -->
         <div class="login-footer">

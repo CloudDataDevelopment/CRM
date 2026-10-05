@@ -3,6 +3,12 @@
 $params = require __DIR__ . '/params.php';
 $db = require __DIR__ . '/db.php';
 
+// ============================================
+// 🔥 ZONA HORARIA DEL SERVIDOR
+// Debe ir ANTES del return para afectar a todo
+// ============================================
+date_default_timezone_set('America/Cancun');
+
 $config = [
     'id' => 'basic',
     'basePath' => dirname(__DIR__),
@@ -62,7 +68,6 @@ $config = [
 
         // ============================================
         // 🔥 URL MANAGER CORREGIDO
-        // Reglas específicas PRIMERO, genéricas al final
         // ============================================
         'urlManager' => [
             'enablePrettyUrl' => true,
@@ -182,11 +187,7 @@ $config = [
                 // ============================================
                 // 🔥 RUTAS GENÉRICAS (AL FINAL)
                 // ============================================
-
-                // Con id (más específica)
                 '<controller:[\w-]+>/<action:[\w-]+>/<id:\d+>' => '<controller>/<action>',
-
-                // Sin id (con query string)
                 '<controller:[\w-]+>/<action:[\w-]+>' => '<controller>/<action>',
             ],
         ],
