@@ -52,6 +52,46 @@ $porcentajeRestanteUtilidad = max(0, 100 - $porcentajeUtilidadAlcanzado);
 
 // 🔥 CSRF Token
 $csrfToken = Yii::$app->request->csrfToken;
+
+// ============================================
+// 🔥 HISTORIAL DE VENTAS POR MES
+// ============================================
+$ventasPorMes = isset($ventasPorMes) ? $ventasPorMes : [];
+
+// Construir historial con todos los meses del año
+$nombresMeses = ['Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio',
+                 'Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre'];
+
+$historialVentas = [];
+$totalHistorialVentas = 0;
+$totalHistorialUtilidad = 0;
+
+foreach ($nombresMeses as $index => $nombreMes) {
+    $mesNum = $index + 1;
+    $encontrado = null;
+
+    foreach ($ventasPorMes as $item) {
+        if ((int)($item['mes'] ?? 0) === $mesNum) {
+            $encontrado = $item;
+            break;
+        }
+    }
+
+    $cantidad = $encontrado ? (int)($encontrado['total'] ?? 0) : 0;
+    $monto = $encontrado ? (float)($encontrado['monto'] ?? 0) : 0;
+    $utilidad = $monto * ($porcentajeUtilidad / 100);
+
+    $historialVentas[] = [
+        'mes_num'    => $mesNum,
+        'mes'        => $nombreMes,
+        'cantidad'   => $cantidad,
+        'monto'      => $monto,
+        'utilidad'   => $utilidad,
+    ];
+
+    $totalHistorialVentas += $monto;
+    $totalHistorialUtilidad += $utilidad;
+}
 ?>
 
 <div class="dashboard-index">
@@ -445,12 +485,28 @@ $csrfToken = Yii::$app->request->csrfToken;
                             <span class="badge-percent <?= $metaAlcanzada ? 'bg-success' : ($porcentajeAlcanzado >= 50 ? 'bg-warning text-dark' : 'bg-danger') ?>">
                                 <?= $porcentajeAlcanzado ?>%
                             </span>
+
+                            <!-- 🔥 MENÚ DE 3 PUNTITOS (Kebab) -->
                             <?php if ($esAdminOSuperAdmin): ?>
-                                <button type="button" class="btn btn-sm btn-outline-secondary btn-edit-meta" 
-                                        data-bs-toggle="modal" data-bs-target="#goalModal"
-                                        title="Editar meta">
-                                    <i class="fas fa-edit"></i>
-                                </button>
+                                <div class="dropdown">
+                                    <button class="btn btn-sm btn-outline-secondary btn-kebab" type="button"
+                                            data-bs-toggle="dropdown" data-bs-strategy="fixed"
+                                            aria-expanded="false" title="Opciones">
+                                        <i class="fas fa-ellipsis-v"></i>
+                                    </button>
+                                    <ul class="dropdown-menu dropdown-menu-end">
+                                        <li>
+                                            <a class="dropdown-item" href="#" data-bs-toggle="modal" data-bs-target="#goalModal">
+                                                <i class="fas fa-edit text-primary me-2"></i> Editar meta
+                                            </a>
+                                        </li>
+                                        <li>
+                                            <a class="dropdown-item" href="#" data-bs-toggle="modal" data-bs-target="#historyModal">
+                                                <i class="fas fa-history text-info me-2"></i> Ver historial
+                                            </a>
+                                        </li>
+                                    </ul>
+                                </div>
                             <?php endif; ?>
                         </div>
                     </div>
@@ -545,6 +601,27 @@ $csrfToken = Yii::$app->request->csrfToken;
                                 <span class="badge-percent <?= $metaUtilidadAlcanzada ? 'bg-success' : ($porcentajeUtilidadAlcanzado >= 50 ? 'bg-warning text-dark' : 'bg-danger') ?>">
                                     <?= $porcentajeUtilidadAlcanzado ?>%
                                 </span>
+
+                                <!-- 🔥 MENÚ DE 3 PUNTITOS (Kebab) -->
+                                <div class="dropdown">
+                                    <button class="btn btn-sm btn-outline-secondary btn-kebab" type="button"
+                                            data-bs-toggle="dropdown" data-bs-strategy="fixed"
+                                            aria-expanded="false" title="Opciones">
+                                        <i class="fas fa-ellipsis-v"></i>
+                                    </button>
+                                    <ul class="dropdown-menu dropdown-menu-end">
+                                        <li>
+                                            <a class="dropdown-item" href="#" data-bs-toggle="modal" data-bs-target="#goalModal">
+                                                <i class="fas fa-edit text-primary me-2"></i> Editar meta
+                                            </a>
+                                        </li>
+                                        <li>
+                                            <a class="dropdown-item" href="#" data-bs-toggle="modal" data-bs-target="#historyModal">
+                                                <i class="fas fa-history text-info me-2"></i> Ver historial
+                                            </a>
+                                        </li>
+                                    </ul>
+                                </div>
                             </div>
                         </div>
                         <div class="card-body">
@@ -798,7 +875,96 @@ $csrfToken = Yii::$app->request->csrfToken;
     </div>
 </div>
 
+<!-- 🔥 MODAL HISTORIAL DE VENTAS -->
+<div class="modal fade" id="historyModal" tabindex="-1" aria-labelledby="historyModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg modal-dialog-scrollable">
+        <div class="modal-content">
+            <div class="modal-header bg-info text-white">
+                <h5 class="modal-title" id="historyModalLabel">
+                    <i class="fas fa-history"></i> Historial de Ventas y Utilidad - <?= date('Y') ?>
+                </h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body p-0">
+                <div class="table-responsive">
+                    <table class="table table-hover table-striped mb-0 align-middle">
+                        <thead class="table-light sticky-top">
+                            <tr>
+                                <th class="text-center" style="width: 50px;">#</th>
+                                <th>Mes</th>
+                                <th class="text-end">Cotizaciones</th>
+                                <th class="text-end">Venta Total</th>
+                                <th class="text-end">Utilidad (<?= number_format($porcentajeUtilidad, 0) ?>%)</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <?php foreach ($historialVentas as $index => $mesData): ?>
+                                <tr>
+                                    <td class="text-center text-muted"><?= $mesData['mes_num'] ?></td>
+                                    <td>
+                                        <i class="fas fa-calendar-alt text-primary me-1"></i>
+                                        <strong><?= $mesData['mes'] ?></strong>
+                                    </td>
+                                    <td class="text-end">
+                                        <?php if ($mesData['cantidad'] > 0): ?>
+                                            <span class="badge bg-primary"><?= $mesData['cantidad'] ?></span>
+                                        <?php else: ?>
+                                            <span class="text-muted">—</span>
+                                        <?php endif; ?>
+                                    </td>
+                                    <td class="text-end">
+                                        <?php if ($mesData['monto'] > 0): ?>
+                                            <strong>$<?= number_format($mesData['monto'], 2, '.', ',') ?></strong>
+                                        <?php else: ?>
+                                            <span class="text-muted">$0.00</span>
+                                        <?php endif; ?>
+                                    </td>
+                                    <td class="text-end">
+                                        <?php if ($mesData['utilidad'] > 0): ?>
+                                            <strong class="text-success">$<?= number_format($mesData['utilidad'], 2, '.', ',') ?></strong>
+                                        <?php else: ?>
+                                            <span class="text-muted">$0.00</span>
+                                        <?php endif; ?>
+                                    </td>
+                                </tr>
+                            <?php endforeach; ?>
+                        </tbody>
+                        <tfoot class="table-dark">
+                            <tr>
+                                <th colspan="2" class="text-end">
+                                    <i class="fas fa-calculator"></i> TOTALES:
+                                </th>
+                                <th class="text-end">
+                                    <?= array_sum(array_column($historialVentas, 'cantidad')) ?>
+                                </th>
+                                <th class="text-end">
+                                    $<?= number_format($totalHistorialVentas, 2, '.', ',') ?>
+                                </th>
+                                <th class="text-end text-warning">
+                                    $<?= number_format($totalHistorialUtilidad, 2, '.', ',') ?>
+                                </th>
+                            </tr>
+                        </tfoot>
+                    </table>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <div class="me-auto small text-muted">
+                    <i class="fas fa-info-circle"></i>
+                    Datos del año en curso · Margen de utilidad: <?= number_format($porcentajeUtilidad, 0) ?>%
+                </div>
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+                    <i class="fas fa-times"></i> Cerrar
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
 <script>
+// ============================================
+// 🔥 FORMULARIO DE META
+// ============================================
 document.getElementById('goal-form').addEventListener('submit', function(e) {
     e.preventDefault();
 
@@ -825,32 +991,24 @@ document.getElementById('goal-form').addEventListener('submit', function(e) {
     alertBox.innerHTML = '';
 
     var formData = new FormData(form);
-
-    // 🔥 AGREGAR CSRF TOKEN AL FORMDATA
     formData.append('_csrf', '<?= $csrfToken ?>');
 
     var url = '<?= Url::to(['/dashboard/update-goal'], true) ?>';
-    console.log('🔵 Enviando a:', url);
 
     fetch(url, {
         method: 'POST',
         body: formData,
-        headers: { 
-            'X-Requested-With': 'XMLHttpRequest'
-        }
+        headers: { 'X-Requested-With': 'XMLHttpRequest' }
     })
-    .then(function(r) { 
-        console.log('🟢 Respuesta status:', r.status);
+    .then(function(r) {
         if (!r.ok) {
             return r.text().then(function(text) {
-                console.error('🔴 Error HTTP:', r.status, text);
                 throw new Error('HTTP ' + r.status);
             });
         }
-        return r.json(); 
+        return r.json();
     })
     .then(function(data) {
-        console.log('🟢 Datos:', data);
         if (data.success) {
             alertBox.innerHTML = '<div class="alert alert-success"><i class="fas fa-check-circle"></i> ' + data.message + '</div>';
             setTimeout(function() { location.reload(); }, 1200);
@@ -861,7 +1019,6 @@ document.getElementById('goal-form').addEventListener('submit', function(e) {
         }
     })
     .catch(function(error) {
-        console.error('🔴 Error capturado:', error);
         alertBox.innerHTML = '<div class="alert alert-danger"><i class="fas fa-exclamation-triangle"></i> ' + error.message + '</div>';
         btn.disabled = false;
         btn.innerHTML = originalText;

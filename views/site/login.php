@@ -11,75 +11,14 @@ use yii\helpers\Url;
 $this->title = 'Iniciar Sesión';
 
 // Registrar el archivo CSS
-$this->registerCssFile('@web/css/login.css', [
+$this->registerCssFile('@web/css/site.css', [
     'depends' => [\yii\bootstrap5\BootstrapAsset::class],
 ]);
 
 // ============================================
-// 🔥 CONFIGURACIÓN PARA EL CORREO DE SOPORTE
+// 🔥 CORREO DE SOPORTE (SOLO TEXTO)
 // ============================================
-$emailSoporte   = 'soporte@clouddatadevelopment.com'; // 🔥 Cambia por tu correo real
-$nombreSistema  = 'CRM';
-$fechaSolicitud = date('d/m/Y H:i');
-
-// ============================================
-// 🔥 1. CORREO DE "OLVIDÉ MI CONTRASEÑA"
-// ============================================
-$asuntoPassword = "Solicitud de restablecimiento de contraseña - {$nombreSistema}";
-
-$cuerpoPassword = "Hola, equipo de soporte de {$nombreSistema}:\n\n" .
-                  "Solicito restablecer mi contraseña de acceso al sistema.\n\n" .
-                  "═══════════════════════════════\n" .
-                  " Fecha: {$fechaSolicitud}\n" .
-                  "═══════════════════════════════\n\n" .
-                  " Datos del usuario:\n" .
-                  "   • Usuario: \n" .
-                  "   • Correo registrado: \n" .
-                  "   • Empresa: \n\n" .
-                  " Motivo: Olvidé mi contraseña.\n\n" .
-                  "Quedo atento a su respuesta.\n\n" .
-                  "Gracias.";
-
-$gmailUrlPassword = 'https://mail.google.com/mail/?view=cm&fs=1' .
-                    '&to=' . urlencode($emailSoporte) .
-                    '&su=' . urlencode($asuntoPassword) .
-                    '&body=' . urlencode($cuerpoPassword);
-
-$mailtoUrlPassword = 'mailto:' . $emailSoporte .
-                     '?subject=' . urlencode($asuntoPassword) .
-                     '&body=' . urlencode($cuerpoPassword);
-
-// ============================================
-// 🔥 2. CORREO DE "SOLICITAR ACCESO"
-// ============================================
-$asuntoAcceso = "Solicitud de acceso al sistema - {$nombreSistema}";
-
-$cuerpoAcceso = "Hola, equipo de soporte de {$nombreSistema}:\n\n" .
-                "Solicito acceso al sistema. A continuación mis datos:\n\n" .
-                "═══════════════════════════════\n" .
-                "Fecha: {$fechaSolicitud}\n" .
-                "═══════════════════════════════\n\n" .
-                " Datos del solicitante:\n" .
-                "   • Nombre completo: \n" .
-                "   • Correo electrónico: \n" .
-                "   • Teléfono: \n" .
-                "   • Empresa:\n" .
-                "   • Puesto / cargo: \n" .
-                "   • Motivo de la solicitud:\n\n" .
-                " Comentarios adicionales:\n" .
-                "  \n" .
-                " \n\n" .
-                "Quedo atento a su respuesta para completar el registro.\n\n" .
-                "Gracias.";
-
-$gmailUrlAcceso = 'https://mail.google.com/mail/?view=cm&fs=1' .
-                  '&to=' . urlencode($emailSoporte) .
-                  '&su=' . urlencode($asuntoAcceso) .
-                  '&body=' . urlencode($cuerpoAcceso);
-
-$mailtoUrlAcceso = 'mailto:' . $emailSoporte .
-                   '?subject=' . urlencode($asuntoAcceso) .
-                   '&body=' . urlencode($cuerpoAcceso);
+$emailSoporte = 'soporte@clouddatadevelopment.com'; // 🔥 Cambia por tu correo real
 ?>
 
 <!DOCTYPE html>
@@ -139,22 +78,6 @@ $mailtoUrlAcceso = 'mailto:' . $emailSoporte .
             ->label('Contraseña')
         ?>
 
-        <!-- 🔥 BOTÓN "OLVIDASTE TU CONTRASEÑA" → Abre Gmail -->
-        <div style="text-align: right; margin-bottom: 10px;">
-            <?= Html::a(
-                '<i class="fas fa-envelope"></i> ¿Olvidaste tu contraseña?',
-                $gmailUrlPassword,
-                [
-                    'class' => 'forgot-password',
-                    'style' => 'margin-top: 0;',
-                    'target' => '_blank',
-                    'rel' => 'noopener noreferrer',
-                    'title' => 'Enviar solicitud de restablecimiento por Gmail',
-                    'encode' => false,
-                ]
-            ) ?>
-        </div>
-
         <?= Html::submitButton('Iniciar sesión', [
             'class' => 'btn btn-login',
             'name' => 'login-button'
@@ -162,18 +85,17 @@ $mailtoUrlAcceso = 'mailto:' . $emailSoporte .
 
         <?php ActiveForm::end(); ?>
 
-        <!-- 🔥 ENLACE "SOLICITA ACCESO" → Abre Gmail -->
-        <div class="login-footer">
-            <?= Html::a(
-                '<i class="fas fa-user-plus"></i> ¿No tienes una cuenta? Solicita acceso',
-                $gmailUrlAcceso,
-                [
-                    'target' => '_blank',
-                    'rel' => 'noopener noreferrer',
-                    'title' => 'Enviar solicitud de acceso por Gmail',
-                    'encode' => false,
-                ]
-            ) ?>
+        <!-- 🔥 MENSAJE ÚNICO DE SOPORTE (SOLO TEXTO) -->
+        <div class="login-support-box">
+            <p class="login-support-text">
+                ¿No tienes acceso o perdiste tu contraseña?
+            </p>
+            <p class="login-support-text">
+                Envía un correo a
+            </p>
+            <p class="login-support-email">
+                <?= Html::encode($emailSoporte) ?>
+            </p>
         </div>
 
         <div class="login-bottom">
@@ -188,8 +110,6 @@ $mailtoUrlAcceso = 'mailto:' . $emailSoporte .
                 <?= Html::a('Términos de servicio', ['site/terms']) ?>
                 <span style="color: #0091FF;">|</span>
                 <?= Html::a('Política de privacidad', ['site/privacy']) ?>
-                <span style="color: #0091FF;">|</span>
-                <?= Html::a('Soporte', ['site/support']) ?>
             </div>
         </div>
     </div>

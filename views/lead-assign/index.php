@@ -196,9 +196,7 @@ if ($selectedAgentId !== null && $selectedAgentId !== '') {
                                     <table class="table table-hover mb-0 assign-table">
                                         <thead class="table-light">
                                             <tr>
-                                                <th width="30">
-                                                    <input type="checkbox" id="select-all-unassigned" class="form-check-input">
-                                                </th>
+                                                <th width="40" class="text-center align-middle"></th>
                                                 <th>Nombre</th>
                                                 <th>Teléfono</th>
                                                 <th>Estado</th>
@@ -207,8 +205,11 @@ if ($selectedAgentId !== null && $selectedAgentId !== '') {
                                         <tbody>
                                             <?php foreach ($unassignedLeads as $index => $lead): ?>
                                                 <tr>
-                                                    <td>
-                                                        <input type="checkbox" class="form-check-input lead-checkbox unassigned-checkbox" name="lead_ids[]" value="<?= $lead->id_lead ?>">
+                                                    <td class="text-center align-middle">
+                                                        <input type="checkbox" 
+                                                               class="form-check-input lead-checkbox unassigned-checkbox" 
+                                                               name="lead_ids[]" 
+                                                               value="<?= $lead->id_lead ?>">
                                                     </td>
                                                     <td>
                                                         <strong><?= Html::encode($lead->name . ' ' . $lead->lastname) ?></strong>
@@ -349,7 +350,6 @@ if ($selectedAgentId !== null && $selectedAgentId !== '') {
                                                 </td>
                                                 <td class="text-center">
                                                     <div class="d-flex gap-1 justify-content-center">
-                                                        <!-- 🔥 BOTÓN DESASIGNAR (usa form POST) -->
                                                         <?= Html::beginForm($unassignUrl, 'post', [
                                                             'class' => 'action-form d-inline',
                                                             'data-lead-name' => $lead->name . ' ' . $lead->lastname,
@@ -358,9 +358,6 @@ if ($selectedAgentId !== null && $selectedAgentId !== '') {
                                                             <?= Html::submitButton('<i class="fas fa-user-slash"></i>', [
                                                                 'class' => 'btn btn-danger btn-sm btn-action unassign-btn',
                                                                 'title' => 'Desasignar',
-                                                                'data' => [
-                                                                    'confirm' => '¿Desasignar el lead "' . $lead->name . ' ' . $lead->lastname . '" del agente?',
-                                                                ],
                                                             ]) ?>
                                                         <?= Html::endForm() ?>
 
@@ -420,12 +417,6 @@ $(document).ready(function() {
         }
     }
 
-    // Seleccionar todos
-    $('#select-all-unassigned').on('change', function() {
-        $('.unassigned-checkbox').prop('checked', $(this).prop('checked'));
-        updateMassAssignButton();
-    });
-
     // Checkbox individual
     $('.unassigned-checkbox').on('change', function() {
         updateMassAssignButton();
@@ -442,7 +433,7 @@ $(document).ready(function() {
     });
 
     // ============================================
-    // 🔥 CONFIRMAR DESASIGNAR (mejor UX)
+    // 🔥 CONFIRMAR DESASIGNAR
     // ============================================
     $(document).on('click', '.unassign-btn', function(e) {
         var $form = $(this).closest('form');
@@ -452,7 +443,6 @@ $(document).ready(function() {
             e.preventDefault();
             return false;
         }
-        // Si confirma, el form se envía normalmente (POST con CSRF)
     });
 });
 </script>

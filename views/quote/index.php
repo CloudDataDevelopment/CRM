@@ -39,7 +39,6 @@ $search = isset($search) ? $search : '';
 $status = isset($status) ? $status : '';
 $fecha_inicio = isset($fecha_inicio) ? $fecha_inicio : '';
 $fecha_fin = isset($fecha_fin) ? $fecha_fin : '';
-$trashCount = isset($trashCount) ? $trashCount : 0;
 
 $hasData = !empty($quotes);
 $totalCount = $dataProvider ? $dataProvider->getTotalCount() : 0;
@@ -74,7 +73,7 @@ foreach ($quotes as $q) {
                 
                 <?php if ($isAdmin || $isSuperAdmin): ?>
                     <?= Html::a(
-                        '<i class="fas fa-trash"></i> Papelera' . ($trashCount > 0 ? ' (' . $trashCount . ')' : ''),
+                        '<i class="fas fa-trash"></i> Papelera',
                         ['trash'],
                         ['class' => 'btn btn-outline-danger btn-sm']
                     ) ?>
