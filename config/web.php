@@ -81,6 +81,7 @@ $config = [
                 'login' => 'site/login',
                 'logout' => 'site/logout',
                 'register' => 'site/register',
+                'privacy' => 'site/privacy', // 🔥 AVISO DE PRIVACIDAD
                 'dashboard' => 'dashboard/index',
 
                 // ============================================
@@ -199,7 +200,8 @@ $config = [
         'rules' => [
             [
                 'allow' => true,
-                'actions' => ['login', 'register', 'error'],
+                // 🔥 'privacy' agregado para permitir acceso sin login
+                'actions' => ['login', 'register', 'error', 'privacy'],
                 'roles' => ['?'],
             ],
             [

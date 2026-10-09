@@ -1,0 +1,276 @@
+/* ==========================================================================
+   CSS PERSONALIZADO PARA AVISO DE PRIVACIDAD (Basado en Template Active)
+   ========================================================================== */
+
+:root {
+  --accent-color: #34b7a7;
+  --heading-color: #37423b;
+  --bg-page: #f4f7f6; /* Fondo gris para que resalte la hoja blanca */
+  --text-color: #444444;
+}
+
+/* Fondo general de la página */
+body.blog-details-page {
+  background-color: var(--bg-page) !important;
+  color: var(--text-color);
+}
+
+/* --- HEADER --- */
+.header {
+  background: #ffffff;
+  border-bottom: 1px solid #eef2f0;
+  box-shadow: 0 2px 20px rgba(0,0,0,0.05);
+}
+
+.sitename {
+  color: var(--heading-color);
+  font-weight: 700;
+}
+
+.btn-getstarted {
+  background: var(--accent-color);
+  color: #fff !important;
+  padding: 8px 25px;
+  border-radius: 4px;
+  text-decoration: none;
+  font-size: 14px;
+}
+
+/* --- TITULO SUPERIOR (Breadcrumbs) --- */
+.page-title {
+  background: #eef2f0 !important;
+  padding: 30px 0;
+  margin-bottom: 40px;
+}
+
+.breadcrumbs ol {
+  display: flex;
+  list-style: none;
+  padding: 0;
+  font-size: 14px;
+}
+
+.breadcrumbs ol li + li::before {
+  content: "/";
+  padding: 0 10px;
+  color: #ccc;
+}
+
+/* --- EL EFECTO DE "HOJA BLANCA" --- */
+.blog-details .article {
+  background: #ffffff !important;
+  padding: 50px 60px;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1); 
+  border-radius: 4px;
+  border: 1px solid #e0e0e0;
+  margin-bottom: 40px;
+}
+
+.blog-details .title {
+  font-size: 28px;
+  font-weight: 700;
+  color: var(--heading-color);
+  text-align: center;
+  border-bottom: 2px solid var(--accent-color);
+  padding-bottom: 15px;
+  margin-bottom: 30px;
+}
+
+.content h5 {
+  color: var(--accent-color);
+  font-weight: 700;
+  margin-top: 30px;
+  margin-bottom: 15px;
+}
+
+.content p {
+  line-height: 1.8;
+  text-align: justify;
+  margin-bottom: 20px;
+}
+
+/*footer*/
+.footer-dinato {
+  background: linear-gradient(135deg, #0f172a, #020617);
+  color: #e5e7eb;
+  padding: 60px 0 30px;
+  font-size: 15px;
+}
+
+.footer-dinato h5 {
+  color: #38bdf8;
+  font-weight: 600;
+  margin-bottom: 20px;
+  letter-spacing: 0.5px;
+  margin-left: 50px;
+}
+
+.footer-dinato p {
+  color: #cbd5f5;
+  line-height: 1.7;
+  
+}
+
+.footer-info,
+.footer-links {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.footer-info li {
+  margin-bottom: 10px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-left: 50px;
+  
+
+}
+
+.footer-info i {
+  color: #38bdf8;
+  font-size: 18px;
+}
+
+.footer-links li {
+  list-style: none;
+}
+
+.footer-links {
+  display: flex;
+  justify-content: center; 
+  align-items: center;
+  gap: 15px; 
+ }
+.footer-links a {
+  background: rgba(255,255,255,0.08);
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: 0.3s;
+}
+
+
+.footer-links a:hover {
+  background: #38bdf8;
+  color: #0f172a;
+}
+
+.footer-dinato hr {
+  border-color: rgba(255, 255, 255, 0.1);
+  margin: 40px 0 20px;
+}
+
+.footer-bottom {
+  text-align: center;
+  font-size: 14px;
+  color: #94a3b8;
+}
+
+.footer-bottom a {
+  color: #38bdf8;
+  text-decoration: none;
+  font-weight: 500;
+}
+
+.footer-bottom a:hover {
+  text-decoration: underline;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .footer-dinato {
+    text-align: center;
+  }
+
+  .footer-info li {
+    justify-content: center;
+  }
+}
+
+
+
+/* ==========================================================================
+   GUÍA DE RESPONSIVIDAD COMPLETA (MEDIA QUERIES)
+   ========================================================================== */
+
+/*  DISPOSITIVOS MUY PEQUEÑOS (menos de 576px) */
+@media (max-width: 575.98px) {
+  .blog-details .article {
+    padding: 20px 15px; 
+    margin: 10px 5px;
+    border: none;     
+  }
+  .article .title {
+    font-size: 1.3rem;  
+  }
+  .sitename {
+    font-size: 16px;   
+  }
+  .content p {
+    font-size: 14px;    
+    text-align: left;
+  }
+}
+
+/* DISPOSITIVOS PEQUEÑOS Móviles en horizontal */
+@media (min-width: 576px) and (max-width: 767.98px) {
+  .blog-details .article {
+    padding: 30px;
+    margin: 20px;
+  }
+  .article .title {
+    font-size: 1.6rem;
+  }
+}
+
+/*  TABLETS Y PANTALLAS MEDIANAS (768px a 991px) */
+@media (min-width: 768px) and (max-width: 991.98px) {
+  .blog-details .article {
+    padding: 40px;
+    margin: 30px auto;
+    max-width: 90%; /* La hoja ocupa casi todo el ancho */
+  }
+  .article .title {
+    font-size: 1.8rem;
+  }
+}
+
+/*  LAPTOPS Y PANTALLAS GRANDES (992px a 1199px) */
+@media (min-width: 992px) and (max-width: 1199.98px) {
+  .blog-details .article {
+    padding: 50px;
+    max-width: 850px; /* Ancho ideal para lectura */
+    margin: 40px auto;
+  }
+}
+
+/*  MONITORES EXTRA GRANDES 1200px ) */
+@media (min-width: 1200px) {
+  .blog-details .article {
+    padding: 60px 80px;
+    max-width: 1000px; 
+    margin: 50px auto;
+    box-shadow: 0 15px 40px rgba(0, 0, 0, 0.1);
+  }
+  .article .title {
+    font-size: 2.2rem;
+  }
+}
+
+/* FIX PARA EL MENÚ MÓVIL  */
+@media (max-width: 991px) {
+  .navmenu {
+    display: flex;
+    justify-content: center;
+    width: 100%;
+    margin-top: 10px;
+  }
+  .header .container-fluid {
+    flex-direction: column; 
+  }
+}

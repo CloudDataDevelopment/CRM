@@ -28,7 +28,8 @@ class SiteController extends Controller
                 'class' => AccessControl::class,
                 'rules' => [
                     [
-                        'actions' => ['login', 'error'],
+                        // 🔥 'privacy' es público (sin login)
+                        'actions' => ['login', 'error', 'privacy'],
                         'allow' => true,
                     ],
                     [
@@ -66,6 +67,16 @@ class SiteController extends Controller
                 'class' => 'yii\web\ErrorAction',
             ],
         ];
+    }
+
+    // ============================================
+    // 🔥 AVISO DE PRIVACIDAD (público)
+    // ============================================
+    public function actionPrivacy()
+    {
+        // 🔥 Layout mínimo sin sidebar ni topbar del CRM
+        $this->layout = 'main-privacy';
+        return $this->render('privacy');
     }
 
     // ============================================

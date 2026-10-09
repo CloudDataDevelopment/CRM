@@ -601,27 +601,6 @@ foreach ($nombresMeses as $index => $nombreMes) {
                                 <span class="badge-percent <?= $metaUtilidadAlcanzada ? 'bg-success' : ($porcentajeUtilidadAlcanzado >= 50 ? 'bg-warning text-dark' : 'bg-danger') ?>">
                                     <?= $porcentajeUtilidadAlcanzado ?>%
                                 </span>
-
-                                <!-- 🔥 MENÚ DE 3 PUNTITOS (Kebab) -->
-                                <div class="dropdown">
-                                    <button class="btn btn-sm btn-outline-secondary btn-kebab" type="button"
-                                            data-bs-toggle="dropdown" data-bs-strategy="fixed"
-                                            aria-expanded="false" title="Opciones">
-                                        <i class="fas fa-ellipsis-v"></i>
-                                    </button>
-                                    <ul class="dropdown-menu dropdown-menu-end">
-                                        <li>
-                                            <a class="dropdown-item" href="#" data-bs-toggle="modal" data-bs-target="#goalModal">
-                                                <i class="fas fa-edit text-primary me-2"></i> Editar meta
-                                            </a>
-                                        </li>
-                                        <li>
-                                            <a class="dropdown-item" href="#" data-bs-toggle="modal" data-bs-target="#historyModal">
-                                                <i class="fas fa-history text-info me-2"></i> Ver historial
-                                            </a>
-                                        </li>
-                                    </ul>
-                                </div>
                             </div>
                         </div>
                         <div class="card-body">

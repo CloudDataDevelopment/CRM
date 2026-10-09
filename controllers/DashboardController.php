@@ -935,29 +935,24 @@ class DashboardController extends Controller
             $procesando = $query->count();
         }
 
+        // ============================================
+        // 🔥 COMPLETADO = LEADS CON ESTADO "COMPLETADO"
+        // ============================================
         $completado = 0;
-        $statusCompletadoQuote = Status::find()->where(['status' => 'completado'])->one();
-        if ($statusCompletadoQuote) {
-            $quoteSubQuery = Quote::find()
-                ->alias('q')
-                ->select(['q.id_lead'])
-                ->distinct()
-                ->where(['q.id_status' => $statusCompletadoQuote->id_status]);
+        $statusCompletadoLead = Status::find()->where(['status' => 'Completado'])->one();
+        if ($statusCompletadoLead) {
+            $queryCompletado = Lead::find()
+                ->where(['Lead.id_status' => $statusCompletadoLead->id_status]);
 
             if ($user->isSuperAdmin() && !empty($empresaId)) {
-                $quoteSubQuery->leftJoin('Lead l', 'q.id_lead = l.id_lead')
-                              ->andWhere(['l.id_company' => $empresaId]);
+                $queryCompletado->andWhere(['Lead.id_company' => $empresaId]);
             } elseif ($user->isAdmin() && !$user->isSuperAdmin()) {
-                $quoteSubQuery->leftJoin('Lead l', 'q.id_lead = l.id_lead')
-                              ->andWhere(['l.id_company' => $user->id_company]);
+                $queryCompletado->andWhere(['Lead.id_company' => $user->id_company]);
             } elseif ($user->isAgent()) {
-                $quoteSubQuery->leftJoin('Lead l', 'q.id_lead = l.id_lead')
-                              ->andWhere(['l.id_user' => $user->id_user]);
+                $queryCompletado->andWhere(['Lead.id_user' => $user->id_user]);
             }
 
-            $completado = Lead::find()
-                ->where(['Lead.id_lead' => $quoteSubQuery])
-                ->count();
+            $completado = $queryCompletado->count();
         }
 
         $totalEmbudo = $nuevoProspecto + $contactado + $procesando + $completado;

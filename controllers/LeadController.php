@@ -80,8 +80,6 @@ class LeadController extends Controller
 
     // ============================================
     // 🔥 HELPER GLOBAL DE PERMISOS (relajado)
-    // Devuelve null si OK, o mensaje de error si bloquea
-    // Regla: solo bloquea si el lead es de OTRA empresa
     // ============================================
     protected function checkLeadAccess($model, $user, $empresaId)
     {
@@ -93,23 +91,20 @@ class LeadController extends Controller
             return 'El lead solicitado no existe.';
         }
 
-        // SuperAdmin: solo bloquear si tiene empresa seleccionada Y el lead es de otra
         if ($user->isSuperAdmin()) {
             if (!empty($empresaId) && !empty($model->id_company) && $model->id_company != $empresaId) {
                 return 'Este lead pertenece a otra empresa. Cambia de empresa para verlo.';
             }
-            return null; // OK
+            return null;
         }
 
-        // Admin / Agente / cualquier otro con empresa definida
         if (!empty($user->id_company)) {
             if (!empty($model->id_company) && $model->id_company != $user->id_company) {
                 return 'Este lead pertenece a otra empresa. No tienes permiso para verlo.';
             }
-            return null; // OK
+            return null;
         }
 
-        // Fallback: sin empresa definida, permitir
         return null;
     }
 
@@ -121,13 +116,10 @@ class LeadController extends Controller
         try {
             $user = Yii::$app->user->identity;
 
-            // 🔥 ESTADOS PERMITIDOS (SIN CANCELADO)
             $estadosPermitidos = ['Nuevo', 'Contactado', 'Procesando', 'Completado'];
 
-            // 🔥 OBTENER LA EMPRESA SELECCIONADA EN SESIÓN
             $empresaId = Yii::$app->session->get('empresa_id');
 
-            // Si es Super Admin y no tiene empresa seleccionada
             if ($user->isSuperAdmin() && empty($empresaId)) {
                 Yii::$app->session->setFlash('warning', 'Por favor, selecciona una empresa para continuar.');
                 return $this->redirect(['empresa/index']);
@@ -138,7 +130,6 @@ class LeadController extends Controller
             $fecha_inicio = Yii::$app->request->get('fecha_inicio');
             $fecha_fin = Yii::$app->request->get('fecha_fin');
 
-            // 🔥 EXCLUIR PAPELERA (Eliminado) Y CANCELADOS
             $idEliminado = $this->getStatusEliminadoId();
             $idCancelado = $this->getStatusCanceladoId();
 
@@ -146,9 +137,6 @@ class LeadController extends Controller
             if ($idEliminado) $excludeIds[] = $idEliminado;
             if ($idCancelado) $excludeIds[] = $idCancelado;
 
-            // ============================================
-            // 🔥 HELPER: Aplica filtro por rol/empresa
-            // ============================================
             $applyLeadFilter = function($query) use ($user, $empresaId) {
                 if ($user->isAgent()) {
                     $query->andWhere(['Lead.id_user' => $user->id_user]);
@@ -166,21 +154,15 @@ class LeadController extends Controller
                 return $query;
             };
 
-            // ============================================
-            // 🔥 CONSULTA CON DATAPROVIDER PARA PAGINACIÓN
-            // ============================================
             $query = Lead::findWithDeleted()
                 ->orderBy(['Lead.created_at' => SORT_DESC]);
 
-            // 🔥 EXCLUIR PAPELERA Y CANCELADOS
             if (!empty($excludeIds)) {
                 $query->andWhere(['not in', 'Lead.id_status', $excludeIds]);
             }
 
-            // 🔥 FILTROS POR ROL Y EMPRESA
             $applyLeadFilter($query);
 
-            // Filtros
             if (!empty($search)) {
                 $query->andWhere(['or',
                     ['like', 'Lead.name', $search],
@@ -205,7 +187,6 @@ class LeadController extends Controller
                 $query->andWhere(['<=', 'Lead.created_at', $fecha_fin]);
             }
 
-            // 🔥 DATAPROVIDER CON PAGINACIÓN
             $dataProvider = new ActiveDataProvider([
                 'query' => $query,
                 'pagination' => [
@@ -244,22 +225,16 @@ class LeadController extends Controller
 
             $leads = $dataProvider->getModels();
 
-            // Valores para la vista
             $search = Yii::$app->request->get('search') ?? '';
             $status = Yii::$app->request->get('status') ?? '';
             $fecha_inicio = Yii::$app->request->get('fecha_inicio') ?? '';
             $fecha_fin = Yii::$app->request->get('fecha_fin') ?? '';
 
-            // 🔥 Lista de estados para el filtro (SOLO los permitidos)
             $statusList = Status::find()
                 ->where(['in', 'status', $estadosPermitidos])
                 ->select(['status', 'id_status'])
                 ->indexBy('id_status')
                 ->column();
-
-            // ============================================
-            // 🔥 MÉTRICAS POR ESTADO (DINÁMICAS)
-            // ============================================
 
             $statusNuevo      = Status::find()->where(['status' => 'Nuevo'])->one();
             $statusContactado = Status::find()->where(['status' => 'Contactado'])->one();
@@ -269,7 +244,6 @@ class LeadController extends Controller
             $idStatusContactado = $statusContactado ? $statusContactado->id_status : null;
             $idStatusProcesando = $statusProcesando ? $statusProcesando->id_status : null;
 
-            // TOTAL LEADS (excluyendo papelera y cancelados)
             $totalLeadsQuery = Lead::findWithDeleted();
             if (!empty($excludeIds)) {
                 $totalLeadsQuery->andWhere(['not in', 'Lead.id_status', $excludeIds]);
@@ -277,7 +251,6 @@ class LeadController extends Controller
             $applyLeadFilter($totalLeadsQuery);
             $totalLeads = $totalLeadsQuery->count();
 
-            // NUEVO
             $nuevoCount = 0;
             if ($idStatusNuevo) {
                 $queryNuevo = Lead::findWithDeleted()->where(['Lead.id_status' => $idStatusNuevo]);
@@ -285,7 +258,6 @@ class LeadController extends Controller
                 $nuevoCount = $queryNuevo->count();
             }
 
-            // CONTACTADO
             $contactadoCount = 0;
             if ($idStatusContactado) {
                 $queryContactado = Lead::findWithDeleted()->where(['Lead.id_status' => $idStatusContactado]);
@@ -293,7 +265,6 @@ class LeadController extends Controller
                 $contactadoCount = $queryContactado->count();
             }
 
-            // PROCESANDO
             $procesandoCount = 0;
             if ($idStatusProcesando) {
                 $queryProcesando = Lead::findWithDeleted()->where(['Lead.id_status' => $idStatusProcesando]);
@@ -301,14 +272,12 @@ class LeadController extends Controller
                 $procesandoCount = $queryProcesando->count();
             }
 
-            // PORCENTAJES
             $totalParaPorcentajes = $totalLeads > 0 ? $totalLeads : 1;
 
             $porcentajeNuevo      = round(($nuevoCount / $totalParaPorcentajes) * 100, 1);
             $porcentajeContactado = round(($contactadoCount / $totalParaPorcentajes) * 100, 1);
             $porcentajeProcesando = round(($procesandoCount / $totalParaPorcentajes) * 100, 1);
 
-            // ALIAS PARA COMPATIBILIDAD CON LA VISTA
             $nuevosMes   = $nuevoCount;
             $contactados = $contactadoCount;
             $enProceso   = $procesandoCount;
@@ -316,7 +285,6 @@ class LeadController extends Controller
             $convertidos = 0;
             $perdidos    = 0;
 
-            // EMBUDO DE LEADS POR ETAPAS (SIN CANCELADOS)
             $nuevoProspecto = $nuevoCount;
             $contactado     = $contactadoCount;
             $calificado     = 0;
@@ -331,9 +299,6 @@ class LeadController extends Controller
                 'total' => (int)$totalEmbudo,
             ];
 
-            // ============================================
-            // ACTIVIDADES RECIENTES
-            // ============================================
             $actividadesRecientes = [];
             $proximasActividades = [];
 
@@ -378,9 +343,6 @@ class LeadController extends Controller
                 Yii::warning('Error al cargar actividades recientes: ' . $e->getMessage());
             }
 
-            // ============================================
-            // PRÓXIMAS ACTIVIDADES
-            // ============================================
             try {
                 $statusPendiente = Status::find()->where(['status' => 'Pendiente'])->one();
                 if ($statusPendiente) {
@@ -426,9 +388,6 @@ class LeadController extends Controller
                 Yii::warning('Error al cargar cotizaciones pendientes: ' . $e->getMessage());
             }
 
-            // ============================================
-            // 🔥 PRÓXIMOS SEGUIMIENTOS (FECHA FUTURA)
-            // ============================================
             try {
                 $fechaHoy = date('Y-m-d');
 
@@ -574,9 +533,14 @@ class LeadController extends Controller
                 ]);
             }
 
+            // 🔥 DETECTAR SI ESTÁ EN PAPELERA
+            $idEliminado = $this->getStatusEliminadoId();
+            $esPapelera = ($idEliminado && $model->id_status == $idEliminado);
+
             return $this->renderPartial('_view_modal', [
-                'model' => $model,
-                'error' => null,
+                'model'       => $model,
+                'error'       => null,
+                'esPapelera'  => $esPapelera,
             ]);
 
         } catch (\Exception $e) {
@@ -617,9 +581,6 @@ class LeadController extends Controller
                 return $this->redirect(['index']);
             }
 
-            // ============================================
-            // 🔥 VERIFICACIÓN DE PERMISOS (relajada)
-            // ============================================
             $empresaId = Yii::$app->session->get('empresa_id');
             $accessError = $this->checkLeadAccess($model, $user, $empresaId);
 
@@ -634,6 +595,10 @@ class LeadController extends Controller
                 return $this->redirect(['index']);
             }
 
+            // 🔥 DETECTAR PAPELERA
+            $idEliminado = $this->getStatusEliminadoId();
+            $esPapelera = ($idEliminado && $model->id_status == $idEliminado);
+
             $returnUrl = Yii::$app->request->get('return', 'index');
 
             $statusList = Status::find()
@@ -642,29 +607,35 @@ class LeadController extends Controller
                 ->indexBy('id_status')
                 ->column();
 
-            // ============================================
-            // 🔥 PROCESAR POST
-            // ============================================
+            // 🔥 Si está en papelera y es modal → SOLO LECTURA
+            if ($esPapelera && ($isModal || $isAjax)) {
+                return $this->renderPartial('_update_modal', [
+                    'model' => $model,
+                    'returnUrl' => $returnUrl,
+                    'statusList' => $statusList,
+                    'estadosPermitidos' => $estadosPermitidos,
+                    'esPapelera' => true,
+                ]);
+            }
+
             if ($model->load(Yii::$app->request->post())) {
                 try {
                     if ($model->save()) {
-                        // 🔥 RESPUESTA PARA MODAL/AJAX
                         if ($isModal || $isAjax) {
                             return $this->renderPartial('_update_modal', [
                                 'model' => $model,
                                 'statusList' => $statusList,
                                 'estadosPermitidos' => $estadosPermitidos,
                                 'returnUrl' => $returnUrl,
+                                'esPapelera' => false,
                                 'success' => 'Lead actualizado exitosamente'
                             ]);
                         }
 
-                        // 🔥 RESPUESTA PARA VISTA COMPLETA
                         Yii::$app->session->setFlash('success', 'Lead actualizado exitosamente');
                         return $this->redirect(['view', 'id' => $model->id_lead]);
 
                     } else {
-                        // 🔥 ERROR DE VALIDACIÓN EN MODAL
                         if ($isModal || $isAjax) {
                             $errors = $model->getErrors();
                             $errorMessages = [];
@@ -677,6 +648,7 @@ class LeadController extends Controller
                                 'statusList' => $statusList,
                                 'estadosPermitidos' => $estadosPermitidos,
                                 'returnUrl' => $returnUrl,
+                                'esPapelera' => false,
                                 'error' => 'Error al actualizar:<br>' . implode('<br>', $errorMessages)
                             ]);
                         }
@@ -689,6 +661,7 @@ class LeadController extends Controller
                             'statusList' => $statusList,
                             'estadosPermitidos' => $estadosPermitidos,
                             'returnUrl' => $returnUrl,
+                            'esPapelera' => false,
                             'error' => 'Error al actualizar: ' . $e->getMessage()
                         ]);
                     }
@@ -696,15 +669,13 @@ class LeadController extends Controller
                 }
             }
 
-            // ============================================
-            // 🔥 RENDER INICIAL DEL FORMULARIO
-            // ============================================
             if ($isModal || $isAjax) {
                 return $this->renderPartial('_update_modal', [
                     'model' => $model,
                     'returnUrl' => $returnUrl,
                     'statusList' => $statusList,
                     'estadosPermitidos' => $estadosPermitidos,
+                    'esPapelera' => $esPapelera,
                 ]);
             }
 
@@ -794,9 +765,6 @@ class LeadController extends Controller
                 return $this->redirect(['index']);
             }
 
-            // ============================================
-            // 🔥 VERIFICACIÓN DE PERMISOS (relajada)
-            // ============================================
             $accessError = $this->checkLeadAccess($model, $user, $empresaId);
 
             if ($accessError !== null) {
@@ -824,7 +792,6 @@ class LeadController extends Controller
 
     // ============================================
     // MOVER A PAPELERA (CON ELIMINACIÓN EN CASCADA)
-    // Usa updateAll para evitar beforeSave de Quote
     // ============================================
     public function actionDelete($id)
     {
@@ -849,7 +816,6 @@ class LeadController extends Controller
                 return $this->redirect(['index']);
             }
 
-            // 🔥 VERIFICAR PERMISOS POR EMPRESA
             if ($user->isSuperAdmin()) {
                 if (!empty($empresaId) && $model->id_company != $empresaId) {
                     $transaction->rollBack();
@@ -862,7 +828,6 @@ class LeadController extends Controller
                 return $this->redirect(['index']);
             }
 
-            // 🔥 OBTENER ID DEL ESTADO "Eliminado"
             $idEliminado = $this->getStatusEliminadoId();
 
             if (!$idEliminado) {
@@ -877,9 +842,6 @@ class LeadController extends Controller
                 return $this->redirect(['index']);
             }
 
-            // ============================================
-            // 1️⃣ MOVER EL LEAD A "Eliminado"
-            // ============================================
             $model->id_status = $idEliminado;
             if (!$model->save(false)) {
                 $transaction->rollBack();
@@ -887,27 +849,16 @@ class LeadController extends Controller
                 return $this->redirect(['index']);
             }
 
-            // ============================================
-            // 2️⃣ ELIMINAR COTIZACIONES DEL LEAD (updateAll)
-            // updateAll NO dispara beforeSave → evita que
-            // el estado "Eliminado" sea sobrescrito por "Completado"
-            // ============================================
             $cotizacionesEliminadas = Quote::updateAll(
                 ['id_status' => $idEliminado],
                 ['id_lead' => $model->id_lead]
             );
 
-            // ============================================
-            // 3️⃣ ELIMINAR SEGUIMIENTOS DEL LEAD (updateAll)
-            // ============================================
             $seguimientosEliminados = SalesTracking::updateAll(
                 ['id_status' => $idEliminado],
                 ['id_lead' => $model->id_lead]
             );
 
-            // ============================================
-            // 4️⃣ ELIMINAR EVALUACIONES/REPORTES DEL LEAD (updateAll)
-            // ============================================
             $evaluacionesEliminadas = 0;
             try {
                 $evaluacionesEliminadas = Report::updateAll(
@@ -920,7 +871,6 @@ class LeadController extends Controller
 
             $transaction->commit();
 
-            // 🔥 MENSAJE INFORMATIVO
             $msg = 'Lead movido a la papelera.';
             if ($cotizacionesEliminadas > 0) {
                 $msg .= ' Se eliminaron ' . $cotizacionesEliminadas . ' cotización(es).';
@@ -945,7 +895,6 @@ class LeadController extends Controller
 
     // ============================================
     // RESTAURAR (CON RESTAURACIÓN EN CASCADA)
-    // Usa updateAll para evitar beforeSave
     // ============================================
     public function actionRestore($id)
     {
@@ -970,7 +919,6 @@ class LeadController extends Controller
                 return $this->redirect(['trash']);
             }
 
-            // 🔥 VERIFICAR PERMISOS
             if ($user->isSuperAdmin()) {
                 if (!empty($empresaId) && $model->id_company != $empresaId) {
                     $transaction->rollBack();
@@ -983,7 +931,6 @@ class LeadController extends Controller
                 return $this->redirect(['trash']);
             }
 
-            // 🔥 IDs DE ESTADOS
             $idEliminado = $this->getStatusEliminadoId();
             $idNuevo = $this->getStatusNuevoId();
             $idPendiente = $this->getStatusPendienteId();
@@ -1000,9 +947,6 @@ class LeadController extends Controller
                 return $this->redirect(['index']);
             }
 
-            // ============================================
-            // 1️⃣ RESTAURAR EL LEAD A "NUEVO"
-            // ============================================
             $model->id_status = $idNuevo;
             if (!$model->save(false)) {
                 $transaction->rollBack();
@@ -1010,9 +954,6 @@ class LeadController extends Controller
                 return $this->redirect(['trash']);
             }
 
-            // ============================================
-            // 2️⃣ RESTAURAR SEGUIMIENTOS (Eliminado → Pendiente)
-            // ============================================
             $seguimientosRestaurados = 0;
 
             if ($idPendiente) {
@@ -1022,9 +963,6 @@ class LeadController extends Controller
                 );
             }
 
-            // ============================================
-            // 3️⃣ RESTAURAR EVALUACIONES (Eliminado → Activo)
-            // ============================================
             $evaluacionesRestauradas = 0;
 
             if ($idActivo) {
@@ -1037,9 +975,6 @@ class LeadController extends Controller
                     Yii::warning('Error al restaurar reportes del lead ' . $model->id_lead . ': ' . $e->getMessage());
                 }
             }
-
-            // ⚠️ Las cotizaciones NO se restauran automáticamente
-            // (se quedan en "Eliminado" porque pudieron haberse cerrado como venta)
 
             $transaction->commit();
 
@@ -1154,7 +1089,6 @@ class LeadController extends Controller
 
                 $model->id_status = $idStatusNuevo;
 
-                // 🔥 Validar created_at
                 if (empty($model->created_at) || $model->created_at === '0000-00-00') {
                     $model->created_at = date('Y-m-d');
                 }
@@ -1246,9 +1180,6 @@ class LeadController extends Controller
                 return $this->redirect(['index']);
             }
 
-            // ============================================
-            // 🔥 VERIFICACIÓN DE PERMISOS (relajada)
-            // ============================================
             $accessError = $this->checkLeadAccess($model, $user, $empresaId);
 
             if ($accessError !== null) {
@@ -1256,9 +1187,6 @@ class LeadController extends Controller
                 return $this->redirect(['index']);
             }
 
-            // ============================================
-            // 🔥 CARGAR EVALUACIONES (con fallback seguro)
-            // ============================================
             $evaluaciones = [];
             $totalEvaluaciones = 0;
 
@@ -1275,9 +1203,6 @@ class LeadController extends Controller
                 $totalEvaluaciones = 0;
             }
 
-            // ============================================
-            // 🔥 CARGAR SEGUIMIENTOS (con fallback seguro)
-            // ============================================
             $trackings = [];
             $totalTrackings = 0;
 
@@ -1292,9 +1217,6 @@ class LeadController extends Controller
                 $totalTrackings = 0;
             }
 
-            // ============================================
-            // 🔥 CARGAR COTIZACIONES (con fallback seguro)
-            // ============================================
             $quotes = [];
             $totalQuotes = 0;
 
@@ -1309,9 +1231,6 @@ class LeadController extends Controller
                 $totalQuotes = 0;
             }
 
-            // ============================================
-            // 🔥 DATOS ADICIONALES
-            // ============================================
             $agentName = method_exists($model, 'getAgentName') ? $model->getAgentName() : 'Sin asignar';
             $statusName = method_exists($model, 'getStatusName') ? $model->getStatusName() : 'Sin Estado';
             $statusIcon = method_exists($model, 'getStatusIcon') ? $model->getStatusIcon() : 'fa-circle';
