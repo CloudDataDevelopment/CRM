@@ -28,8 +28,8 @@ class SiteController extends Controller
                 'class' => AccessControl::class,
                 'rules' => [
                     [
-                        // 🔥 'privacy' es público (sin login)
-                        'actions' => ['login', 'error', 'privacy'],
+                        // 🔥 'privacy' y 'terms' son públicos (sin login)
+                        'actions' => ['login', 'error', 'privacy', 'terms'],
                         'allow' => true,
                     ],
                     [
@@ -77,6 +77,16 @@ class SiteController extends Controller
         // 🔥 Layout mínimo sin sidebar ni topbar del CRM
         $this->layout = 'main-privacy';
         return $this->render('privacy');
+    }
+
+    // ============================================
+    // 🔥 TÉRMINOS Y CONDICIONES (público)
+    // ============================================
+    public function actionTerms()
+    {
+        // 🔥 Layout mínimo sin sidebar ni topbar del CRM
+        $this->layout = 'main-privacy';
+        return $this->render('terms');
     }
 
     // ============================================
