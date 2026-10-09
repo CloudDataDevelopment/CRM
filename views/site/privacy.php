@@ -3,10 +3,10 @@
 use yii\helpers\Html;
 use yii\helpers\Url;
 
-$this->title = 'Términos y Condiciones';
+$this->title = 'Aviso de Privacidad';
 $this->params['breadcrumbs'][] = $this->title;
 
-// 🔥 CSS específico del aviso/términos (usa tu archivo de estilos)
+// 🔥 CSS específico del aviso (usa tu archivo aviso.css)
 $this->registerCssFile('@web/css/aviso.css', [
     'depends' => [\yii\bootstrap5\BootstrapAsset::class],
     'position' => \yii\web\View::POS_HEAD,
@@ -20,7 +20,7 @@ $this->registerCssFile('https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font
 // Favicon
 $this->registerLinkTag(['rel' => 'icon', 'type' => 'image/jpeg', 'href' => Url::to('@web/img/icon4.jpg.jpg')]);
 
-// 🔥 Body class para aplicar estilos de fondo
+// 🔥 Body class para que apliquen los estilos de fondo gris
 $this->registerJs("document.body.classList.add('blog-details-page');", \yii\web\View::POS_READY);
 ?>
 
@@ -31,7 +31,7 @@ $this->registerJs("document.body.classList.add('blog-details-page');", \yii\web\
         <div class="container-fluid container-xl position-relative d-flex align-items-center justify-content-between">
 
             <a href="<?= Url::home() ?>" class="logo d-flex align-items-center">
-                <h1 class="sitename">Términos y Condiciones.</h1>
+                <h1 class="sitename">Aviso de privacidad.</h1>
             </a>
 
             <nav id="navmenu" class="navmenu">
@@ -49,7 +49,7 @@ $this->registerJs("document.body.classList.add('blog-details-page');", \yii\web\
                 <nav class="breadcrumbs">
                     <ol>
                         <li><a href="<?= Url::home() ?>">Inicio</a></li>
-                        <li class="current">Términos y Condiciones</li>
+                        <li class="current">Aviso de privacidad</li>
                     </ol>
                 </nav>
             </div>
@@ -65,62 +65,67 @@ $this->registerJs("document.body.classList.add('blog-details-page');", \yii\web\
 
                             <article class="article">
 
-                                <h3 class="title">TÉRMINOS Y CONDICIONES DE USO DEL CRM PLOTYX</h3>
+                                <h3 class="title">AVISO DE PRIVACIDAD INTEGRAL</h3>
 
                                 <div class="meta-top"></div>
 
                                 <div class="content">
 
                                     <p>
-                                        El presente documento establece los Términos y Condiciones que regulan el acceso, uso y contratación de la plataforma <strong>CRM PLOTYX</strong> (en adelante, el "Servicio"), operada y proporcionada por <strong>PLOTYX</strong>. Al registrarse, acceder o utilizar el CRM, el usuario (en adelante, el "Cliente" o "Usuario") acepta de manera expresa y sin reservas estar vinculado por estos términos. Si no está de acuerdo con ellos, deberá abstenerse de utilizar la plataforma.
+                                        El presente Aviso de Privacidad son conforme a los principios de licitud, consentimiento, información, calidad, finalidad, lealtad, proporcionalidad y
+                                        responsabilidad. Por lo que PLOTYX, es el responsable del tratamiento de los Datos Personales que se recaban, los cuales serán protegidos de
+                                        conformidad a lo dispuesto por la Ley Federal de Protección de Datos Personales en Posesión de los Particulares; y demás normatividad que resulte aplicable.
                                     </p>
 
-                                    <h5>1. OBJETO DEL SERVICIO</h5>
+                                    <h5>LOS DATOS PERSONALES QUE SE RECABAN Y PARA SU FINALIDAD</h5>
+
                                     <p>
-                                        PLOTYX proporciona un sistema de Gestión de Relaciones con Clientes (CRM) basado en la nube, diseñado para ayudar a las empresas a administrar sus prospectos, ventas, interacciones comerciales y flujos de trabajo internos de manera automatizada y organizada.
+                                        Los datos personales que se recaban pueden comprender nombre completo, domicilio, número de celular y correo; así como INE, RFC, acta constitutiva, CURP.
+                                        Los cuales serán utilizados con la finalidad de realizar el registro para brindar el servicio de Tecnologías de Información y Comunicación (IT).
+                                        La información que se reúna permitirá proporcionar el servicio al cliente, para efectuar o gestionar el servicio que este adquiera.
                                     </p>
 
-                                    <h5>2. REGISTRO Y CUENTA DE USUARIO</h5>
+                                    <h5>DE LOS MEDIOS PARA EJERCER LOS DERECHOS DE ACCESO, RECTIFICACIÓN, CANCELACIÓN U OPOSICIÓN</h5>
+
                                     <p>
-                                        A. Para utilizar el CRM, el Usuario deberá crear una cuenta proporcionando información veraz, completa y actualizada.<br>
-                                        B. El Usuario es el único responsable de mantener la confidencialidad de sus credenciales de acceso (nombre de usuario y contraseña) y de todas las actividades que ocurran bajo su cuenta.<br>
-                                        C. PLOTYX se reserva el derecho de suspender o cancelar cuentas que presenten información falsa, fraudulenta o que violen los presentes términos.
+                                        El titular de los datos personales podrá ejercer sus derechos de Acceso, Rectificación, Cancelación u Oposición (ARCO), mediante solicitud correspondiente
+                                        de manera presencial en las oficinas de PLOTYX. Dicha solicitud deberá ser de acuerdo a lo estipulado en la Ley Federal de Protección de Datos
+                                        Personales en Posesión de los Particulares.
                                     </p>
 
-                                    <h5>3. USO ACEPTEBLE Y RESTRICCIONES</h5>
+                                    <h5>DE LAS TRANSFERENCIAS DE DATOS QUE SE EFECTÚEN</h5>
+
                                     <p>
-                                        El Cliente se compromete a utilizar el CRM exclusivamente para fines comerciales lícitos. Queda estrictamente prohibido:<br>
-                                        • Utilizar la plataforma para el envío masivo de correo no solicitado (Spam) o campañas de marketing deshonestas.<br>
-                                        • Almacenar o transmitir contenido ilegal, malicioso, difamatorio o que infrinja derechos de terceros.<br>
-                                        • Intentar vulnerar la seguridad, realizar ingeniería inversa, alterar o dañar la infraestructura tecnológica de PLOTYX.
+                                        Se le informa que no se realizarán transferencias de datos personales ni tratamientos que requieran el consentimiento del titular de los datos personales.
                                     </p>
 
-                                    <h5>4. PROPIEDAD DE LOS DATOS Y PRIVACIDAD</h5>
+                                    <h5>DE LOS DERECHOS DE LOS TITULARES DE DATOS PERSONALES</h5>
+
                                     <p>
-                                        A. <strong>Datos del Cliente:</strong> Todos los datos, bases de contactos, leads e información comercial que el Cliente cargue o procese a través del CRM son de su exclusiva propiedad.<br>
-                                        B. PLOTYX no utilizará los datos comerciales del Cliente para fines distintos a la prestación y mejora del servicio.<br>
-                                        C. El tratamiento de los datos personales recopilados se regirá conforme a nuestro <?= Html::a('Aviso de Privacidad', ['site/privacy']) ?>, el cual cumple con la normatividad aplicable.
+                                        A. El titular de los datos personales podrá ejercer los derechos de acceso, rectificación, cancelación y oposición.
+                                        El ejercicio de cualquiera de ellos no es requisito previo ni impide el ejercicio de otro. Los datos personales recabados por PLOTYX son resguardados de tal manera que permite el ejercicio sin dilación de estos derechos. <br>
+
+                                        B. Además, el titular de los datos personales titulares tiene derecho a acceder a sus datos personales que obren en poder del responsable,
+                                        así como conocer el presente Aviso de Privacidad al que está sujeto el tratamiento.<br>
+
+                                        C. El titular de los datos tendrá derecho a rectificarlos cuando sean inexactos o incompletos.
+
+                                        D. El titular tendrá en todo momento el derecho a cancelar sus datos personales.
+
+                                        E. La cancelación de datos personales dará lugar a un periodo de bloqueo tras el cual se procederá a la supresión del dato.
+                                        PLOTYX, podrá conservarlos exclusivamente para efectos de las responsabilidades nacidas del tratamiento.<br>
+
+                                        F. El periodo de bloqueo será equivalente al plazo de prescripción de las acciones derivadas de la relación jurídica que funda el tratamiento.
+                                        Una vez cancelado el dato se dará aviso al titular.
                                     </p>
 
-                                    <h5>5. DISPONIBILIDAD Y SOPORTE</h5>
-                                    <p>
-                                        A. PLOTYX realizará sus mejores esfuerzos técnicos para garantizar la disponibilidad continua de la plataforma (99.9% de uptime estimado), exceptuando ventanas de mantenimiento programado o fallas de fuerza mayor.<br>
-                                        B. El soporte técnico se brindará en los horarios y canales establecidos por PLOTYX (Lunes a Viernes de 9:00 a 18:00 horas).
-                                    </p>
+                                    <h5>DEL PROCEDIMIENTO Y MEDIO POR EL CUAL EL RESPONSABLE COMUNICARÁ A LOS TITULARES DE CAMBIOS AL AVISO DE PRIVACIDAD</h5>
 
-                                    <h5>6. LIMITACIÓN DE RESPONSABILIDAD</h5>
                                     <p>
-                                        PLOTYX no se hace responsable por pérdidas de beneficios comerciales, interrupciones de negocio o daños indirectos derivados del uso o la imposibilidad de uso temporal del CRM, ni por fallas en conexiones de internet atribuibles al proveedor del Cliente. El Cliente es responsable de realizar respaldos periódicos de su información crítica.
-                                    </p>
+                                        En caso que exista cambios al presente Aviso de Privacidad, se hará de su conocimiento mediante el sitio de internet oficial de PLOTYX, en la sección de Aviso de Privacidad en el cual podrá consultarlo, o bien, en las oficinas de PLOTYX<br>
 
-                                    <h5>7. MODIFICACIONES A LOS TÉRMINOS</h5>
-                                    <p>
-                                        PLOTYX se reserva el derecho de modificar estos Términos y Condiciones en cualquier momento. Las modificaciones entrarán en vigor a partir de su publicación en el sitio web oficial o notificación dentro de la plataforma. El uso continuado del CRM constituirá la aceptación de los nuevos términos.
-                                    </p>
-
-                                    <h5>8. CONTACTO</h5>
-                                    <p>
-                                        Para cualquier duda, aclaración o soporte relacionado con estos Términos y Condiciones, puede ponerse en contacto con nosotros a través de nuestro correo electrónico oficial: <strong>contacto@plotyx.com</strong> o en nuestras oficinas ubicadas en Cancún, Quintana Roo.
+                                        El aviso de privacidad se pone a disposición de los titulares de los datos personales de manera presencial en las oficinas de PLOTYX, S.A.
+                                        de así como en el sitio de internet con dirección. www.plotyx.com, plotyx.com. En la sección de Aviso de Privacidad.
                                     </p>
 
                                 </div>
