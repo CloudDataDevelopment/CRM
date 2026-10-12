@@ -82,7 +82,8 @@ $config = [
                 'logout' => 'site/logout',
                 'register' => 'site/register',
                 'privacy' => 'site/privacy',   // 🔥 AVISO DE PRIVACIDAD
-                'terms' => 'site/terms',       // 🔥 TÉRMINOS Y CONDICIONES
+                'terms' => 'site/terms', 
+                'docs' => 'site/docs',         
                 'dashboard' => 'dashboard/index',
 
                 // ============================================
@@ -202,7 +203,7 @@ $config = [
             [
                 'allow' => true,
                 // 🔥 'privacy' y 'terms' agregados para acceso sin login
-                'actions' => ['login', 'register', 'error', 'privacy', 'terms'],
+                'actions' => ['login', 'register', 'error', 'privacy', 'terms', 'docs'],
                 'roles' => ['?'],
             ],
             [

@@ -29,7 +29,7 @@ class SiteController extends Controller
                 'rules' => [
                     [
                         // 🔥 'privacy' y 'terms' son públicos (sin login)
-                        'actions' => ['login', 'error', 'privacy', 'terms'],
+                        'actions' => ['login', 'error', 'privacy', 'terms', 'docs'],
                         'allow' => true,
                     ],
                     [
@@ -59,6 +59,14 @@ class SiteController extends Controller
             ],
         ];
     }
+    // ============================================
+// 🔥 DOCUMENTACIÓN (público)
+// ============================================
+public function actionDocs()
+{
+    $this->layout = 'main-privacy';
+    return $this->render('docs');
+}
 
     public function actions()
     {

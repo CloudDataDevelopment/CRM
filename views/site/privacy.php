@@ -184,11 +184,11 @@ $this->registerJs("document.body.classList.add('blog-details-page');", \yii\web\
             <!-- Créditos -->
             <div class="footer-bottom">
                 <p>
-                    © Copyright <strong>Clouddatapage</strong> · Todos los derechos reservados
+                    © Copyright <strong>Clouddatadevelopment</strong> · Todos los derechos reservados
                 </p>
                 <p>
                     Desarrollado por
-                    <a href="https://clouddatapage.com/" target="_blank">Clouddatapage</a>
+                    <a href="https://clouddatadevelopment.com/" target="_blank">Clouddatadevelopment</a>
                 </p>
                 <p>
                     <?= Html::a('Aviso de Privacidad', ['site/privacy']) ?>
