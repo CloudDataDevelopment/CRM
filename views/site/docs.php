@@ -164,7 +164,7 @@ $documentacion = [
                 'titulo'   => 'Guardar registros',
                 'desc'     => 'Guarda los registros de tus leads ',
                 'url'      => 'https://youtu.be/E3SzAkViH2k',  // 🔥 Ejemplo Vimeo
-                'tipo'     => 'vimeo',
+                'tipo'     => 'youtube',
                 'duracion' => '0:41',
                 'tags'     => ['Registros'],
             ],
