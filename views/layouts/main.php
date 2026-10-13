@@ -295,17 +295,24 @@ $this->beginPage();
                 <!-- ADMINISTRACIÓN (DESPLEGABLE)                 -->
                 <!-- ============================================ -->
                 <?php if ($isAdminUser || $isSuperAdmin): ?>
+                    <?php
+                    // 🔥 Detectar si algún item del submenú admin está activo
+                    $isAdminMenuActive =
+                        (Yii::$app->controller->id == 'user-management') ||
+                        (Yii::$app->controller->id == 'site' && Yii::$app->controller->action->id == 'register') ||
+                        (Yii::$app->controller->id == 'site' && Yii::$app->controller->action->id == 'docs');
+                    ?>
                     <li class="nav-item searchable-item">
-                        <a class="nav-link <?= (Yii::$app->controller->id == 'user-management') ? 'active' : '' ?>"
+                        <a class="nav-link <?= $isAdminMenuActive ? 'active' : '' ?>"
                            data-bs-toggle="collapse"
                            href="#adminMenu"
                            role="button"
-                           aria-expanded="<?= (Yii::$app->controller->id == 'user-management') ? 'true' : 'false' ?>"
+                           aria-expanded="<?= $isAdminMenuActive ? 'true' : 'false' ?>"
                            aria-controls="adminMenu">
                             <i class="fas fa-cog"></i> <span>Administración</span>
                             <i class="fas fa-chevron-down float-end" style="font-size: 0.7rem; margin-top: 5px;"></i>
                         </a>
-                        <div class="collapse <?= (Yii::$app->controller->id == 'user-management') ? 'show' : '' ?>" id="adminMenu">
+                        <div class="collapse <?= $isAdminMenuActive ? 'show' : '' ?>" id="adminMenu">
                             <ul class="nav flex-column ms-3">
                                 <li class="nav-item searchable-item">
                                     <?= Html::a('<i class="fas fa-users-cog"></i> <span>Gestión de Usuarios</span>', ['/user-management/index'], [
@@ -320,6 +327,14 @@ $this->beginPage();
                                         ]) ?>
                                     </li>
                                 <?php endif; ?>
+
+                                <!-- 🔥 NUEVO: Documentación -->
+                                <li class="nav-item searchable-item">
+                                    <?= Html::a('<i class="fas fa-book"></i> <span>Documentación</span>', ['/site/docs'], [
+                                        'class' => 'nav-link' . (Yii::$app->controller->id == 'site' && Yii::$app->controller->action->id == 'docs' ? ' active' : ''),
+                                        'target' => '_blank',
+                                    ]) ?>
+                                </li>
                             </ul>
                         </div>
                     </li>

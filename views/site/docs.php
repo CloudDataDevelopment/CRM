@@ -172,65 +172,12 @@ $documentacion = [
         ],
     ],
 
-    // =======================================================
-    // BLOQUE 3: COTIZACIONES
-    // =======================================================
-    [
-        'titulo' => 'Cotizaciones y Ventas',
-        'icono'  => 'bi-cash-coin',
-        'color'  => '#1cc88a',
-        'videos' => [
 
-            [
-                'titulo'   => 'Crear una cotización',
-                'desc'     => 'Genera cotizaciones profesionales con montos y pagos.',
-                'url'      => '',  // 🔥 AQUÍ TU LINK
-                'tipo'     => 'youtube',
-                'duracion' => '',
-                'tags'     => ['Cotización', 'Ventas'],
-            ],
-
-            [
-                'titulo'   => 'Registrar pagos y saldos',
-                'desc'     => 'Aprende a registrar abonos y actualizar el saldo pendiente.',
-                'url'      => '',  // 🔥 AQUÍ TU LINK
-                'tipo'     => 'youtube',
-                'duracion' => '',
-                'tags'     => ['Pagos', 'Saldos'],
-            ],
-
-        ],
-    ],
 
     // =======================================================
     // BLOQUE 4: REPORTES
     // =======================================================
-    [
-        'titulo' => 'Reportes y Dashboard',
-        'icono'  => 'bi-bar-chart',
-        'color'  => '#f6c23e',
-        'videos' => [
-
-            [
-                'titulo'   => 'Interpretar el dashboard',
-                'desc'     => 'Cómo leer las métricas, metas y embudo de ventas.',
-                'url'      => '',  // 🔥 AQUÍ TU LINK
-                'tipo'     => 'youtube',
-                'duracion' => '',
-                'tags'     => ['Dashboard', 'Métricas'],
-            ],
-
-            [
-                'titulo'   => 'Generar reporte PDF',
-                'desc'     => 'Exporta la información de cualquier módulo a PDF.',
-                'url'      => '',  // 🔥 AQUÍ TU LINK
-                'tipo'     => 'youtube',
-                'duracion' => '',
-                'tags'     => ['Reportes', 'PDF'],
-            ],
-
-        ],
-    ],
+  
 
     // =======================================================
     // 🔥 AGREGA MÁS BLOQUES AQUÍ SI NECESITAS
@@ -263,10 +210,6 @@ $documentacion = [
             <a href="<?= Url::home() ?>" class="logo d-flex align-items-center">
                 <h1 class="sitename">Documentación.</h1>
             </a>
-
-            <nav id="navmenu" class="navmenu">
-                <a href="<?= Url::home() ?>" class="btn-getstarted">Volver al Inicio</a>
-            </nav>
 
         </div>
     </header>
