@@ -32,10 +32,10 @@ $config = [
         'session' => [
             'class' => 'yii\web\Session',
             'cookieParams' => [
-                'lifetime' => 1800, // 30 minutos
+                'lifetime' => 60, // ⏱️ PRUEBAS: 1 minuto (antes 1800)
                 'httponly' => true,
             ],
-            'timeout' => 1800, // 30 minutos
+            'timeout' => 60, // ⏱️ PRUEBAS: 1 minuto (antes 1800)
             'useCookies' => true,
         ],
         'cache' => [
@@ -44,8 +44,14 @@ $config = [
         'user' => [
             'identityClass' => 'app\models\User',
             'enableAutoLogin' => true,
-            'authTimeout' => 1800, // 30 minutos
+            'authTimeout' => 60, // ⏱️ PRUEBAS: 1 minuto (antes 1800)
             'loginUrl' => ['site/login'],
+            'identityCookie' => [
+                'name' => '_identity',
+                'httpOnly' => true,
+                // ⚠️ NO poner 'lifetime' aquí. Yii2 calcula la expiración
+                // automáticamente a partir de 'authTimeout'.
+            ],
         ],
         'errorHandler' => [
             'errorAction' => 'site/error',
