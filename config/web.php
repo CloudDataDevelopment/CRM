@@ -67,7 +67,7 @@ $config = [
         'db' => $db,
 
         // ============================================
-        // 🔥 URL MANAGER CORREGIDO
+        // 🔥 URL MANAGER
         // ============================================
         'urlManager' => [
             'enablePrettyUrl' => true,
@@ -82,8 +82,8 @@ $config = [
                 'logout' => 'site/logout',
                 'register' => 'site/register',
                 'privacy' => 'site/privacy',   // 🔥 AVISO DE PRIVACIDAD
-                'terms' => 'site/terms', 
-                'docs' => 'site/docs',         
+                'terms' => 'site/terms',       // 🔥 TÉRMINOS Y CONDICIONES
+                'docs' => 'site/docs',         // 🔥 DOCUMENTACIÓN
                 'dashboard' => 'dashboard/index',
 
                 // ============================================
@@ -202,7 +202,7 @@ $config = [
         'rules' => [
             [
                 'allow' => true,
-                // 🔥 'privacy' y 'terms' agregados para acceso sin login
+                // 🔥 'privacy', 'terms' y 'docs' son públicos
                 'actions' => ['login', 'register', 'error', 'privacy', 'terms', 'docs'],
                 'roles' => ['?'],
             ],

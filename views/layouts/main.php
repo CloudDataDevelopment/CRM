@@ -48,7 +48,32 @@ $this->registerMetaTag([
     'content' => Yii::$app->session->get('last_activity', time())
 ]);
 
-// Scripts externos
+// ============================================
+// 🔥 SESSION TIMEOUT - Cierre automático por inactividad
+// ============================================
+if (!Yii::$app->user->isGuest) {
+    // 🔥 Configuración inyectada al JS
+    $sessionConfig = [
+        'timeoutSeconds' => (int)Yii::$app->session->timeout, // 🔥 toma el valor de config/web.php
+        'logoutUrl'      => Url::to(['/site/logout']),
+        'loginUrl'       => Url::to(['/site/login']),
+    ];
+    $this->registerJs(
+        'window.SESSION_CONFIG = ' . json_encode($sessionConfig) . ';',
+        \yii\web\View::POS_HEAD
+    );
+
+    // 🔥 Registrar el archivo JS si existe
+    $sessionTimeoutJs = Yii::getAlias('@webroot/js/session-timeout.js');
+    if (file_exists($sessionTimeoutJs)) {
+        $this->registerJsFile('@web/js/session-timeout.js', [
+            'depends'  => [\yii\web\JqueryAsset::class],
+            'position' => \yii\web\View::POS_END,
+        ]);
+    }
+}
+
+// Scripts externos (los que ya tenías)
 $jsPath = Yii::getAlias('@webroot/js/session-timeout.js');
 if (file_exists($jsPath)) {
     $this->registerJsFile('@web/js/session-timeout.js', [
@@ -177,7 +202,6 @@ $this->beginPage();
                     </a>
                     <div class="collapse <?= $isLeadMenuActive ? 'show' : '' ?>" id="leadsAdminMenu">
                         <ul class="nav flex-column ms-3">
-                            <!-- Crear Leads -->
                             <li class="nav-item searchable-item">
                                 <?= Html::a('<i class="fas fa-plus-circle"></i> <span>Crear Leads</span>', ['/lead/create'], [
                                     'class' => 'nav-link' . (
@@ -187,7 +211,6 @@ $this->beginPage();
                                 ]) ?>
                             </li>
 
-                            <!-- Asignación de Leads (solo admin) -->
                             <?php if ($isAdminUser): ?>
                                 <li class="nav-item searchable-item">
                                     <?= Html::a('<i class="fas fa-user-check"></i> <span>Asignación de Leads</span>', ['/lead-assign/index'], [
@@ -196,7 +219,6 @@ $this->beginPage();
                                 </li>
                             <?php endif; ?>
 
-                            <!-- Gestor de Leads -->
                             <li class="nav-item searchable-item">
                                 <?= Html::a('<i class="fas fa-users"></i> <span>Gestor de Leads</span>', ['/lead/index'], [
                                     'class' => 'nav-link' . (
@@ -205,14 +227,6 @@ $this->beginPage();
                                     )
                                 ]) ?>
                             </li>
-
-<?php /*
-<li class="nav-item searchable-item">
-    <?= Html::a('<i class="fas fa-chart-bar"></i> <span>Evaluaciones</span>', ['/report/index'], [
-        'class' => 'nav-link' . (Yii::$app->controller->id == 'report' ? ' active' : '')
-    ]) ?>
-</li>
-*/ ?>
                         </ul>
                     </div>
                 </li>
@@ -319,7 +333,6 @@ $this->beginPage();
                                         'class' => 'nav-link' . (Yii::$app->controller->id == 'user-management' ? ' active' : '')
                                     ]) ?>
                                 </li>
-                                <?php /* 🔥 Solo SuperAdmin puede registrar usuarios */ ?>
                                 <?php if ($isSuperAdmin): ?>
                                     <li class="nav-item searchable-item">
                                         <?= Html::a('<i class="fas fa-user-plus"></i> <span>Registrar Usuario</span>', ['/site/register'], [

@@ -60,7 +60,7 @@ $documentacion = [
             [
                 'titulo'   => 'Cómo iniciar sesión',
                 'desc'     => 'Aprende a acceder con tus credenciales y recuperar contraseña.',
-                'url'      => 'https://youtu.be/W8ulZ_iWOqM',  // 🔥 AQUÍ TU LINK
+                'url'      => 'https://youtu.be/W8ulZ_iWOqM',  
                 'tipo'     => 'youtube',
                 'duracion' => '0:56',
                 'tags'     => ['Login', 'Seguridad'],
@@ -80,7 +80,7 @@ $documentacion = [
             [
                 'titulo'   => 'Introducción al dashboard',
                 'desc'     => 'Conoce la interfaz del dashboard y las funciones principales.',
-                'url'      => 'https://youtu.be/pSfI8WdmacI',  // 🔥 AQUÍ TU LINK
+                'url'      => 'https://youtu.be/pSfI8WdmacI',  
                 'tipo'     => 'youtube',
                 'duracion' => '0:40',
                 'tags'     => ['Introducción', 'Básico'],
@@ -89,7 +89,7 @@ $documentacion = [
             [
                 'titulo'   => 'Ventas',
                 'desc'     => 'Conoce las funcionalidades de ventas en el dashboard.',
-                'url'      => 'https://youtu.be/mmvs7d9d7NU',  // 🔥 AQUÍ TU LINK
+                'url'      => 'https://youtu.be/mmvs7d9d7NU',  
                 'tipo'     => 'youtube',
                 'duracion' => '0:30',
                 'tags'     => ['Ventas', 'Dashboard'],
@@ -98,7 +98,7 @@ $documentacion = [
             [
                 'titulo'   => 'Actividades',
                 'desc'     => 'Aprende sobre las actividades en el dashboard',
-                'url'      => 'https://youtu.be/mmvs7d9d7NU',  // 🔥 AQUÍ TU LINK
+                'url'      => 'https://youtu.be/mmvs7d9d7NU',  
                 'tipo'     => 'youtube',
                 'duracion' => '0:35',
                 'tags'     => ['Actividades'],
@@ -106,7 +106,7 @@ $documentacion = [
             [
                 'titulo'   => 'Leads por estado',
                 'desc'     => 'Conoce los estados de tus leads',
-                'url'      => 'https://youtu.be/tbEJoKbbbJE',  // 🔥 AQUÍ TU LINK
+                'url'      => 'https://youtu.be/tbEJoKbbbJE',  
                 'tipo'     => 'youtube',
                 'duracion' => '0:39',
                 'tags'     => ['Actividades'],
@@ -114,7 +114,7 @@ $documentacion = [
             [
                 'titulo'   => 'Metas y utilidad',
                 'desc'     => 'Ajusta tus metas y tulidades',
-                'url'      => 'https://youtu.be/rPD0xQ7cWYs',  // 🔥 AQUÍ TU LINK
+                'url'      => 'https://youtu.be/rPD0xQ7cWYs',  
                 'tipo'     => 'youtube',
                 'duracion' => '0:58',
                 'tags'     => ['Actividades'],
@@ -122,7 +122,7 @@ $documentacion = [
             [
                 'titulo'   => 'Resultados',
                 'desc'     => 'Conoce los resultados de las ventas',
-                'url'      => 'https://youtu.be/rPD0xQ7cWYs',  // 🔥 AQUÍ TU LINK
+                'url'      => 'https://youtu.be/rPD0xQ7cWYs',  
                 'tipo'     => 'youtube',
                 'duracion' => '0:37',
                 'tags'     => ['Actividades'],
@@ -145,7 +145,7 @@ $documentacion = [
             [
                 'titulo'   => 'Crear un nuevo lead',
                 'desc'     => 'Registra un lead paso a paso.',
-                'url'      => 'https://youtu.be/xzzfKFxCxrA',  // 🔥 AQUÍ TU LINK
+                'url'      => 'https://youtu.be/xzzfKFxCxrA',  
                 'tipo'     => 'youtube',
                 'duracion' => '1:08',
                 'tags'     => ['Leads', 'Registro'],
@@ -154,7 +154,7 @@ $documentacion = [
             [
                 'titulo'   => 'Asignación de leads',
                 'desc'     => 'Asigna múltiples leads a un agente en segundos.',
-                'url'      => 'https://youtu.be/2hElz3km7yE',  // 🔥 AQUÍ TU LINK
+                'url'      => 'https://youtu.be/2hElz3km7yE',  
                 'tipo'     => 'youtube',
                 'duracion' => '0:50',
                 'tags'     => ['Asignación', 'Productividad'],
